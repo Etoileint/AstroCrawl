@@ -1,0 +1,7 @@
+include README.md
+include pyproject.toml
+include LICENSE
+include .env.example
+recursive-include assets *
+recursive-include astrocrawl/rules *.json
+recursive-include astrocrawl/rules *.txt

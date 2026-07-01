@@ -1,0 +1,56 @@
+# ── Python ──
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+*.egg
+dist/
+build/
+*.so
+*.manifest
+
+# ── Virtual environments ──
+.venv/
+venv/
+env/
+*.conda/
+
+# ── Testing & coverage ──
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+.tox/
+
+# ── IDE ──
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ── OS ──
+.DS_Store
+Thumbs.db
+
+# ── Project-specific ──
+*.db
+*.db-journal
+*.db-wal
+crawler_output.jsonl
+crawler_output.report.json
+history/
+
+# ── Build artifacts ──
+nuitka-crash-report.xml
+err_record.txt
+QtProject.conf
+errors/
+scripts/
+
+# ── Environment / secrets ──
+.env
+.env.local
+*.local.toml

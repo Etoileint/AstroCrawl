@@ -1,0 +1,31 @@
+repos:
+  - repo: local
+    hooks:
+      - id: ruff-lint
+        name: ruff-lint
+        entry: ruff check --fix
+        language: system
+        types: [python]
+      - id: ruff-fmt
+        name: ruff-fmt
+        entry: ruff format
+        language: system
+        types: [python]
+      - id: i18n-check
+        name: i18n-check
+        entry: python scripts/check_i18n.py
+        language: system
+        types: [python]
+        files: ^astrocrawl/
+      - id: i18n-ts-dicts
+        name: i18n-ts-dicts
+        entry: python scripts/check_ts_dicts.py astrocrawl/gui/translations/astrocrawl_gui_zh_CN.ts
+        language: system
+        files: ^astrocrawl/gui/translations/.*\.ts$
+        pass_filenames: false
+      - id: i18n-qm-fresh
+        name: i18n-qm-fresh
+        entry: python scripts/check_qm_fresh.py
+        language: system
+        files: ^astrocrawl/gui/translations/
+        pass_filenames: false

@@ -1,0 +1,145 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install ruff
+
+      - name: ruff format (check)
+        run: ruff format --check .
+
+      - name: ruff check
+        run: ruff check .
+
+      - name: i18n hardcoded string check (中英文双层)
+        run: find astrocrawl/gui astrocrawl/cli -name '*.py' | xargs python scripts/check_i18n.py
+
+      - name: Install Qt tools (lupdate6)
+        run: |
+          pip install PySide6
+          # PySide6 pip wheel 不保证暴露 lupdate6 — 直接从系统包管理器安装
+          sudo apt-get update -qq
+          # 尝试多个可能的包名
+          for pkg in qt6-tools-dev qttools6-dev qt6-l10n-tools libqt6linguist6-dev; do
+            if apt-cache show "$pkg" &>/dev/null; then
+              sudo apt-get install -y -qq "$pkg" && break
+            fi
+          done
+          # 确认可用并导出路径 — 多个可能的二进制名和路径
+          LU=""
+          for cand in lupdate6 lupdate-pro6 lupdate lupdate-qt6; do
+            LU=$(command -v "$cand" 2>/dev/null) && break
+          done
+          if [ -z "$LU" ]; then
+            # 也可能在 /usr/lib/qt6/bin/ 下
+            for cand in /usr/lib/qt6/bin/lupdate6 /usr/lib/qt6/bin/lupdate; do
+              [ -x "$cand" ] && LU="$cand" && break
+            done
+          fi
+          if [ -z "$LU" ]; then
+            echo "::error::Cannot find lupdate binary after installing packages"
+            echo "Installed packages:"
+            dpkg -l | grep -i qt6.*tool | awk '{print $2}'
+            echo "Searching for lupdate in system:"
+            find /usr -name 'lupdate*' -type f 2>/dev/null || true
+            exit 1
+          fi
+          echo "LUPD_BIN=$LU" >> $GITHUB_ENV
+          # lrelease — same dir as lupdate
+          LR=$(dirname "$LU")/lrelease
+          [ -x "$LR" ] || LR=$(command -v lrelease6 2>/dev/null) || LR=$(command -v lrelease 2>/dev/null)
+          echo "LREL_BIN=$LR" >> $GITHUB_ENV
+
+      - name: i18n TS sanity — no vanished/unfinished in committed file
+        if: always()
+        run: |
+          TS_FILE=astrocrawl/gui/translations/astrocrawl_gui_zh_CN.ts
+          VANISHED=$(grep -c 'type="vanished"' "$TS_FILE" || true)
+          UNFINISHED=$(grep -c 'type="unfinished"' "$TS_FILE" || true)
+          if [ "$VANISHED" -gt 0 ]; then
+            echo "::error::TS file has $VANISHED vanished translations. Run: lupdate6 -extensions py astrocrawl/gui/ astrocrawl/cli/ -ts astrocrawl/gui/translations/astrocrawl_gui_zh_CN.ts"
+            grep -B1 'type="vanished"' "$TS_FILE" | head -20
+            exit 1
+          fi
+          if [ "$UNFINISHED" -gt 0 ]; then
+            echo "::error::TS file has $UNFINISHED unfinished translations. Edit .ts to fill translations."
+            grep -B1 'type="unfinished"' "$TS_FILE" | head -20
+            exit 1
+          fi
+          echo "TS sanity: clean (0 vanished, 0 unfinished)"
+
+      - name: i18n lupdate coverage — new source strings need translations
+        if: always()
+        run: |
+          TS_FILE=astrocrawl/gui/translations/astrocrawl_gui_zh_CN.ts
+          TS_TMP=$(mktemp --suffix=.ts)
+          cp "$TS_FILE" "$TS_TMP"
+          # Pass individual .py files (not dirs) so lupdate only scans files with tr() calls
+          TR_FILES=$(grep -rl '\.tr(\|tr("' astrocrawl/gui/ astrocrawl/cli/ --include='*.py' | grep -v test_ | grep -v __init__ | tr '\n' ' ')
+          $LUPD_BIN $TR_FILES -ts "$TS_TMP" 2>&1
+          # Remove malformed entries from lupdate misinterpreting tr("ctx", "text")
+          python3 -c "
+          import xml.etree.ElementTree as ET
+          tree = ET.parse('${TS_TMP}')
+          root = tree.getroot()
+          for ctx in root.findall('context'):
+              for msg in list(ctx.findall('message')):
+                  src = msg.find('source')
+                  if src is not None and src.text and src.text.strip().startswith('_'):
+                      ctx.remove(msg)
+              if not ctx.findall('message'):
+                  root.remove(ctx)
+          tree.write('${TS_TMP}', encoding='utf-8', xml_declaration=True)
+          "
+          # Restore dictionary-based tr(variable) entries that lupdate can't track
+          python3 scripts/check_ts_dicts.py --fix-vanished "$TS_TMP"
+          # Check for unfinished: new source strings without translations
+          UNFINISHED=$(grep -c 'type="unfinished"' "$TS_TMP" || true)
+          if [ "$UNFINISHED" -gt 0 ]; then
+            echo "::error::$UNFINISHED new source string(s) need translation. Run lupdate6 -extensions py astrocrawl/gui/ astrocrawl/cli/ -ts $TS_FILE, then fill translations."
+            grep -B2 'type="unfinished"' "$TS_TMP" | head -30
+            rm "$TS_TMP"
+            exit 1
+          fi
+          # Check for vanished NOT in dict registry: genuinely removed source strings
+          VANISHED=$(grep -c 'type="vanished"' "$TS_TMP" || true)
+          if [ "$VANISHED" -gt 0 ]; then
+            echo "::error::$VANISHED obsolete source string(s) in TS. Remove them from $TS_FILE or update check_ts_dicts.py REGISTRY."
+            grep -B2 'type="vanished"' "$TS_TMP" | head -30
+            rm "$TS_TMP"
+            exit 1
+          fi
+          rm "$TS_TMP"
+          echo "lupdate coverage: complete"
+
+      - name: i18n QM staleness — .qm must match .ts
+        if: always()
+        run: |
+          QM_TMP=$(mktemp)
+          $LREL_BIN astrocrawl/gui/translations/astrocrawl_gui_zh_CN.ts -qm "$QM_TMP" 2>&1
+          if ! cmp -s "$QM_TMP" astrocrawl/gui/translations/astrocrawl_gui_zh_CN.qm; then
+            echo "::error::.qm is out of sync with .ts. Run: lrelease6 astrocrawl/gui/translations/astrocrawl_gui_zh_CN.ts -qm astrocrawl/gui/translations/astrocrawl_gui_zh_CN.qm"
+            rm "$QM_TMP"
+            exit 1
+          fi
+          rm "$QM_TMP"
+          echo "QM staleness: in sync"
+
+      - name: i18n dict-based TS coverage check
+        if: always()
+        run: python scripts/check_ts_dicts.py

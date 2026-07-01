@@ -1,0 +1,126 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "astrocrawl"
+dynamic = ["version"]
+description = "专业级异步网页爬虫 — 生产稳定版（GUI + CLI）"
+readme = "README.md"
+license = {text = "Apache-2.0"}
+authors = [
+    {name = "Etoileint"}
+]
+keywords = ["web-crawler", "scraper", "async", "playwright", "gui"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Information Technology",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Internet :: WWW/HTTP :: Indexing/Search",
+]
+requires-python = ">=3.12"
+
+dependencies = [
+    "aiohttp>=3.9",
+    "aiosqlite>=0.19",
+    "beautifulsoup4>=4.12",
+    "cssselect>=1.2",
+    "google-re2>=0.1",
+    "lxml>=4.9",
+    "playwright>=1.40",
+    "publicsuffixlist",
+    "tiktoken>=0.7",
+]
+
+[project.optional-dependencies]
+openai = ["openai>=1.0"]
+anthropic = ["anthropic>=0.39"]
+google = ["google-genai>=1.0"]
+full = ["openai>=1.0", "anthropic>=0.39", "google-genai>=1.0"]
+gui = ["PySide6>=6.5"]
+fast = [
+    "orjson>=3.8",
+    "pydantic>=2.0",
+]
+dev = [
+    "pytest>=7.0",
+    "pytest-asyncio>=0.21",
+    "pytest-cov>=4.0",
+    "mypy>=1.0",
+    "ruff>=0.1",
+]
+toml = []
+yaml = ["pyyaml>=6.0"]
+monitor = ["psutil>=5.9"]
+
+[project.scripts]
+astrocrawl = "astrocrawl.main:main"
+
+[project.urls]
+Homepage = "https://github.com/Etoileint/AstroCrawl"
+Issues = "https://github.com/Etoileint/AstroCrawl/issues"
+
+[project.entry-points."astrocrawl.ai.providers"]
+openai = "astrocrawl.ai.providers.openai:create_provider"
+anthropic = "astrocrawl.ai.providers.anthropic:create_provider"
+google = "astrocrawl.ai.providers.google:create_provider"
+
+[tool.setuptools.packages.find]
+include = ["astrocrawl*"]
+
+[tool.setuptools.package-data]
+astrocrawl = [
+    "rules/*.json",
+    "rules/*.txt",
+]
+
+[tool.setuptools.dynamic]
+version = {attr = "astrocrawl._version.__version__"}
+
+[tool.mypy]
+python_version = "3.12"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+ignore_missing_imports = true
+exclude = ["__pycache__/", ".pytest_cache/", ".mypy_cache/"]
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+testpaths = ["tests"]
+asyncio_mode = "auto"
+addopts = ["-v", "--tb=short", "--strict-markers"]
+markers = [
+    "gui: GUI tests requiring QApplication (offscreen QPA)",
+]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 120
+exclude = ["__pycache__", ".git", ".pytest_cache", ".mypy_cache"]
+
+[tool.ruff.lint]
+extend-select = [
+    "I",     # isort — import sorting
+    "FA100", # flake8-future-annotations — require from __future__ import annotations
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["astrocrawl"]
+required-imports = ["from __future__ import annotations"]
+split-on-trailing-comma = false
+
+[tool.coverage.run]
+source = ["astrocrawl"]
+omit = ["tests/*", "*/__pycache__/*"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+]
