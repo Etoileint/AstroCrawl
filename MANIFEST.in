@@ -5,3 +5,10 @@ include .env.example
 recursive-include assets *
 recursive-include astrocrawl/rules *.json
 recursive-include astrocrawl/rules *.txt
+recursive-include astrocrawl/browser *.js
+recursive-include astrocrawl/gui/translations *.qm
+
+prune tests
+prune astrocrawl.egg-info
+global-exclude *.pyc
+global-exclude __pycache__
