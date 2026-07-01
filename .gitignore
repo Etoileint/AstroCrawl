@@ -48,7 +48,11 @@ nuitka-crash-report.xml
 err_record.txt
 QtProject.conf
 errors/
-scripts/
+
+# ── Build / debug scripts (CI scripts whitelisted below) ──
+scripts/*
+!scripts/check_i18n.py
+!scripts/check_ts_dicts.py
 
 # ── Environment / secrets ──
 .env
