@@ -5,8 +5,9 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-0.1.0-blue" alt="Version">
-  <img src="https://img.shields.io/badge/python-≥3.12-3776AB?logo=python" alt="Python">
+  <img src="https://img.shields.io/pypi/v/astrocrawl" alt="PyPI">
+  <img src="https://img.shields.io/pypi/pyversions/astrocrawl" alt="Python">
+  <img src="https://img.shields.io/pypi/dm/astrocrawl" alt="Downloads">
   <img src="https://img.shields.io/badge/license-Apache%202.0-green" alt="License">
   <img src="https://img.shields.io/badge/platform-Linux%20|%20macOS%20|%20Windows-lightgrey" alt="Platform">
 </p>
@@ -20,6 +21,17 @@ AstroCrawl 是基于 **Playwright 无头 Chromium** 的全功能异步网页爬�
 ## 快速开始
 
 ```bash
+# PyPI 安装（推荐）
+pip install astrocrawl                     # 核心爬虫 + CLI
+pip install astrocrawl[gui]                # 含图形界面
+pip install astrocrawl[openai]             # 含 OpenAI Provider
+pip install astrocrawl[full,gui,fast]      # 全家桶
+playwright install chromium
+astrocrawl https://example.com -d 2
+```
+
+```bash
+# 源码安装（开发者）
 # 1. 克隆仓库
 git clone https://github.com/Etoileint/AstroCrawl.git
 cd AstroCrawl
@@ -74,7 +86,18 @@ astrocrawl                              # GUI 模式（无参数）
 - **操作系统** Linux / macOS / Windows
 - **内存** 建议 2GB 以上（Chromium 每上下文约 150–300MB）
 
-### 步骤
+### PyPI 安装（推荐）
+
+```bash
+pip install astrocrawl                     # 核心爬虫 + CLI
+pip install astrocrawl[gui]                # 含图形界面
+pip install astrocrawl[openai]             # 含 OpenAI Provider
+pip install astrocrawl[full,gui,fast]      # 全家桶
+playwright install chromium
+astrocrawl --help
+```
+
+### 源码安装（开发者）
 
 **1. 克隆仓库**
 
@@ -119,6 +142,7 @@ pip install -e ".[fast,monitor,yaml,dev]"
 pip install "astrocrawl[openai]"         # OpenAI（GPT-4o / GPT-5）
 pip install "astrocrawl[anthropic]"       # Anthropic（Claude 系列）
 pip install "astrocrawl[google]"          # Google（Gemini 系列）
+pip install "astrocrawl[full]"            # 全部三个 Provider
 ```
 
 安装后需设置对应的 API 密钥环境变量，参见 `.env.example`。Provider 通过 `importlib.metadata` entry point 自动发现，安装即可用。
@@ -126,7 +150,7 @@ pip install "astrocrawl[google]"          # Google（Gemini 系列）
 **5. 安装 GUI 依赖（可选）**
 
 ```bash
-pip install "PySide6>=6.5"
+pip install astrocrawl[gui]
 ```
 
 **6. 安装 Chromium 浏览器**
@@ -150,12 +174,11 @@ astrocrawl            # 应启动 GUI 窗口
 | `anthropic` | anthropic | AI 功能（Anthropic Provider） |
 | `google` | google-genai | AI 功能（Google Provider） |
 | `full` | openai, anthropic, google-genai | 全部 AI Provider |
-| `fast` | orjson, pydantic | JSON 加速 + 配置验证 |
+| `fast` | orjson | JSON 加速 |
 | `gui` | PySide6 | GUI 图形界面 |
 | `dev` | pytest, mypy, ruff | 测试与代码质量 |
 | `monitor` | psutil | 资源监控 |
 | `yaml` | pyyaml | YAML 配置文件支持 |
-| `toml` | tomllib | TOML 配置文件支持（Python 内置） |
 
 ## CLI 命令行
 
@@ -545,7 +568,7 @@ AstroCrawl/
 │       ├── preferences.py         # Preferences — 16 data fields, AI/Proxy Profile CRUD, C-mode
 │       └── _atomic.py             # POSIX 原子写入 (mkstemp → fsync → os.replace)
 ├── LICENSE                         # Apache 2.0
-├── tests/                         # pytest 测试套件（103 test 文件, 3,827 tests）
+├── tests/                         # pytest 测试套件（103 test 文件, 3,659 tests）
 │   ├── conftest.py                # 共享 + GUI fixtures
 │   ├── _fakes.py / _fakes_gui.py  # 核心 / GUI 测试替身
 │   ├── Kernel: test_types test_config test_constants test_version test_resilience test_health test_health_monitor
@@ -606,7 +629,7 @@ ruff format astrocrawl/              # 格式化
 | 正则引擎 | google-re2（线性时间，ReDoS 免疫，运行时硬依赖） |
 | AI 客户端 | openai / anthropic / google-genai（多 Provider，entry point 自动发现） |
 | GUI | PySide6 (Qt6 for Python, Fusion 风格, QTranslator zh_CN) |
-| 配置 | Pydantic v2（可选）+ JSON/YAML/TOML |
+| 配置 | Pydantic v2 + JSON/YAML/TOML |
 | 重试 | 内置 ProxyFailureClassifier + aiohttp_retry_fetch |
 | 测试 | pytest + pytest-asyncio + pytest-cov |
 
@@ -646,6 +669,17 @@ AstroCrawl is a full-featured async web crawler built on **Playwright headless C
 ## Quick Start
 
 ```bash
+# PyPI install (recommended)
+pip install astrocrawl                     # Core crawler + CLI
+pip install astrocrawl[gui]                # With GUI
+pip install astrocrawl[openai]             # With OpenAI Provider
+pip install astrocrawl[full,gui,fast]      # All-in-one
+playwright install chromium
+astrocrawl https://example.com -d 2
+```
+
+```bash
+# Source install (developers)
 # 1. Clone
 git clone https://github.com/Etoileint/AstroCrawl.git
 cd AstroCrawl
@@ -700,7 +734,18 @@ astrocrawl                              # GUI mode (no arguments)
 - **OS** Linux / macOS / Windows
 - **Memory** 2GB+ recommended (~150–300MB per Chromium context)
 
-### Setup
+### PyPI Install (Recommended)
+
+```bash
+pip install astrocrawl                     # Core crawler + CLI
+pip install astrocrawl[gui]                # With GUI
+pip install astrocrawl[openai]             # With OpenAI Provider
+pip install astrocrawl[full,gui,fast]      # All-in-one
+playwright install chromium
+astrocrawl --help
+```
+
+### Source Install (Developers)
 
 **1. Clone the repository**
 
@@ -745,7 +790,7 @@ pip install -e ".[fast,monitor,yaml,dev]"
 pip install "astrocrawl[openai]"          # OpenAI (GPT-4o / GPT-5)
 pip install "astrocrawl[anthropic]"       # Anthropic (Claude series)
 pip install "astrocrawl[google]"          # Google (Gemini series)
-pip install "astrocrawl[full]"            # All providers
+pip install "astrocrawl[full]"            # All three providers
 ```
 
 After installation, set the corresponding API key environment variables — see `.env.example`. Providers are auto-discovered via `importlib.metadata` entry points.
@@ -753,7 +798,7 @@ After installation, set the corresponding API key environment variables — see 
 **5. Install GUI dependencies (optional, for desktop GUI)**
 
 ```bash
-pip install "PySide6>=6.5"
+pip install astrocrawl[gui]
 ```
 
 **6. Install Chromium browser**
@@ -777,12 +822,11 @@ astrocrawl            # Should launch the GUI window
 | `anthropic` | anthropic | AI features (Anthropic provider) |
 | `google` | google-genai | AI features (Google provider) |
 | `full` | openai, anthropic, google-genai | All AI providers |
-| `fast` | orjson, pydantic | JSON speedup + config validation |
+| `fast` | orjson | JSON speedup |
 | `gui` | PySide6 | GUI desktop app |
 | `dev` | pytest, mypy, ruff | Tests & code quality |
 | `monitor` | psutil | Resource monitoring |
 | `yaml` | pyyaml | YAML config file support |
-| `toml` | tomllib | TOML config file support (Python built-in) |
 
 ## CLI
 
@@ -1172,7 +1216,7 @@ AstroCrawl/
 │       ├── preferences.py         # Preferences — 16 data fields, AI/Proxy Profile CRUD, C-mode
 │       └── _atomic.py             # POSIX atomic writes (mkstemp → fsync → os.replace)
 ├── LICENSE                         # Apache 2.0
-├── tests/                         # pytest test suite (103 test files, 3,827 tests)
+├── tests/                         # pytest test suite (103 test files, 3,659 tests)
 │   ├── conftest.py                # Shared + GUI fixtures
 │   ├── _fakes.py / _fakes_gui.py  # Core / GUI test doubles
 │   ├── Kernel: test_types test_config test_constants test_version test_resilience test_health test_health_monitor
@@ -1233,7 +1277,7 @@ ruff format astrocrawl/              # Format
 | Regex Engine | google-re2 (linear-time, ReDoS-immune, hard runtime dependency) |
 | AI Client | openai / anthropic / google-genai (multi-provider, entry point auto-discovery) |
 | GUI | PySide6 (Qt6 for Python, Fusion style, QTranslator zh_CN) |
-| Config | Pydantic v2 (optional) + JSON/YAML/TOML |
+| Config | Pydantic v2 + JSON/YAML/TOML |
 | Retry | Built-in ProxyFailureClassifier + aiohttp_retry_fetch |
 | Testing | pytest + pytest-asyncio + pytest-cov |
 
