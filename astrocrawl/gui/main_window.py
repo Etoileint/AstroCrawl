@@ -33,6 +33,7 @@ from astrocrawl._constants import MAX_LOG_ITEMS, QLINEEDIT_MAX, QSPINBOX_MAX
 from astrocrawl._startup import StartupError
 from astrocrawl._version import __version__
 from astrocrawl.config import DEFAULT_CONFIG, CrawlerConfig
+from astrocrawl.gui._log_bridge import attach_qt_handler, detach_qt_handler
 from astrocrawl.gui._style import status_label_style
 from astrocrawl.gui._tokens import BAR_HEIGHT, FONT_MD, FONT_SM, RADIUS_MD, SPACE_LG, SPACE_MD, SPACE_SM
 from astrocrawl.gui.advanced_dialog import AdvancedSettingsDialog
@@ -42,7 +43,7 @@ from astrocrawl.gui.proxy_health_bar import ProxyHealthBar
 from astrocrawl.gui.rules_dialog import RulesDialog
 from astrocrawl.proxy import ProxyConfig, ProxyProfile, ProxySession
 from astrocrawl.utils._atomic import atomic_write_json
-from astrocrawl.utils.logging import attach_qt_handler, detach_qt_handler, setup_root_logger
+from astrocrawl.utils.logging import setup_root_logger
 from astrocrawl.utils.preferences import clear_qt_file_dialog_history, get_preferences
 from astrocrawl.utils.url import is_valid_http_url
 

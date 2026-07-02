@@ -2,51 +2,12 @@ from __future__ import annotations
 
 import logging
 import sys
-import weakref
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from PySide6.QtCore import Signal
-
-try:
-    from PySide6.QtCore import Signal
-
-    _HAS_PYSIDE6 = True
-except ImportError:
-    Signal = None  # type: ignore[assignment]
-    _HAS_PYSIDE6 = False
 
 from astrocrawl._constants import FILE_LOG_BACKUP_COUNT, FILE_LOG_MAX_BYTES
 
 _LOG_FORMAT = "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
 _LOG_DATE_FORMAT = "%H:%M:%S"
 _ASTROCRAWL_HANDLER = True  # handler marker tag — 用于 setup_root_logger 去重
-
-
-if _HAS_PYSIDE6:
-
-    class _QtLogHandler(logging.Handler):
-        def __init__(self, signal: Signal, logger: logging.Logger):
-            super().__init__()
-            self._signal = signal
-            self._logger = weakref.ref(logger)
-
-        def emit(self, record: logging.LogRecord) -> None:
-            try:
-                msg = self.format(record)
-                self._signal.emit(msg)
-            except RuntimeError as e:
-                if "Signal source has been deleted" in str(e):
-                    logger = self._logger()
-                    if logger:
-                        logger.removeHandler(self)
-                else:
-                    self.handleError(record)
-            except Exception:
-                self.handleError(record)
-
-else:
-    _QtLogHandler = None  # type: ignore[assignment]
 
 
 def setup_root_logger(level: int = logging.INFO, log_file: str = "") -> None:
@@ -79,28 +40,3 @@ def setup_root_logger(level: int = logging.INFO, log_file: str = "") -> None:
             root.addHandler(fh)
         except Exception as e:
             print(f"Failed to setup file logging: {e}")
-
-
-def attach_qt_handler(logger: logging.Logger, signal: Signal) -> None:
-    if not _HAS_PYSIDE6 or _QtLogHandler is None:
-        return
-    for handler in logger.handlers[:]:
-        if isinstance(handler, _QtLogHandler):
-            try:
-                logger.removeHandler(handler)
-            except Exception:
-                pass
-    qh = _QtLogHandler(signal, logger)
-    qh.setFormatter(logging.Formatter(_LOG_FORMAT, datefmt=_LOG_DATE_FORMAT))
-    logger.addHandler(qh)
-
-
-def detach_qt_handler(logger: logging.Logger) -> None:
-    if not _HAS_PYSIDE6 or _QtLogHandler is None:
-        return
-    for handler in logger.handlers[:]:
-        if isinstance(handler, _QtLogHandler):
-            try:
-                logger.removeHandler(handler)
-            except Exception:
-                pass

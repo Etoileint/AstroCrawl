@@ -8,7 +8,8 @@ from __future__ import annotations
 import logging
 import sys
 
-from astrocrawl.utils.logging import _QtLogHandler, attach_qt_handler, detach_qt_handler, setup_root_logger
+from astrocrawl.gui._log_bridge import _QtLogHandler, attach_qt_handler, detach_qt_handler
+from astrocrawl.utils.logging import setup_root_logger
 
 # ═══════════════════════════════════════════════════════════════════════
 # setup_root_logger

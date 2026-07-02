@@ -89,7 +89,6 @@ from astrocrawl.utils.html import (
     extract_title,
     remove_noise_tags,
 )
-from astrocrawl.utils.logging import detach_qt_handler
 from astrocrawl.utils.url import normalize_url, parse_domain, safe_log_url
 
 if TYPE_CHECKING:
@@ -1940,10 +1939,6 @@ class AsyncCrawler:
                             await self._diagnostics.stop_http()
                         except Exception:
                             pass
-
-                @cleanup.push_async_callback
-                async def _():
-                    detach_qt_handler(logging.getLogger("astrocrawl"))
 
     async def generate_report(self, output_path: str) -> dict:
         """生成 JSON 格式的爬取统计报告（含完整的 outcome 分类）。"""
