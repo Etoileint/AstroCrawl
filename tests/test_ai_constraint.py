@@ -387,21 +387,19 @@ class TestOpenAIEndpointDetection:
         caps = client.supported_output_formats
         assert "json_schema" in caps
 
-    def test_localhost_reports_json_object_only(self):
-        client = self._make_openai("http://localhost:11434/v1")
-        assert client.supported_output_formats == frozenset({"json_object"})
-
-    def test_custom_endpoint_reports_json_object_only(self):
-        client = self._make_openai("https://vllm.example.com/v1")
-        assert client.supported_output_formats == frozenset({"json_object"})
-
-    def test_subdomain_not_treated_as_official(self):
-        client = self._make_openai("https://myapi.openai.com/v1")
-        assert "json_schema" not in client.supported_output_formats
-
-    def test_empty_base_url_not_treated_as_official(self):
-        client = self._make_openai("")
-        assert "json_schema" not in client.supported_output_formats
+    def test_all_endpoints_declare_full_caps(self):
+        """回归：白名单移除后，所有端点声明最大能力，降级由 chat() 运行时 fallback 承担。"""
+        for url in (
+            "http://localhost:11434/v1",
+            "https://vllm.example.com/v1",
+            "https://myapi.openai.com/v1",
+            "https://api.deepseek.com",
+            "",
+        ):
+            client = self._make_openai(url)
+            caps = client.supported_output_formats
+            assert "json_schema" in caps, f"{url} 应声明 json_schema"
+            assert "json_object" in caps, f"{url} 应声明 json_object"
 
 
 class TestProviderCapabilities:
@@ -447,12 +445,13 @@ class TestProviderCapabilities:
         caps = OpenAIClient(api_key="sk-test", base_url="https://api.openai.com/v1").supported_output_formats
         assert caps == _STRUCTURED_OUTPUT_MODES
 
-    def test_openai_custom_caps_subset_of_constant(self):
+    def test_openai_all_endpoints_declare_full_caps(self):
+        """回归：所有端点声明 _STRUCTURED_OUTPUT_MODES 全集，不做 hostname 过滤。"""
         from astrocrawl.ai.providers.openai import _STRUCTURED_OUTPUT_MODES, OpenAIClient
 
-        caps = OpenAIClient(api_key="sk-test", base_url="http://localhost:11434/v1").supported_output_formats
-        assert caps <= _STRUCTURED_OUTPUT_MODES
-        assert "json_schema" not in caps
+        for url in ("https://api.openai.com/v1", "http://localhost:11434/v1", "https://api.deepseek.com"):
+            caps = OpenAIClient(api_key="sk-test", base_url=url).supported_output_formats
+            assert caps == _STRUCTURED_OUTPUT_MODES, f"{url} 应声明完整能力集"
 
     def test_anthropic_caps_equals_constant(self):
         from astrocrawl.ai.providers.anthropic import _STRUCTURED_OUTPUT_MODES, AnthropicClient

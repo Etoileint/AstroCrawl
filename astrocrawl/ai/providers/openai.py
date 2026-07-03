@@ -140,12 +140,11 @@ class OpenAIClient:
 
     @property
     def supported_output_formats(self) -> frozenset[str]:
-        """ADR-0008: Declare supported output formats. SSOT: _STRUCTURED_OUTPUT_MODES."""
-        from urllib.parse import urlparse
-
-        if urlparse(self._base_url).hostname == "api.openai.com":
-            return _STRUCTURED_OUTPUT_MODES
-        return frozenset({"json_object"})
+        """ADR-0008: 声明最大能力集，不做 hostname 白名单。
+        实际能力由 AIClient._resolve_output_format() 在每次 json_schema 请求前
+        通过轻量探针运行时检测。
+        """
+        return _STRUCTURED_OUTPUT_MODES
 
     # ── _ChatProvider.chat ─────────────────────────────────────────────
 

@@ -22,7 +22,7 @@ class TestAIProfile:
         assert p.provider == "openai"
         assert p.model == "gpt-4o-mini"
         assert p.temperature == 0.1
-        assert p.max_tokens == 2048
+        assert p.max_tokens == 16384
         assert p.api_key == ""
         assert p.endpoint == ""
         assert p.enabled is True
@@ -59,7 +59,7 @@ class TestAIProfile:
         assert p.temperature == 0.0
         assert p.provider == "openai"
         assert p.name == ""
-        assert p.max_tokens == 2048
+        assert p.max_tokens == 16384
         assert p.api_key == ""
 
     def test_frozen_immutability(self):
@@ -200,7 +200,7 @@ class TestAIProfileFromDict:
         assert p.provider == "openai"
         assert p.model == "gpt-4o-mini"
         assert p.temperature == 0.1
-        assert p.max_tokens == 2048
+        assert p.max_tokens == 16384
         assert p.api_key == ""
         assert p.endpoint == ""
         assert p.enabled is True

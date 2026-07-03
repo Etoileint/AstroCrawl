@@ -11,8 +11,15 @@ import time
 from dataclasses import replace
 from typing import Any, AsyncIterator, Iterator, List, Optional
 
-from astrocrawl.ai._config import AIConfig, GenerationParams, _resolve_params, _ResolvedParams
-from astrocrawl.ai._errors import AIConnectionError, AIError, AIRateLimitError, AIServerError, AITimeoutError
+from astrocrawl.ai._config import AIConfig, GenerationParams, _resolve_params, _ResolvedOutput, _ResolvedParams
+from astrocrawl.ai._errors import (
+    AIConnectionError,
+    AIError,
+    AIInvalidRequestError,
+    AIRateLimitError,
+    AIServerError,
+    AITimeoutError,
+)
 from astrocrawl.ai._observability import AIHook, LoggingHook
 from astrocrawl.ai._provider import _ChatProvider, _SupportsEmbedding
 from astrocrawl.ai._rate_limiter import RateLimitConfig, RateLimiter
@@ -21,6 +28,7 @@ from astrocrawl.ai._types import (
     ChatMessage,
     ChatResponse,
     EmbedResult,
+    Role,
     StreamEvent,
     StreamFinish,
     TokenUsage,
@@ -349,10 +357,67 @@ class AIClient:
         )
         return self._resolve_output_format(resolved)
 
+    # ── 惰性 json_schema 能力探测 ────────────────────────────────
+    # 轻量探针：~30 token，< 500ms。每次 json_schema 请求前发送。
+    # 不缓存 — 进程重启或模型升级后自然感知。
+
+    _PROBE_SCHEMA: dict = {
+        "type": "object",
+        "properties": {"ok": {"type": "boolean"}},
+        "required": ["ok"],
+        "additionalProperties": False,
+    }
+
+    def _probe_json_schema(self) -> bool:
+        """轻量 json_schema 能力探针（~30 token，< 500ms）。
+
+        对齐项目瞬态错误分类：AIConnectionError/AITimeoutError/AIServerError
+        重试 1 次；AIInvalidRequestError (400) = 明确不支持，不重试。
+
+        始终使用 sync rate limiter 而非 async——探针在 _resolve() 阶段执行，
+        位于所有 await 之前，此时事件循环中无本实例并发任务。改用 async 版本
+        会增加 _aprobe 维护面而无实际收益。
+        """
+        probe_params = _ResolvedParams(
+            model=self._config.default_model,
+            temperature=0,
+            max_tokens=10,
+            output=_ResolvedOutput(format="json_schema", json_schema=self._PROBE_SCHEMA),
+        )
+        probe_msgs = [ChatMessage(Role.SYSTEM, '{"ok":true}')]
+
+        for attempt in (1, 2):
+            try:
+                with self._rate_limiter.acquire_sync():
+                    self._provider.chat(probe_msgs, None, probe_params)
+                return True
+            except AIInvalidRequestError:
+                return False
+            except (AIConnectionError, AITimeoutError, AIServerError):
+                if attempt == 2:
+                    return True  # 两次都瞬态失败 → 探针无法判断，不降级
+            except Exception:
+                return True  # 认证/未知错误 → 探针无法判断，不降级
+
+    # ── output format resolution ──────────────────────────────────
+
     def _resolve_output_format(self, resolved: _ResolvedParams) -> _ResolvedParams:
-        """ADR-0008: 能力感知降级。若 Provider 不支持请求的输出格式，自动降级到最强可用格式。"""
+        """ADR-0008: 能力感知降级。json_schema 先发轻量探针确认，不支持则降级。"""
         if resolved.output is None:
             return resolved
+
+        if resolved.output.format == "json_schema" and not self._probe_json_schema():
+            logger.warning(
+                "event=json_schema_denied provider=%s base_url=%s — 降级 json_object",
+                self._config.provider,
+                self._config.base_url,
+            )
+            return replace(
+                resolved,
+                output=replace(resolved.output, format="json_object", json_schema=None),
+            )
+
+        # Provider 声明的能力降级（非 openai 端点兼容）
         caps: frozenset[str] = getattr(self._provider, "supported_output_formats", frozenset())
         if not caps or resolved.output.format in caps:
             return resolved

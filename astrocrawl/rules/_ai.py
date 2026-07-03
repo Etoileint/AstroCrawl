@@ -247,7 +247,7 @@ class RuleGenerator:
         """ADR-0008: 默认请求 json_schema，由 AIClient._resolve_output_format() 自动降级。"""
         return GenerationParams(
             temperature=0.1,
-            max_tokens=2048,
+            max_tokens=16384,
             output=OutputConstraint(format="json_schema", schema_model=RuleSchema),
         )
 

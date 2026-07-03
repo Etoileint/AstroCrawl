@@ -15,7 +15,7 @@ class AIProfile:
     provider: str = "openai"
     model: str = "gpt-4o-mini"
     temperature: float = 0.1
-    max_tokens: int = 2048
+    max_tokens: int = 16384
     api_key: str = ""
     endpoint: str = ""
     enabled: bool = True
@@ -52,7 +52,7 @@ class AIProfile:
             provider=d.get("provider", "openai"),
             model=d.get("model", "gpt-4o-mini"),
             temperature=float(d.get("temperature", 0.1)),
-            max_tokens=int(d.get("max_tokens", 2048)),
+            max_tokens=int(d.get("max_tokens", 16384)),
             api_key=d.get("api_key", ""),
             endpoint=d.get("endpoint", ""),
             enabled=bool(d.get("enabled", True)),

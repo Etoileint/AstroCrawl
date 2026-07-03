@@ -120,7 +120,7 @@ class TestRuleGeneratorDefaultParams:
 
     def test_default_max_tokens(self):
         p = RuleGenerator._default_params()
-        assert p.max_tokens == 2048
+        assert p.max_tokens == 16384
 
 
 class TestRuleGeneratorGenerate:
