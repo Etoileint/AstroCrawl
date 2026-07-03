@@ -80,6 +80,10 @@ class _ChatProvider(Protocol):
         """关闭底层客户端连接。幂等——多次调用安全，实现应检查客户端是否存在再关闭。"""
         ...
 
+    def close(self) -> None:
+        """关闭底层同步客户端。幂等。"""
+        ...
+
 
 @runtime_checkable
 class _SupportsEmbedding(Protocol):

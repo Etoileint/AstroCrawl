@@ -528,7 +528,14 @@ class AdvancedSettingsDialog(QDialog):
 
     def reject(self) -> None:
         self._psb.dispose()
+        self._ai_page._cleanup_worker()
+        self._proxy_page._cleanup_worker()
         super().reject()
+
+    def accept(self) -> None:
+        self._ai_page._cleanup_worker()
+        self._proxy_page._cleanup_worker()
+        super().accept()
 
     def _on_tab_changed(self, index: int) -> None:
         self._psb.setVisible(index in self._psb_visible_tabs)

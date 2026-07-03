@@ -7,8 +7,10 @@ Tab 3: 远程源 — 源列表 + 开关
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
+import threading
 from pathlib import Path
 from typing import Any, Optional, Protocol
 
@@ -580,10 +582,15 @@ class _ValidateAllWorker(QThread):
         self._extra_rules_dirs = extra_rules_dirs
 
     def run(self) -> None:
+        if self.isInterruptionRequested():
+            return
         from astrocrawl.rules import validate_rule_files
 
         results = validate_rule_files(self._cfg, extra_rules_dirs=self._extra_rules_dirs)
         self.finished.emit(results)
+
+    def cancel(self) -> None:
+        self.requestInterruption()
 
 
 class _RuleTablePage(QWidget):
@@ -594,6 +601,7 @@ class _RuleTablePage(QWidget):
         self._cfg = cfg
         self._lifecycle: Optional[RuleLifecycle] = None
         self._pending_toggles: dict[str, bool] = {}
+        self._validate_worker: Optional[_ValidateAllWorker] = None
         self._theme_mgr = get_theme_manager()
         self._show_status = status_callback or (lambda msg, level="success": None)
         self._setup_ui()
@@ -879,16 +887,36 @@ class _RuleTablePage(QWidget):
         self._validate_all_btn.setEnabled(False)
         self._show_status(self.tr("Validating all rules..."))
         self.busy_changed.emit(True)
-        worker = _ValidateAllWorker(self._cfg, extra_rules_dirs=get_preferences().get_rules_dirs(), parent=self)
-        worker.finished.connect(self._on_validate_all_done)
-        worker.finished.connect(worker.deleteLater)
-        worker.start()
+        self._validate_worker = _ValidateAllWorker(
+            self._cfg,
+            extra_rules_dirs=get_preferences().get_rules_dirs(),
+            parent=self,
+        )
+        self._validate_worker.finished.connect(self._on_validate_all_done)
+        self._validate_worker.finished.connect(self._validate_worker.deleteLater)
+        self._validate_worker.start()
 
     def _on_validate_all_done(self, results: list) -> None:
         self.busy_changed.emit(False)
         self._validate_all_btn.setEnabled(True)
         self._show_status(self.tr("Validation complete ({0} files)").format(len(results)))
         _ValidationResultDialog(results, self).exec()
+
+    def _cleanup_worker(self) -> None:
+        w = self._validate_worker
+        if w is None or not w.isRunning():
+            return
+        try:
+            w.finished.disconnect()
+        except RuntimeError:
+            pass
+        w.cancel()
+        if not w.wait(5000):
+            w.terminate()
+            w.wait(2000)
+        self._validate_worker = None
+        self.busy_changed.emit(False)
+        self._validate_all_btn.setEnabled(True)
 
     def _on_collapse_toggled(self, collapsed: bool) -> None:
         self._collapse_btn.setArrowType(Qt.RightArrow if collapsed else Qt.DownArrow)
@@ -1709,6 +1737,26 @@ class _CustomPage(QWidget):
         self._show_status(self.tr("API call failed: {0}").format(error), "error")
         self._worker = None
 
+    def _cleanup_worker(self) -> None:
+        w = self._worker
+        if w is None or not w.isRunning():
+            return
+        for sig, slot in (
+            (w.generation_progress, self._on_ai_progress),
+            (w.finished, self._on_generate_result),
+            (w.error_occurred, self._on_generate_error),
+        ):
+            try:
+                sig.disconnect(slot)
+            except RuntimeError:
+                pass
+        w.cancel()
+        if not w.wait(30000):
+            w.terminate()
+            w.wait(2000)
+        self._worker = None
+        self.busy_changed.emit(False)
+
 
 class _AiWorker(QThread):
     """后台线程：调用 RuleGenerator.generate_sync 生成规则。"""
@@ -1728,11 +1776,14 @@ class _AiWorker(QThread):
         self._model = model
         self._tokens = tokens
         self._mode = mode
+        self._cancel_event: threading.Event = threading.Event()
+        self._client: AIClient | None = None
 
     def run(self) -> None:
         try:
             from astrocrawl.ai import AIRateLimitError as _AIRateLimitError
             from astrocrawl.ai import get_rule_gen_limiter as _get_limiter
+            from astrocrawl.rules import GenerationCancelled as _GenerationCancelled
             from astrocrawl.rules import RuleGenerator
 
             with _get_limiter().acquire_sync():
@@ -1746,8 +1797,8 @@ class _AiWorker(QThread):
                 prefs = get_preferences()
                 proxy_parsed = prefs.get_parsed_proxy_for("ai")
                 proxy_url = proxy_parsed.to_url_with_auth() if proxy_parsed else None
-                client = AIClient(self._config, proxy_url=proxy_url)
-                generator = RuleGenerator(client)
+                self._client = AIClient(self._config, proxy_url=proxy_url)
+                generator = RuleGenerator(self._client)
                 result = generator.generate_sync(
                     self._url,
                     self._html,
@@ -1755,13 +1806,26 @@ class _AiWorker(QThread):
                     self._params,
                     tier=self._tier,
                     mode=self._mode,
+                    cancel_event=self._cancel_event,
                 )
-                self.generation_progress.emit("parsing", {})
-                self.finished.emit(result)
+                if not self.isInterruptionRequested():
+                    self.generation_progress.emit("parsing", {})
+                    self.finished.emit(result)
+        except _GenerationCancelled:
+            return
         except _AIRateLimitError as e:
             self.error_occurred.emit(str(e))
         except Exception as e:
             self.error_occurred.emit(str(e))
+
+    def cancel(self) -> None:
+        self._cancel_event.set()
+        self.requestInterruption()
+        if self._client is not None:
+            try:
+                self._client.close()
+            except Exception:
+                pass
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -1780,15 +1844,24 @@ class _SourceUpdateWorker(QThread):
         super().__init__(parent)
         self._cache_dir = cache_dir
         self._source_name = source_name
+        self._main_task: asyncio.Task | None = None
+        self._loop: asyncio.AbstractEventLoop | None = None
 
     def run(self) -> None:
         import asyncio
 
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
+        self._loop = loop
         try:
-            result = loop.run_until_complete(self._update())
+            if self.isInterruptionRequested():
+                return
+            main_task = asyncio.ensure_future(self._update(), loop=loop)
+            self._main_task = main_task
+            result = loop.run_until_complete(main_task)
             self.finished.emit(result)
+        except asyncio.CancelledError:
+            pass
         except Exception as e:
             self.error_occurred.emit(str(e))
         finally:
@@ -1803,6 +1876,13 @@ class _SourceUpdateWorker(QThread):
             finally:
                 loop.close()
                 asyncio.set_event_loop(None)
+                self._loop = None
+                self._main_task = None
+
+    def cancel(self) -> None:
+        self.requestInterruption()
+        if self._main_task is not None and self._loop is not None and self._loop.is_running():
+            self._loop.call_soon_threadsafe(self._main_task.cancel)
 
     async def _update(self) -> dict:
         import aiohttp
@@ -1850,15 +1930,24 @@ class _SourceValidateWorker(QThread):
         self._name = name
         self._url = url
         self._cache_dir = cache_dir
+        self._main_task: asyncio.Task | None = None
+        self._loop: asyncio.AbstractEventLoop | None = None
 
     def run(self) -> None:
         import asyncio
 
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
+        self._loop = loop
         try:
-            result = loop.run_until_complete(self._validate())
+            if self.isInterruptionRequested():
+                return
+            main_task = asyncio.ensure_future(self._validate(), loop=loop)
+            self._main_task = main_task
+            result = loop.run_until_complete(main_task)
             self.finished.emit(result)
+        except asyncio.CancelledError:
+            pass
         except Exception as e:
             self.error_occurred.emit(str(e))
         finally:
@@ -1873,6 +1962,13 @@ class _SourceValidateWorker(QThread):
             finally:
                 loop.close()
                 asyncio.set_event_loop(None)
+                self._loop = None
+                self._main_task = None
+
+    def cancel(self) -> None:
+        self.requestInterruption()
+        if self._main_task is not None and self._loop is not None and self._loop.is_running():
+            self._loop.call_soon_threadsafe(self._main_task.cancel)
 
     async def _validate(self) -> dict:
         import aiohttp
@@ -1898,15 +1994,24 @@ class _SourceValidateAllWorker(QThread):
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        self._main_task: asyncio.Task | None = None
+        self._loop: asyncio.AbstractEventLoop | None = None
 
     def run(self) -> None:
         import asyncio
 
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
+        self._loop = loop
         try:
-            result = loop.run_until_complete(self._validate_all())
+            if self.isInterruptionRequested():
+                return
+            main_task = asyncio.ensure_future(self._validate_all(), loop=loop)
+            self._main_task = main_task
+            result = loop.run_until_complete(main_task)
             self.finished.emit(result)
+        except asyncio.CancelledError:
+            pass
         except Exception as e:
             self.error_occurred.emit(str(e))
         finally:
@@ -1921,6 +2026,13 @@ class _SourceValidateAllWorker(QThread):
             finally:
                 loop.close()
                 asyncio.set_event_loop(None)
+                self._loop = None
+                self._main_task = None
+
+    def cancel(self) -> None:
+        self.requestInterruption()
+        if self._main_task is not None and self._loop is not None and self._loop.is_running():
+            self._loop.call_soon_threadsafe(self._main_task.cancel)
 
     async def _validate_all(self) -> dict:
         import aiohttp
@@ -2398,6 +2510,24 @@ class _SourcePage(QWidget):
         self._update_btn.setEnabled(True)
         self._update_all_btn.setEnabled(True)
 
+    def _cleanup_worker(self) -> None:
+        w = self._active_worker
+        if w is None or not w.isRunning():
+            return
+        for sig_name in ("finished", "error_occurred", "source_progress"):
+            try:
+                getattr(w, sig_name).disconnect()
+            except (AttributeError, RuntimeError):
+                pass
+        w.cancel()
+        if not w.wait(5000):
+            w.terminate()
+            w.wait(2000)
+        self._active_worker = None
+        self.busy_changed.emit(False)
+        self._restore_all_buttons()
+        self._sync_button_states()
+
     # ── checkbox ──
 
     def _on_checkbox_toggled(self, row: int, checked: bool) -> None:
@@ -2782,8 +2912,17 @@ class RulesDialog(QDialog):
 
     def reject(self) -> None:
         self._psb.dispose()
+        self._rule_page._cleanup_worker()
+        self._custom_page._cleanup_worker()
+        self._source_page._cleanup_worker()
         self._custom_page.reset()
         super().reject()
+
+    def accept(self) -> None:
+        self._rule_page._cleanup_worker()
+        self._custom_page._cleanup_worker()
+        self._source_page._cleanup_worker()
+        super().accept()
 
     def _on_cancel(self) -> None:
         self._rule_page.discard_pending()

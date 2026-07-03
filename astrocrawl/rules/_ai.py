@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import logging
+import threading
 import unicodedata
 from typing import Any
 from urllib.parse import urlparse, urlunparse
@@ -25,6 +26,11 @@ from astrocrawl.rules._schema import RuleSchema, validate_rule
 from astrocrawl.rules._template import get_prompt_template
 
 logger = logging.getLogger("astrocrawl.rules.ai")
+
+
+class GenerationCancelled(Exception):
+    """AI 规则生成被用户取消。"""
+
 
 _HTML_MAX_CHARS = 200000
 _FIELD_MAX_LENGTH = 500
@@ -165,11 +171,12 @@ class RuleGenerator:
         params: GenerationParams | None = None,
         tier: PreprocessTier = PreprocessTier.CANONICAL,
         mode: str = "type",
+        cancel_event: threading.Event | None = None,
     ) -> dict[str, Any]:
         """同步生成规则 JSON。所有 API 调用的统一入口。"""
         messages = _assemble_messages(url, html, field_requirements, tier, mode)
         p = params or self._default_params()
-        return self._generate_with_retry(list(messages), p, source_html=html)
+        return self._generate_with_retry(list(messages), p, source_html=html, cancel_event=cancel_event)
 
     # ── async (后台任务调用) ───────────────────────────────
 
@@ -199,10 +206,17 @@ class RuleGenerator:
     # ── retry loop ──────────────────────────────────────────
 
     def _generate_with_retry(
-        self, messages: list[ChatMessage], params: GenerationParams, *, source_html: str = ""
+        self,
+        messages: list[ChatMessage],
+        params: GenerationParams,
+        *,
+        source_html: str = "",
+        cancel_event: threading.Event | None = None,
     ) -> dict[str, Any]:
         """同步重试循环：chat → parse → validate，失败追加错误反馈。"""
         for attempt in range(self._MAX_RESPONSE_RETRIES):
+            if cancel_event is not None and cancel_event.is_set():
+                raise GenerationCancelled()
             response = self._client.chat(messages, params=params)
             try:
                 return self._parse_and_validate_response(response, source_html)

@@ -328,6 +328,10 @@ class AIClient:
         """关闭底层 Provider 客户端（幂等）。"""
         await self._provider.aclose()
 
+    def close(self) -> None:
+        """关闭底层 Provider 同步客户端（幂等）。"""
+        self._provider.close()
+
     async def __aenter__(self) -> AIClient:
         return self
 

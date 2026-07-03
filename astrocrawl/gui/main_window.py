@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 from dataclasses import replace
@@ -522,6 +523,8 @@ class MainWindow(QWidget):
             def __init__(self, parsed_proxies, parent=None):
                 super().__init__(parent)
                 self._parsed = parsed_proxies
+                self._main_task: asyncio.Task | None = None
+                self._loop: asyncio.AbstractEventLoop | None = None
 
             def run(self):
                 import asyncio as _asyncio
@@ -541,8 +544,40 @@ class MainWindow(QWidget):
                     all_results = await _asyncio.gather(*tasks)
                     return [r for batch in all_results for r in batch]
 
-                results = _asyncio.run(_probe())
-                self.probe_completed.emit(results)
+                loop = _asyncio.new_event_loop()
+                _asyncio.set_event_loop(loop)
+                self._loop = loop
+                try:
+                    if self.isInterruptionRequested():
+                        return
+                    main_task = _asyncio.ensure_future(_probe(), loop=loop)
+                    self._main_task = main_task
+                    results = loop.run_until_complete(main_task)
+                    self.probe_completed.emit(results)
+                except _asyncio.CancelledError:
+                    pass
+                finally:
+                    try:
+                        pending = _asyncio.all_tasks(loop)
+                        for t in pending:
+                            t.cancel()
+                        if pending:
+                            loop.run_until_complete(_asyncio.gather(*pending, return_exceptions=True))
+                    except Exception:
+                        pass
+                    finally:
+                        try:
+                            loop.close()
+                        except Exception:
+                            pass
+                        _asyncio.set_event_loop(None)
+                        self._loop = None
+                        self._main_task = None
+
+            def cancel(self):
+                self.requestInterruption()
+                if self._main_task is not None and self._loop is not None and self._loop.is_running():
+                    self._loop.call_soon_threadsafe(self._main_task.cancel)
 
         self._probe_worker = _ProbeWorker(parsed, self)
         self._probe_worker.probe_completed.connect(self._on_probe_results)
@@ -840,6 +875,15 @@ class MainWindow(QWidget):
         self._paused = False
         self._closing = False
         self._pause_btn.setText(self.tr("Pause"))
+        pw = getattr(self, "_probe_worker", None)
+        if pw is not None and pw.isRunning():
+            try:
+                pw.probe_completed.disconnect()
+            except RuntimeError:
+                pass
+            pw.cancel()
+            pw.wait(10000)
+            self._probe_worker = None
 
     @Slot()
     def _on_thread_finished(self) -> None:

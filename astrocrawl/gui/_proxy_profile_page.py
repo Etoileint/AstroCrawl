@@ -591,9 +591,37 @@ class ProxyProfileEditDialog(QDialog):
         if self._validate():
             self.accept()
 
+    def _cleanup_worker(self) -> None:
+        w = self._probe_worker
+        if w is None or not w.isRunning():
+            return
+        try:
+            w.single_result.disconnect()
+        except RuntimeError:
+            pass
+        try:
+            w.finished.disconnect()
+        except RuntimeError:
+            pass
+        try:
+            w.probe_error.disconnect()
+        except RuntimeError:
+            pass
+        w.cancel()
+        if not w.wait(10000):
+            w.terminate()
+            w.wait(2000)
+        self._probe_worker = None
+        self._psb.stop_pulse()
+
     def reject(self) -> None:
+        self._cleanup_worker()
         self._psb.dispose()
         super().reject()
+
+    def accept(self) -> None:
+        self._cleanup_worker()
+        super().accept()
 
     def _on_cancel(self) -> None:
         if self._dirty and not self._is_new:
@@ -624,15 +652,24 @@ class _ProbeWorker(QThread):
     def __init__(self, endpoints: list[ParsedProxy], parent=None):
         super().__init__(parent)
         self._endpoints = endpoints
+        self._main_task: asyncio.Task | None = None
+        self._loop: asyncio.AbstractEventLoop | None = None
 
     def run(self) -> None:
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
+        self._loop = loop
         try:
-            results = loop.run_until_complete(self._probe_all())
+            if self.isInterruptionRequested():
+                return
+            main_task = asyncio.ensure_future(self._probe_all(), loop=loop)
+            self._main_task = main_task
+            results = loop.run_until_complete(main_task)
             for label, (reachable_count, total) in results.items():
                 self.single_result.emit(label, reachable_count == total)
             self.all_results.emit(results)
+        except asyncio.CancelledError:
+            pass
         except Exception as exc:
             self.probe_error.emit(str(exc)[:200])
         finally:
@@ -647,6 +684,13 @@ class _ProbeWorker(QThread):
             finally:
                 loop.close()
                 asyncio.set_event_loop(None)
+                self._loop = None
+                self._main_task = None
+
+    def cancel(self) -> None:
+        self.requestInterruption()
+        if self._main_task is not None and self._loop is not None and self._loop.is_running():
+            self._loop.call_soon_threadsafe(self._main_task.cancel)
 
     async def _probe_all(self) -> dict[str, tuple[int, int]]:
         tasks = [self._probe_one_n_times(ep) for ep in self._endpoints]
@@ -849,6 +893,22 @@ class _ProxyProfilePage(_TableManagementPage):
         self.busy_changed.emit(True)
         self.status_message.emit(self.tr("Testing {0}...").format(profile.name), "info")
         self._probe_worker.start()
+
+    def _cleanup_worker(self) -> None:
+        w = self._probe_worker
+        if w is None or not w.isRunning():
+            return
+        for sig_name in ("single_result", "all_results", "probe_error", "finished"):
+            try:
+                getattr(w, sig_name).disconnect()
+            except (RuntimeError, AttributeError):
+                pass
+        w.cancel()
+        if not w.wait(15000):
+            w.terminate()
+            w.wait(2000)
+        self._probe_worker = None
+        self.busy_changed.emit(False)
 
     @staticmethod
     def _on_probe_single(label: str, reachable: bool, profile_name: str, model: ProxyProfileListModel) -> None:

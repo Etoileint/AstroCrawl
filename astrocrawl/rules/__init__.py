@@ -5,7 +5,7 @@
 
 from __future__ import annotations
 
-from astrocrawl.rules._ai import RuleGenerator, get_assembled_prompt
+from astrocrawl.rules._ai import GenerationCancelled, RuleGenerator, get_assembled_prompt
 from astrocrawl.rules._chatml import count_tokens, serialize_chatml
 from astrocrawl.rules._extractor import extract_fields, extract_fields_from_soup
 from astrocrawl.rules._html_preprocess import PreprocessTier, preprocess_html
@@ -68,6 +68,7 @@ __all__ = [
     # Template
     "get_prompt_template",
     # AI
+    "GenerationCancelled",
     "RuleGenerator",
     "get_assembled_prompt",
     # HTML Preprocess

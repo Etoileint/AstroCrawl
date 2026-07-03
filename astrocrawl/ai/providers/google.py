@@ -192,6 +192,10 @@ class GoogleClient:
             self._async_client = None
         self._sync_client = None
 
+    def close(self) -> None:
+        """Close underlying sync client (idempotent)."""
+        self._sync_client = None
+
     # ── _SupportsEmbedding ─────────────────────────────────────────────
 
     async def embed(self, texts: list[str], model: str) -> EmbedResult:

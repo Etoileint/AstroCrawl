@@ -174,6 +174,15 @@ class AnthropicClient:
                 pass
             self._sync_client = None
 
+    def close(self) -> None:
+        """Close underlying sync HTTP client (idempotent)."""
+        if self._sync_client is not None:
+            try:
+                self._sync_client.close()
+            except Exception:
+                pass
+            self._sync_client = None
+
     # ── internal ──────────────────────────────────────────────────────
 
     @staticmethod

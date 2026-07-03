@@ -428,6 +428,8 @@ class _FetchModelsWorker(QThread):
         self._api_key = ""
         self._timeout = 15.0
         self._profile_name = ""
+        self._main_task: asyncio.Task | None = None
+        self._loop: asyncio.AbstractEventLoop | None = None
 
     def configure_fetch(self, provider: str, base_url: str, api_key: str, timeout: float = 15.0) -> None:
         self._provider = provider
@@ -460,11 +462,19 @@ class _FetchModelsWorker(QThread):
 
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
+            self._loop = loop
             try:
+                if self.isInterruptionRequested():
+                    return
                 if asyncio.iscoroutinefunction(list_models):
-                    models = loop.run_until_complete(list_models(self._base_url, self._api_key, timeout=self._timeout))
+                    main_coro = list_models(self._base_url, self._api_key, timeout=self._timeout)
                 else:
-                    models = list_models(self._base_url, self._api_key, timeout=self._timeout)
+                    main_coro = asyncio.to_thread(list_models, self._base_url, self._api_key, timeout=self._timeout)
+                main_task = asyncio.ensure_future(main_coro, loop=loop)
+                self._main_task = main_task
+                models = loop.run_until_complete(main_task)
+            except asyncio.CancelledError:
+                return
             finally:
                 try:
                     pending = asyncio.all_tasks(loop)
@@ -477,6 +487,8 @@ class _FetchModelsWorker(QThread):
                 finally:
                     loop.close()
                     asyncio.set_event_loop(None)
+                    self._loop = None
+                    self._main_task = None
 
             self.models_fetched.emit(list(models))
             if self._profile_name:
@@ -487,6 +499,11 @@ class _FetchModelsWorker(QThread):
                 self.test_failed.emit(self._profile_name, msg)
             else:
                 self.fetch_failed.emit(msg)
+
+    def cancel(self) -> None:
+        self.requestInterruption()
+        if self._main_task is not None and self._loop is not None and self._loop.is_running():
+            self._loop.call_soon_threadsafe(self._main_task.cancel)
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -504,6 +521,7 @@ class _AIProfilePage(_TableManagementPage):
     def __init__(self, prefs: Preferences, parent=None):
         self._prefs = prefs
         self._fetching: bool = False
+        self._fetch_worker: _FetchModelsWorker | None = None
         super().__init__(parent)
 
     # ── _TableManagementPage 抽象方法 ──
@@ -677,7 +695,8 @@ class _AIProfilePage(_TableManagementPage):
             return
         self._fetching = True
         self.busy_changed.emit(True)
-        worker = _FetchModelsWorker(self)
+        self._fetch_worker = _FetchModelsWorker(self)
+        worker = self._fetch_worker
         worker.configure_fetch(provider, base_url, api_key)
         worker.models_fetched.connect(on_models)
         if on_failed is not None:
@@ -687,6 +706,7 @@ class _AIProfilePage(_TableManagementPage):
         if on_done is not None:
             worker.finished.connect(on_done)
         worker.finished.connect(lambda: setattr(self, "_fetching", False))
+        worker.finished.connect(lambda: setattr(self, "_fetch_worker", None))
         worker.finished.connect(worker.deleteLater)
         worker.finished.connect(lambda: self.busy_changed.emit(False))
         worker.start()
@@ -706,7 +726,8 @@ class _AIProfilePage(_TableManagementPage):
 
         self._fetching = True
         self.busy_changed.emit(True)
-        worker = _FetchModelsWorker(self)
+        self._fetch_worker = _FetchModelsWorker(self)
+        worker = self._fetch_worker
         worker.configure_test(
             profile.name,
             profile.provider,
@@ -719,10 +740,28 @@ class _AIProfilePage(_TableManagementPage):
             lambda msg: self.status_message.emit(self.tr("Test failed: {0}").format(msg), "error")
         )
         worker.finished.connect(lambda: setattr(self, "_fetching", False))
+        worker.finished.connect(lambda: setattr(self, "_fetch_worker", None))
         worker.finished.connect(worker.deleteLater)
         worker.finished.connect(lambda: self.busy_changed.emit(False))
         self.status_message.emit(self.tr("Testing {0}...").format(profile.name), "info")
         worker.start()
+
+    def _cleanup_worker(self) -> None:
+        w = self._fetch_worker
+        if w is None or not w.isRunning():
+            return
+        for sig_name in ("models_fetched", "fetch_failed", "test_ok", "test_failed", "finished"):
+            try:
+                getattr(w, sig_name).disconnect()
+            except (RuntimeError, AttributeError):
+                pass
+        w.cancel()
+        if not w.wait(15000):
+            w.terminate()
+            w.wait(2000)
+        self._fetch_worker = None
+        self._fetching = False
+        self.busy_changed.emit(False)
 
     def _on_test_result(self, name: str) -> None:
         from datetime import datetime, timezone
