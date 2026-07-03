@@ -71,7 +71,7 @@ class Preferences:
             "rules_auto_update": True,
             "trace_rules": False,
             "log_level": "INFO",
-            "output_gzip": True,
+            "output_gzip": False,
             "clear_context_cookies": False,
             "rules_dirs": [],
             "rules_dirs_collapsed": True,
@@ -401,7 +401,7 @@ class Preferences:
 
     def get_output_gzip(self) -> bool:
         self._load()
-        return cast("bool", self._data.get("output_gzip", True))
+        return cast("bool", self._data.get("output_gzip", False))
 
     def set_output_gzip(self, val: bool) -> None:
         self._load()

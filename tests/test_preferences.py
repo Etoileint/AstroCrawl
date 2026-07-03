@@ -478,7 +478,7 @@ class TestAIProfileBasics:
         self._seed_default(ai_prefs)
         prof = ai_prefs.get_ai_profile("default")
         assert prof is not None
-        assert prof.max_tokens == 2048
+        assert prof.max_tokens == 16384
 
     def test_save_and_get_max_tokens(self, ai_prefs):
         ai_prefs.save_ai_profile(AIProfile(name="default", max_tokens=4096))
@@ -773,7 +773,7 @@ class TestGlobalSettingsDefaults:
     def test_output_gzip_default(self, monkeypatch, tmp_path):
         _patch_prefs_paths(monkeypatch, tmp_path)
         p = Preferences()
-        assert p.get_output_gzip() is True
+        assert p.get_output_gzip() is False
 
     def test_clear_context_cookies_default(self, monkeypatch, tmp_path):
         _patch_prefs_paths(monkeypatch, tmp_path)

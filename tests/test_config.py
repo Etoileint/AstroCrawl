@@ -322,7 +322,7 @@ class TestConfigValueConstraints:
         assert gs.rules_auto_update is True
         assert gs.trace_rules is False
         assert gs.log_level == logging.INFO
-        assert gs.output_gzip is True
+        assert gs.output_gzip is False
         assert gs.clear_context_cookies is False
 
 

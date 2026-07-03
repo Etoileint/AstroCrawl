@@ -42,7 +42,7 @@ class GlobalSettings:
     rules_auto_update: bool = True
     trace_rules: bool = False
     log_level: int = logging.INFO
-    output_gzip: bool = True
+    output_gzip: bool = False
     clear_context_cookies: bool = False
 
     @classmethod

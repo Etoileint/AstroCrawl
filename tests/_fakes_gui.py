@@ -24,7 +24,7 @@ class FakePreferences:
             "rules_auto_update": True,
             "trace_rules": False,
             "log_level": "INFO",
-            "output_gzip": True,
+            "output_gzip": False,
             "clear_context_cookies": False,
             "rules_dirs": [],
             "rules_dirs_collapsed": True,
@@ -278,7 +278,7 @@ class FakePreferences:
         self._data["log_level"] = val
 
     def get_output_gzip(self) -> bool:
-        return self._data.get("output_gzip", True)
+        return self._data.get("output_gzip", False)
 
     def set_output_gzip(self, val: bool) -> None:
         self._data["output_gzip"] = val
