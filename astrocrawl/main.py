@@ -80,7 +80,7 @@ def main() -> None:
             prefs = get_preferences()
             install_translator(app, locale_name=prefs.get_language())
 
-            icon_path = Path(__file__).parent.parent / "assets" / "etl.ico"
+            icon_path = Path(__file__).parent / "_assets" / "etl.ico"
             if icon_path.exists():
                 app.setWindowIcon(QIcon(str(icon_path)))
 

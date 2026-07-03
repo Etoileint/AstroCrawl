@@ -2,11 +2,12 @@ include README.md
 include pyproject.toml
 include LICENSE
 include .env.example
-recursive-include assets *
 recursive-include astrocrawl/rules *.json
 recursive-include astrocrawl/rules *.txt
 recursive-include astrocrawl/browser *.js
 recursive-include astrocrawl/gui/translations *.qm
+recursive-include astrocrawl/gui/translations *.ts
+recursive-include astrocrawl/_assets *
 
 prune tests
 prune astrocrawl.egg-info

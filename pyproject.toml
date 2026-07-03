@@ -84,6 +84,8 @@ astrocrawl = [
     "rules/*.txt",
     "browser/*.js",
     "gui/translations/*.qm",
+    "gui/translations/*.ts",
+    "_assets/*",
 ]
 
 [tool.setuptools.dynamic]
