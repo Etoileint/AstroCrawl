@@ -658,6 +658,7 @@ Apache 2.0 © Etoileint
 
 | 版本 | 说明 |
 |------|------|
+| **v0.1.2** | QThread 崩溃修复 + AI json_schema 探针替代白名单 + output_gzip 默认关闭 + CLI 零 PySide6 |
 | **v0.1.1** | PyPI README 更新 — 安装指南完善、badges 改为动态 |
 | **v0.1.0** | 首次公开发布 — 模块化异步爬虫，GUI + CLI 双界面 |
 
@@ -1307,5 +1308,6 @@ Apache 2.0 © Etoileint
 
 | Version | Description |
 |------|------|
+| **v0.1.2** | QThread crash fix + AI json_schema live-probe replaces whitelist + output_gzip off by default + CLI zero PySide6 |
 | **v0.1.1** | PyPI README update — install guide improvements, dynamic badges |
 | **v0.1.0** | Initial public release — modular async crawler, GUI + CLI dual interface |
