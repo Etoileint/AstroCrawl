@@ -1,5 +1,7 @@
 # AstroCrawl 开发者指南
 
+> **注意**: 测试数运行 `pytest --collect-only -q` 获取。行数运行 `wc -l tests/test_*.py tests/_fakes*.py tests/conftest.py tests/*/test_*.py | sort -t/ -k2` 刷新。
+
 > 贡献指南 / 架构设计 / 开发参考
 
 ---
@@ -27,7 +29,7 @@ playwright install chromium
 ### 1.3 运行测试
 
 ```bash
-pytest                                    # 全部 3,659 测试（含 779 GUI）
+pytest                                    # 运行全部测试（运行 `pytest --collect-only -q` 获取当前计数）
 pytest -v --tb=short                       # 详细输出
 pytest --cov=astrocrawl --cov-report=term-missing  # 覆盖率
 pytest -k "test_normalize"                 # 按名称筛选
@@ -38,77 +40,79 @@ pytest tests/test_db.py                    # 指定文件
 
 ### 1.4 测试文件
 
+> 行数为 v0.1.3 快照，仅供参考。
+
 | 文件 | 测试内容 | 行数 |
 |------|---------|------|
-| `tests/conftest.py` | 共享夹具（test_config / fake_state / fake_writer）+ GUI fixtures | 106 |
-| `tests/_fakes.py` | 测试替身（FakeBrowserPool / FakeContextPool / FakeBrowser / FakeBrowserContext / FakeProxyManager / FakePage / FakePagePool / FakeWriter）| 418 |
-| `tests/test_config.py` | CrawlerConfig 字段验证、默认值、from_env、ConfigError、GlobalSettings | 87 |
-| `tests/test_db.py` | CrawlState 队列操作、去重、重试、深度管理 | 277 |
-| `tests/test_html.py` | extract_text_from_soup、extract_links_from_soup、extract_title、compute_robust_hash、check_meta_robots | 311 |
-| `tests/test_atomic.py` | **新增** POSIX 原子写入原语 atomic_write_json (18 用例) | 283 |
-| `tests/test_preferences.py` | **新增** Preferences 路径记忆/主题/LLM/AI 速率限制/迁移 (36 用例) | 481 |
-| `tests/test_logging.py` | **新增** logfmt 日志配置幂等 + Qt 桥接 (13 用例) | 241 |
-| `tests/test_json_compat.py` | **新增** JSON 序列化兼容 orjson/stdlib (8 用例) | 122 |
-| `tests/test_startup.py` | 启动依赖检测 + Chromium 验证 (25 用例) | 339 |
+| `tests/conftest.py` | 共享夹具（test_config / fake_state / fake_writer）+ GUI fixtures | 130 |
+| `tests/_fakes.py` | 测试替身（FakeBrowserPool / FakeContextPool / FakeBrowser / FakeBrowserContext / FakeProxyManager / FakePage / FakePagePool / FakeWriter）| 501 |
+| `tests/test_config.py` | CrawlerConfig 字段验证、默认值、from_env、ConfigError、GlobalSettings | 569 |
+| `tests/test_db.py` | CrawlState 队列操作、去重、重试、深度管理 | 274 |
+| `tests/test_html.py` | extract_text_from_soup、extract_links_from_soup、extract_title、compute_robust_hash、check_meta_robots | 517 |
+| `tests/test_atomic.py` | POSIX 原子写入原语 atomic_write_json (18 用例) | 283 |
+| `tests/test_preferences.py` | Preferences 路径记忆/主题/LLM/AI 速率限制/迁移 (36 用例) | 1440 |
+| `tests/test_logging.py` | logfmt 日志配置幂等 + Qt 桥接 (13 用例) | 346 |
+| `tests/test_json_compat.py` | JSON 序列化兼容 orjson/stdlib (8 用例) | 124 |
+| `tests/test_startup.py` | 启动依赖检测 + Chromium 验证 (25 用例) | 303 |
 | `tests/test_packaged.py` | 打包模式检测 (9 用例) | 108 |
-| `tests/test_main_entry.py` | **新增** main.py CLI/GUI 入口分发 + __main__ PEP 338 守卫 (8 用例) | 236 |
-| `tests/test_url.py` | normalize_url、strip_www (PSL)、redact_*、safe_log_url、验证 (8 classes, 45 tests) | 196 |
-| `tests/test_writer.py` | **新增** AsyncJsonlWriter JSONL+GZip 全生命周期 (39 用例) | 573 |
-| `tests/test_outcomes.py` | UrlOutcome 分类、CrawlStats 规则统计/并发安全/发现计数器、FetchAttempt | 368 |
-| `tests/test_proxy.py` | ProxyHealthTracker 状态机/查询/延迟评分/_probe_loop + ProxyManager 选择器 (56 用例) | 653 |
-| `tests/test_proxy_classifier.py` | ProxyFailureClassifier 错误分类与策略分发 (37 用例, 100% 覆盖) | 265 |
-| `tests/test_robots.py` | robots.txt 解析、规则匹配、代理回退、异常分类 | 568 |
-| `tests/test_throttling.py` | **重写** DomainRateLimiter + DomainConcurrencyLimiter ISTQB 边界值 (18 用例) | 232 |
-| `tests/test_sitemap.py` | Sitemap 发现、解析、代理回退 | 550 |
-| `tests/test_liveness.py` | **新增** LivenessTracker — 心跳/存活/停滞/边界值 (20 用例) | 151 |
-| `tests/test_supervisors.py` | **新增** Supervisor + WorkerSupervisor — OTP one_for_one/Fuse 边界 (23 用例) | 420 |
-| `tests/test_progress.py` | **新增** ProgressReporter — CLI/GUI 双模/信号 payload/摘要 (26 用例) | 560 |
-| `tests/test_engine.py` | AsyncCrawler — Pipeline/_worker 异常路径/Processor 边界/恢复路径 + _run_worker_loop (77 用例) | 1458 |
-| `tests/test_url_gate.py` | **新增** UrlGate AdmitResult 全路径 + 深度边界 (8 用例) | 72 |
-| `tests/test_browser_navigation.py` | **新增** safe_goto 双层超时包装 (6 用例) | 64 |
-| `tests/test_browser_page_pool.py` | **新增** PagePool 创建/销毁/关闭/重试成功/goto 容错/幂等 (14 用例) | 175 |
-| `tests/test_browser_slot_pool.py` | **新增** SlotPool 创建/替换/销毁/查询/Cookie (30 用例) | 401 |
-| `tests/test_browser_context_pool.py` | **新增** ContextPool init/proxy/scoped_path (15 用例) | 299 |
-| `tests/test_browser_domain_memory.py` | **新增** DomainPathMemory TTL 双缓存 (27 用例) | 222 |
-| `tests/test_browser_pool.py` | BrowserPool 消息模式、四种代理模式、重试策略 | 594 |
-| `tests/test_fakes.py` | FakeBrowserPool / FakeBrowser / FakeBrowserContext / FakeProxyManager / FakePage / FakePagePool / FakeWriter（22 测试）| 237 |
-| `tests/test_resilience.py` | **更新** Fuse 两态熔断器全边界 — 状态机/窗口滑动/回调/Health (25 用例) | 298 |
-| `tests/test_health.py` | **新增** Health 数据类 + aggregate() Semigroup 聚合 (21 用例) | 227 |
-| `tests/test_health_monitor.py` | **新增** HealthMonitor A/B/C 调度 + 主动被动聚合 + 生命周期 (50 用例) | 822 |
-| `tests/test_diagnostics.py` | **新增** HTTP /health 端点 + TaskDumper + CrawlDiagnostics (31 用例) | 509 |
-| `tests/test_signals.py` | **增强** CrawlerSignals + TestSignalPayloads emit→connect→handler 完整链路 (16 用例) | 195 |
-| `tests/test_ai_client.py` | **重构** AIClient Provider 门面, _ResolvedParams, Hook 链, StreamEvent (69 用例, ADR-0006/0008) | 1200 |
-| `tests/test_ai_errors.py` | **新增** AIError 层次 9 类 + 重试分类 + 错误实例化 (34 用例) | 214 |
-| `tests/test_ai_constraint.py` | **新增** OutputConstraint 结构化输出 + 能力降级 + Provider 能力 (49 用例, ADR-0008) | 490 |
-| `tests/test_ai_provider.py` | **新增** _ChatProvider / _SupportsEmbedding Protocol + entry point 发现 (27 用例) | 274 |
-| `tests/test_ai_rate_limiter.py` | **新增** TokenBucket + BoundedSemaphore + UsageTracker (35 用例, 100% cov) | 497 |
-| `tests/ai_openai/test_client.py` | **迁移** _map_error + OpenAIClient 单元测试 | 150 |
-| `tests/test_ai_generation.py` | RuleGenerator AI 规则生成端到端 (6 用例) | 64 |
-| `tests/test_ai_rules.py` | AI 生成规则验证与导入 (27 用例) | 297 |
-| `tests/test_ai_template.py` | AI Prompt 模板加载/回退 + Schema 契约测试 (19 用例) | 179 |
-| `tests/test_ai_profile.py` | **新增** AIProfile 多 Profile 管理 (25 用例, 100% cov) | 213 |
-| `tests/test_rules_state.py` | **新增** fcntl 锁状态机 + 损坏恢复 + 优雅降级 (23 用例) | 304 |
-| `tests/test_rules_engine.py` | 规则引擎核心 — 加载/匹配/提取/Transform | 42+ |
-| `tests/test_rules_lifecycle.py` | 规则生命周期 — 启用/禁用/删除/校验 | 21+ |
-| `tests/test_rules_source.py` | 远程规则源 — Manifest/下载/增量更新 | 29+ |
-| `tests/test_rules_diagnostics.py` | 规则诊断 — trace 模式/统计 | 12+ |
-| `tests/test_html_preprocess.py` | **新增** HTML 三级清洗预处理 (19 用例) | 151 |
-| `tests/test_chatml.py` | **新增** ChatML 序列化/tiktoken (15 用例) | 200 |
-| `tests/test_cli_rules.py` | CLI rules 子命令 (argparse) | 166 |
-| `tests/test_cli_source.py` | CLI source 子命令 (argparse) | 132 |
-| `tests/_fakes_gui.py` | GUI 测试替身（FakePreferences / FakeCrawlSession / FakeRuleLifecycle）| 369 |
-| `tests/test_gui_core.py` | Phase 1: CrawlSession 状态机 + CrawlerThread (49 用例) | 655 |
-| `tests/test_gui_theme.py` | Phase 2: ThemeManager + ThemeDialog + _SwatchField (59 用例) | 568 |
-| `tests/test_gui_mainwindow_data.py` | Phase 3: MainWindow get_urls/_validate/slot/config (41 用例) | 419 |
-| `tests/test_gui_dialogs.py` | Phase 4: AdvancedSettingsDialog + GlobalSettings + AI 设置 (36 用例) | 462 |
-| `tests/test_gui_worker_viz.py` | Phase 5: WorkerStatusBar + ProxyHealthBar + TitleBar (20 用例) | 231 |
-| `tests/test_gui_mainwindow_behavior.py` | Phase 6: MainWindow _run_crawler/closeEvent/_cleanup_session/_reset_app (47 用例) | 666 |
-| `tests/test_gui_rules_dialog.py` | Phase 7: RulesDialog + _RuleTablePage/_CustomPage/_SourcePage (84 用例) | 935 |
-| `tests/test_gui_ai_profile.py` | **新增** ADR-0007: _AIProfilePage + AIProfileEditDialog (37 用例) | 313 |
+| `tests/test_main_entry.py` | main.py CLI/GUI 入口分发 + __main__ PEP 338 守卫 (8 用例) | 302 |
+| `tests/test_url.py` | normalize_url、strip_www (PSL)、redact_*、safe_log_url、验证 (8 classes, 45 tests) | 315 |
+| `tests/test_writer.py` | AsyncJsonlWriter JSONL+GZip 全生命周期 (39 用例) | 571 |
+| `tests/test_outcomes.py` | UrlOutcome 分类、CrawlStats 规则统计/并发安全/发现计数器、FetchAttempt | 411 |
+| `tests/test_proxy.py` | ProxyHealthTracker 状态机/查询/延迟评分/_probe_loop + ProxyManager 选择器 (56 用例) | 688 |
+| `tests/test_proxy_classifier.py` | ProxyFailureClassifier 错误分类与策略分发 (37 用例, 100% 覆盖) | 250 |
+| `tests/test_robots.py` | robots.txt 解析、规则匹配、代理回退、异常分类 | 701 |
+| `tests/test_throttling.py` | DomainRateLimiter + DomainConcurrencyLimiter ISTQB 边界值 (18 用例) | 358 |
+| `tests/test_sitemap.py` | Sitemap 发现、解析、代理回退 | 558 |
+| `tests/test_liveness.py` | LivenessTracker — 心跳/存活/停滞/边界值 (20 用例) | 151 |
+| `tests/test_supervisors.py` | Supervisor + WorkerSupervisor — OTP one_for_one/Fuse 边界 (23 用例) | 420 |
+| `tests/test_progress.py` | ProgressReporter — CLI/GUI 双模/信号 payload/摘要 (26 用例) | 595 |
+| `tests/test_engine.py` | AsyncCrawler — Pipeline/_worker 异常路径/Processor 边界/恢复路径 + _run_worker_loop (77 用例) | 1704 |
+| `tests/test_url_gate.py` | UrlGate AdmitResult 全路径 + 深度边界 (8 用例) | 86 |
+| `tests/test_browser_navigation.py` | safe_goto 双层超时包装 (6 用例) | 73 |
+| `tests/test_browser_page_pool.py` | PagePool 创建/销毁/关闭/重试成功/goto 容错/幂等 (14 用例) | 175 |
+| `tests/test_browser_slot_pool.py` | SlotPool 创建/替换/销毁/查询/Cookie (30 用例) | 401 |
+| `tests/test_browser_context_pool.py` | ContextPool init/proxy/scoped_path (15 用例) | 418 |
+| `tests/test_browser_domain_memory.py` | DomainPathMemory TTL 双缓存 (27 用例) | 222 |
+| `tests/test_browser_pool.py` | BrowserPool 消息模式、四种代理模式、重试策略 | 854 |
+| `tests/test_fakes.py` | FakeBrowserPool / FakeBrowser / FakeBrowserContext / FakeProxyManager / FakePage / FakePagePool / FakeWriter（22 测试）| 217 |
+| `tests/test_resilience.py` | Fuse 两态熔断器全边界 — 状态机/窗口滑动/回调/Health (25 用例) | 298 |
+| `tests/test_health.py` | Health 数据类 + aggregate() Semigroup 聚合 (21 用例) | 227 |
+| `tests/test_health_monitor.py` | HealthMonitor A/B/C 调度 + 主动被动聚合 + 生命周期 (50 用例) | 872 |
+| `tests/test_diagnostics.py` | HTTP /health 端点 + TaskDumper + CrawlDiagnostics (31 用例) | 447 |
+| `tests/test_signals.py` | CrawlerSignals + TestSignalPayloads emit→connect→handler 完整链路 (16 用例) | 225 |
+| `tests/test_ai_client.py` | AIClient Provider 门面, _ResolvedParams, Hook 链, StreamEvent (69 用例, ADR-0006/0008) | 1350 |
+| `tests/test_ai_errors.py` | AIError 层次 9 类 + 重试分类 + 错误实例化 (34 用例) | 214 |
+| `tests/test_ai_constraint.py` | OutputConstraint 结构化输出 + 能力降级 + Provider 能力 (49 用例, ADR-0008) | 489 |
+| `tests/test_ai_provider.py` | _ChatProvider / _SupportsEmbedding Protocol + entry point 发现 (27 用例) | 276 |
+| `tests/test_ai_rate_limiter.py` | TokenBucket + BoundedSemaphore + UsageTracker (35 用例, 100% cov) | 497 |
+| `tests/ai_openai/test_client.py` | _map_error + OpenAIClient 单元测试 | 300 |
+| `tests/test_ai_generation.py` | RuleGenerator AI 规则生成端到端 (6 用例) | 79 |
+| `tests/test_ai_rules.py` | AI 生成规则验证与导入 (27 用例) | 749 |
+| `tests/test_ai_template.py` | AI Prompt 模板加载/回退 + Schema 契约测试 (19 用例) | 228 |
+| `tests/test_ai_profile.py` | AIProfile 多 Profile 管理 (25 用例, 100% cov) | 243 |
+| `tests/test_rules_state.py` | fcntl 锁状态机 + 损坏恢复 + 优雅降级 (23 用例) | 415 |
+| `tests/test_rules_engine.py` | 规则引擎核心 — 加载/匹配/提取/Transform | 1817 |
+| `tests/test_rules_lifecycle.py` | 规则生命周期 — 启用/禁用/删除/校验 | 613 |
+| `tests/test_rules_source.py` | 远程规则源 — Manifest/下载/增量更新 | 1533 |
+| `tests/test_rules_diagnostics.py` | 规则诊断 — trace 模式/统计 | 169 |
+| `tests/test_html_preprocess.py` | HTML 三级清洗预处理 (19 用例) | 150 |
+| `tests/test_chatml.py` | ChatML 序列化/tiktoken (15 用例) | 95 |
+| `tests/test_cli_rules.py` | CLI rules 子命令 (argparse) | 708 |
+| `tests/test_cli_source.py` | CLI source 子命令 (argparse) | 216 |
+| `tests/_fakes_gui.py` | GUI 测试替身（FakePreferences / FakeCrawlSession / FakeRuleLifecycle）| 546 |
+| `tests/test_gui_core.py` | Phase 1: CrawlSession 状态机 + CrawlerThread (49 用例) | 795 |
+| `tests/test_gui_theme.py` | Phase 2: ThemeManager + ThemeDialog + _SwatchField (59 用例) | 610 |
+| `tests/test_gui_mainwindow_data.py` | Phase 3: MainWindow get_urls/_validate/slot/config (41 用例) | 408 |
+| `tests/test_gui_dialogs.py` | Phase 4: AdvancedSettingsDialog + GlobalSettings + AI 设置 (36 用例) | 578 |
+| `tests/test_gui_worker_viz.py` | Phase 5: WorkerStatusBar + ProxyHealthBar + TitleBar (20 用例) | 328 |
+| `tests/test_gui_mainwindow_behavior.py` | Phase 6: MainWindow _run_crawler/closeEvent/_cleanup_session/_reset_app (47 用例) | 911 |
+| `tests/test_gui_rules_dialog.py` | Phase 7: RulesDialog + _RuleTablePage/_CustomPage/_SourcePage (84 用例) | 1095 |
+| `tests/test_gui_ai_profile.py` | ADR-0007: _AIProfilePage + AIProfileEditDialog (37 用例) | 704 |
 | `tests/test_gui_delegates.py` | ADR-0007: StatusColorDelegate + CheckboxDelegate (13 用例) | 230 |
-| `tests/test_gui_table_page.py` | **新增** ADR-0007: _TableManagementPage + _FilterProxy (12 用例) | 178 |
-| `tests/test_gui_tokens.py` | **新增** 布局 Token 常量验证 (11 用例) | 72 |
-| `tests/test_gui_style.py` | **新增** ColumnDef + create_managed_table + style helpers (25 用例) | 270 |
+| `tests/test_gui_table_page.py` | ADR-0007: _TableManagementPage + _FilterProxy (12 用例) | 255 |
+| `tests/test_gui_tokens.py` | 布局 Token 常量验证 (11 用例) | 107 |
+| `tests/test_gui_style.py` | ColumnDef + create_managed_table + style helpers (25 用例) | 317 |
 
 ### 1.5 GUI 测试运行
 

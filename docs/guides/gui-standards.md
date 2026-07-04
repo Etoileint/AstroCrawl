@@ -3,6 +3,8 @@
 基于 Apple HIG / Microsoft Fluent UI / GNOME HIG / Material Design 3 + Qt 源码规范制定。
 所有新增 GUI 代码必须遵循此文档。
 
+平台相关问题（非项目 bug）见 [`known-issues/`](known-issues/)（PySide6 aarch64 segfault、Sogou IME Qt6 不兼容）。
+
 ## 1. 3 层 Design Token 模型
 
 ### 1.1 布局 Token (`gui/_tokens.py`)
