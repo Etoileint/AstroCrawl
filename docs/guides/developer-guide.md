@@ -59,11 +59,26 @@ pytest tests/test_db.py                    # 指定文件
 | `tests/test_url.py` | normalize_url、strip_www (PSL)、redact_*、safe_log_url、验证 (8 classes, 45 tests) | <!-- @stats tests.modules.test_url.lines -->315<!-- /@stats --> |
 | `tests/test_writer.py` | AsyncJsonlWriter JSONL+GZip 全生命周期 (39 用例) | <!-- @stats tests.modules.test_writer.lines -->571<!-- /@stats --> |
 | `tests/test_outcomes.py` | UrlOutcome 分类、CrawlStats 规则统计/并发安全/发现计数器、FetchAttempt | <!-- @stats tests.modules.test_outcomes.lines -->411<!-- /@stats --> |
+| `tests/test_constants.py` | _constants.py 模块完整性 + 关键常量值验证 (12 用例) | <!-- @stats tests.modules.test_constants.lines -->93<!-- /@stats --> |
+| `tests/test_types.py` | _types.py 共享内核类型完整测试套件 (99 用例) | <!-- @stats tests.modules.test_types.lines -->714<!-- /@stats --> |
+| `tests/test_retry_strategy.py` | RetryStrategy / classify_http / classify_from_category 边界值覆盖 (71 用例) | <!-- @stats tests.modules.test_retry_strategy.lines -->198<!-- /@stats --> |
+| `tests/test_path_strategy.py` | PathSwitch 路径路由策略测试 (30 用例, ADR-0010 Phase 5) | <!-- @stats tests.modules.test_path_strategy.lines -->212<!-- /@stats --> |
+| `tests/test_utils_expanded.py` | utils/html.py + utils/url.py 补充覆盖 (40 用例) | <!-- @stats tests.modules.test_utils_expanded.lines -->341<!-- /@stats --> |
+| `tests/test_version.py` | _version.py 版本号一致性验证 (6 用例) | <!-- @stats tests.modules.test_version.lines -->57<!-- /@stats --> |
+| `tests/test_db_expanded.py` | CrawlState 补充测试 — 首轮覆盖遗漏方法 (51 用例) | <!-- @stats tests.modules.test_db_expanded.lines -->438<!-- /@stats --> |
+| `tests/test_route_settings_page.py` | _RouteSettingsPage + ProxyRouteModel (30 用例) | <!-- @stats tests.modules.test_route_settings_page.lines -->314<!-- /@stats --> |
 | `tests/test_proxy.py` | ProxyHealthTracker 状态机/查询/延迟评分/_probe_loop + ProxyManager 选择器 (56 用例) | <!-- @stats tests.modules.test_proxy.lines -->688<!-- /@stats --> |
 | `tests/test_proxy_classifier.py` | ProxyFailureClassifier 错误分类与策略分发 (37 用例, 100% 覆盖) | <!-- @stats tests.modules.test_proxy_classifier.lines -->250<!-- /@stats --> |
+| `tests/test_proxy_config.py` | Proxy 配置类型 — ProxyEndpointSpec / ParsedProxy / ProxyAuth / ProxyProfile / ProxyConfig (58 用例) | <!-- @stats tests.modules.test_proxy_config.lines -->414<!-- /@stats --> |
+| `tests/test_proxy_endpoint_dialog.py` | ProxyEndpointEditDialog — 新建/编辑/验证/dirty check (18 用例) | <!-- @stats tests.modules.test_proxy_endpoint_dialog.lines -->217<!-- /@stats --> |
+| `tests/test_proxy_probe.py` | TCP 探测 — probe_one + ProbeResult (8 用例) | <!-- @stats tests.modules.test_proxy_probe.lines -->86<!-- /@stats --> |
+| `tests/test_proxy_profile_page.py` | 代理 Profile 管理页 — ProxyProfileListModel + _ProxyProfilePage (32 用例) | <!-- @stats tests.modules.test_proxy_profile_page.lines -->318<!-- /@stats --> |
+| `tests/test_proxy_session.py` | ProxySession — 生命周期/委托/bypass/查询/DI (38 用例) | <!-- @stats tests.modules.test_proxy_session.lines -->350<!-- /@stats --> |
 | `tests/test_robots.py` | robots.txt 解析、规则匹配、代理回退、异常分类 | <!-- @stats tests.modules.test_robots.lines -->701<!-- /@stats --> |
 | `tests/test_throttling.py` | DomainRateLimiter + DomainConcurrencyLimiter ISTQB 边界值 (18 用例) | <!-- @stats tests.modules.test_throttling.lines -->358<!-- /@stats --> |
 | `tests/test_sitemap.py` | Sitemap 发现、解析、代理回退 | <!-- @stats tests.modules.test_sitemap.lines -->558<!-- /@stats --> |
+| `tests/test_sitemap_discovery.py` | SitemapDiscovery 全部方法 (45 用例) | <!-- @stats tests.modules.test_sitemap_discovery.lines -->599<!-- /@stats --> |
+| `tests/test_fetch.py` | Aiohttp 重试引擎 — _classify_aiohttp_error / classify_from_category / aiohttp_retry_fetch (39 用例) | <!-- @stats tests.modules.test_fetch.lines -->515<!-- /@stats --> |
 | `tests/test_liveness.py` | LivenessTracker — 心跳/存活/停滞/边界值 (20 用例) | <!-- @stats tests.modules.test_liveness.lines -->151<!-- /@stats --> |
 | `tests/test_supervisors.py` | Supervisor + WorkerSupervisor — OTP one_for_one/Fuse 边界 (23 用例) | <!-- @stats tests.modules.test_supervisors.lines -->420<!-- /@stats --> |
 | `tests/test_progress.py` | ProgressReporter — CLI/GUI 双模/信号 payload/摘要 (26 用例) | <!-- @stats tests.modules.test_progress.lines -->595<!-- /@stats --> |
@@ -75,6 +90,8 @@ pytest tests/test_db.py                    # 指定文件
 | `tests/test_browser_context_pool.py` | ContextPool init/proxy/scoped_path (15 用例) | <!-- @stats tests.modules.test_browser_context_pool.lines -->418<!-- /@stats --> |
 | `tests/test_browser_domain_memory.py` | DomainPathMemory TTL 双缓存 (27 用例) | <!-- @stats tests.modules.test_browser_domain_memory.lines -->222<!-- /@stats --> |
 | `tests/test_browser_pool.py` | BrowserPool 消息模式、四种代理模式、重试策略 | <!-- @stats tests.modules.test_browser_pool.lines -->854<!-- /@stats --> |
+| `tests/test_device_caps.py` | 设备 GPU 能力检测 (11 用例) | <!-- @stats tests.modules.test_device_caps.lines -->100<!-- /@stats --> |
+| `tests/browser/test_preview.py` | 浏览器内容预览功能 (37 用例) | <!-- @stats tests.modules.browser.test_preview.lines -->1,015<!-- /@stats --> |
 | `tests/test_fakes.py` | FakeBrowserPool / FakeBrowser / FakeBrowserContext / FakeProxyManager / FakePage / FakePagePool / FakeWriter（22 测试）| <!-- @stats tests.modules.test_fakes.lines -->217<!-- /@stats --> |
 | `tests/test_resilience.py` | Fuse 两态熔断器全边界 — 状态机/窗口滑动/回调/Health (25 用例) | <!-- @stats tests.modules.test_resilience.lines -->298<!-- /@stats --> |
 | `tests/test_health.py` | Health 数据类 + aggregate() Semigroup 聚合 (21 用例) | <!-- @stats tests.modules.test_health.lines -->227<!-- /@stats --> |
@@ -91,6 +108,8 @@ pytest tests/test_db.py                    # 指定文件
 | `tests/test_ai_rules.py` | AI 生成规则验证与导入 (27 用例) | <!-- @stats tests.modules.test_ai_rules.lines -->753<!-- /@stats --> |
 | `tests/test_ai_template.py` | AI Prompt 模板加载/回退 + Schema 契约测试 (19 用例) | <!-- @stats tests.modules.test_ai_template.lines -->228<!-- /@stats --> |
 | `tests/test_ai_profile.py` | AIProfile 多 Profile 管理 (25 用例, 100% cov) | <!-- @stats tests.modules.test_ai_profile.lines -->243<!-- /@stats --> |
+| `tests/ai_anthropic/test_client.py` | AnthropicClient + _map_error + 辅助函数 (55 用例) | <!-- @stats tests.modules.ai_anthropic.test_client.lines -->539<!-- /@stats --> |
+| `tests/ai_google/test_client.py` | GoogleClient + _map_error + 辅助函数 (47 用例) | <!-- @stats tests.modules.ai_google.test_client.lines -->498<!-- /@stats --> |
 | `tests/test_rules_state.py` | fcntl 锁状态机 + 损坏恢复 + 优雅降级 (23 用例) | <!-- @stats tests.modules.test_rules_state.lines -->415<!-- /@stats --> |
 | `tests/test_rules_engine.py` | 规则引擎核心 — 加载/匹配/提取/Transform | <!-- @stats tests.modules.test_rules_engine.lines -->1,817<!-- /@stats --> |
 | `tests/test_rules_lifecycle.py` | 规则生命周期 — 启用/禁用/删除/校验 | <!-- @stats tests.modules.test_rules_lifecycle.lines -->613<!-- /@stats --> |
@@ -98,8 +117,15 @@ pytest tests/test_db.py                    # 指定文件
 | `tests/test_rules_diagnostics.py` | 规则诊断 — trace 模式/统计 | <!-- @stats tests.modules.test_rules_diagnostics.lines -->169<!-- /@stats --> |
 | `tests/test_html_preprocess.py` | HTML 三级清洗预处理 (19 用例) | <!-- @stats tests.modules.test_html_preprocess.lines -->150<!-- /@stats --> |
 | `tests/test_chatml.py` | ChatML 序列化/tiktoken (15 用例) | <!-- @stats tests.modules.test_chatml.lines -->95<!-- /@stats --> |
+| `tests/test_rules_browser_edge.py` | rules 子模块 + browser 辅助函数边界用例 (58 用例) | <!-- @stats tests.modules.test_rules_browser_edge.lines -->387<!-- /@stats --> |
+| `tests/test_rules_io.py` | _io.py — model_dump / BOM 处理 / 非 dict JSON 拒绝 (41 用例) | <!-- @stats tests.modules.test_rules_io.lines -->404<!-- /@stats --> |
+| `tests/test_rules_loader.py` | 规则加载器 — 去重/排序/冲突检测/限制门控/错误路径 (48 用例) | <!-- @stats tests.modules.test_rules_loader.lines -->655<!-- /@stats --> |
+| `tests/test_rules_markdown.py` | clean_markdown_wrapper (15 用例) | <!-- @stats tests.modules.test_rules_markdown.lines -->81<!-- /@stats --> |
 | `tests/test_cli_rules.py` | CLI rules 子命令 (argparse) | <!-- @stats tests.modules.test_cli_rules.lines -->708<!-- /@stats --> |
 | `tests/test_cli_source.py` | CLI source 子命令 (argparse) | <!-- @stats tests.modules.test_cli_source.lines -->216<!-- /@stats --> |
+| `tests/test_cli_ai.py` | CLI ai 子命令 — 参数解析 + 各子命令路径 (20 用例) | <!-- @stats tests.modules.test_cli_ai.lines -->282<!-- /@stats --> |
+| `tests/test_cli_main.py` | CLI main.py — 命令行入口核心函数 (65 用例) | <!-- @stats tests.modules.test_cli_main.lines -->602<!-- /@stats --> |
+| `tests/test_cli_proxy.py` | CLI proxy 子命令 — 参数解析 + 各子命令路径 (29 用例) | <!-- @stats tests.modules.test_cli_proxy.lines -->396<!-- /@stats --> |
 | `tests/_fakes_gui.py` | GUI 测试替身（FakePreferences / FakeCrawlSession / FakeRuleLifecycle）| <!-- @stats tests.modules._fakes_gui.lines -->546<!-- /@stats --> |
 | `tests/test_gui_core.py` | Phase 1: CrawlSession 状态机 + CrawlerThread (49 用例) | <!-- @stats tests.modules.test_gui_core.lines -->795<!-- /@stats --> |
 | `tests/test_gui_theme.py` | Phase 2: ThemeManager + ThemeDialog + _SwatchField (59 用例) | <!-- @stats tests.modules.test_gui_theme.lines -->610<!-- /@stats --> |
@@ -113,6 +139,11 @@ pytest tests/test_db.py                    # 指定文件
 | `tests/test_gui_table_page.py` | ADR-0007: _TableManagementPage + _FilterProxy (12 用例) | <!-- @stats tests.modules.test_gui_table_page.lines -->255<!-- /@stats --> |
 | `tests/test_gui_tokens.py` | 布局 Token 常量验证 (11 用例) | <!-- @stats tests.modules.test_gui_tokens.lines -->107<!-- /@stats --> |
 | `tests/test_gui_style.py` | ColumnDef + create_managed_table + style helpers (25 用例) | <!-- @stats tests.modules.test_gui_style.lines -->317<!-- /@stats --> |
+| `tests/test_gui_animated_bar.py` | _AnimatedBar / _PulseBar / _ProgressStatusBar (31 用例) | <!-- @stats tests.modules.test_gui_animated_bar.lines -->434<!-- /@stats --> |
+| `tests/test_gui_i18n.py` | i18n 翻译系统 — en ↔ zh_CN 双语验证 (16 用例) | <!-- @stats tests.modules.test_gui_i18n.lines -->138<!-- /@stats --> |
+| `tests/test_gui_proxy_config.py` | GUI 代理配置 — _proxy_endpoint_dialog / _proxy_profile_page / _route_settings_page (72 用例) | <!-- @stats tests.modules.test_gui_proxy_config.lines -->783<!-- /@stats --> |
+| `tests/gui/test_preview_panel.py` | PreviewPanel 预览面板 (38 用例) | <!-- @stats tests.modules.gui.test_preview_panel.lines -->824<!-- /@stats --> |
+| `tests/gui/test_preview_session.py` | PreviewSession 预览会话 (21 用例) | <!-- @stats tests.modules.gui.test_preview_session.lines -->415<!-- /@stats --> |
 
 ### 1.5 GUI 测试运行### 1.5 GUI 测试运行
 
