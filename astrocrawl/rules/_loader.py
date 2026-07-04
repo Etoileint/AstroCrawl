@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import logging
 import os
+import threading
 from pathlib import Path
 from typing import Any, Dict, List, Sequence, Tuple
 
@@ -331,11 +332,19 @@ def ensure_no_rule_conflicts(snapshot: RuleSnapshot) -> None:
         raise RuleConflictError(snapshot._conflicts)
 
 
-def validate_rule_files(cfg: CrawlerConfig, *, extra_rules_dirs: list | None = None) -> list:
+def validate_rule_files(
+    cfg: CrawlerConfig,
+    *,
+    extra_rules_dirs: list | None = None,
+    cancel_event: threading.Event | None = None,
+) -> list:
     """扫描所有规则目录，对每个 .json 文件执行完整校验。
 
     返回 [{status, path, source, name?, schema_version?, fields_count?, error?}, ...]
     status: "pass" | "fail" | "skip"
+
+    cancel_event 不为 None 时，每处理完一个文件检查 cancel_event.is_set()，
+    若已设置则立即返回部分结果。用于 QThread 协作式取消。
     """
     _base = Path(__file__).resolve().parent  # astrocrawl/rules/
     dirs: list[tuple[str, Path]] = []
@@ -383,7 +392,11 @@ def validate_rule_files(cfg: CrawlerConfig, *, extra_rules_dirs: list | None = N
                     result["status"] = "fail"
                     result["error"] = str(e)
                 results.append(result)
+                if cancel_event and cancel_event.is_set():
+                    return results
         except PermissionError:
             pass
+        if cancel_event and cancel_event.is_set():
+            return results
 
     return results

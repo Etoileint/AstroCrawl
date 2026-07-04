@@ -580,17 +580,25 @@ class _ValidateAllWorker(QThread):
         super().__init__(parent)
         self._cfg = cfg
         self._extra_rules_dirs = extra_rules_dirs
+        self._cancel_event = threading.Event()
 
     def run(self) -> None:
         if self.isInterruptionRequested():
             return
         from astrocrawl.rules import validate_rule_files
 
-        results = validate_rule_files(self._cfg, extra_rules_dirs=self._extra_rules_dirs)
+        results = validate_rule_files(
+            self._cfg,
+            extra_rules_dirs=self._extra_rules_dirs,
+            cancel_event=self._cancel_event,
+        )
+        if self.isInterruptionRequested() or self._cancel_event.is_set():
+            return
         self.finished.emit(results)
 
     def cancel(self) -> None:
         self.requestInterruption()
+        self._cancel_event.set()
 
 
 class _RuleTablePage(QWidget):
@@ -884,6 +892,8 @@ class _RuleTablePage(QWidget):
             self._show_status(self.tr("Rule '{0}' validation failed: {1}").format(name, e), "error")
 
     def _on_validate_all(self) -> None:
+        if self._validate_worker is not None:
+            return
         self._validate_all_btn.setEnabled(False)
         self._show_status(self.tr("Validating all rules..."))
         self.busy_changed.emit(True)
@@ -893,10 +903,10 @@ class _RuleTablePage(QWidget):
             parent=self,
         )
         self._validate_worker.finished.connect(self._on_validate_all_done)
-        self._validate_worker.finished.connect(self._validate_worker.deleteLater)
         self._validate_worker.start()
 
     def _on_validate_all_done(self, results: list) -> None:
+        self._validate_worker = None
         self.busy_changed.emit(False)
         self._validate_all_btn.setEnabled(True)
         self._show_status(self.tr("Validation complete ({0} files)").format(len(results)))
@@ -904,7 +914,12 @@ class _RuleTablePage(QWidget):
 
     def _cleanup_worker(self) -> None:
         w = self._validate_worker
-        if w is None or not w.isRunning():
+        if w is None:
+            return
+        if not w.isRunning():
+            self._validate_worker = None
+            self.busy_changed.emit(False)
+            self._validate_all_btn.setEnabled(True)
             return
         try:
             w.finished.disconnect()
@@ -1692,8 +1707,6 @@ class _CustomPage(QWidget):
         self._worker.generation_progress.connect(self._on_ai_progress)
         self._worker.finished.connect(self._on_generate_result)
         self._worker.error_occurred.connect(self._on_generate_error)
-        self._worker.finished.connect(self._worker.deleteLater)
-        self._worker.error_occurred.connect(self._worker.deleteLater)
         self._worker.start()
 
     def _on_ai_progress(self, phase: str, info: dict) -> None:
@@ -1706,6 +1719,7 @@ class _CustomPage(QWidget):
 
     @Slot(object)
     def _on_generate_result(self, result: dict) -> None:
+        self._worker = None
         self.busy_changed.emit(False)
         self._gen_btn.setEnabled(True)
 
@@ -1728,18 +1742,22 @@ class _CustomPage(QWidget):
         dlg.exec()
         self.rule_generated.emit(result)
         self._html_input.clear()
-        self._worker = None
 
     @Slot(str)
     def _on_generate_error(self, error: str) -> None:
+        self._worker = None
         self.busy_changed.emit(False)
         self._gen_btn.setEnabled(True)
         self._show_status(self.tr("API call failed: {0}").format(error), "error")
-        self._worker = None
 
     def _cleanup_worker(self) -> None:
         w = self._worker
-        if w is None or not w.isRunning():
+        if w is None:
+            return
+        if not w.isRunning():
+            self._worker = None
+            self.busy_changed.emit(False)
+            self._gen_btn.setEnabled(True)
             return
         for sig, slot in (
             (w.generation_progress, self._on_ai_progress),
@@ -1756,6 +1774,7 @@ class _CustomPage(QWidget):
             w.wait(2000)
         self._worker = None
         self.busy_changed.emit(False)
+        self._gen_btn.setEnabled(True)
 
 
 class _AiWorker(QThread):
@@ -1882,7 +1901,10 @@ class _SourceUpdateWorker(QThread):
     def cancel(self) -> None:
         self.requestInterruption()
         if self._main_task is not None and self._loop is not None and self._loop.is_running():
-            self._loop.call_soon_threadsafe(self._main_task.cancel)
+            try:
+                self._loop.call_soon_threadsafe(self._main_task.cancel)
+            except RuntimeError:
+                pass
 
     async def _update(self) -> dict:
         import aiohttp
@@ -1968,7 +1990,10 @@ class _SourceValidateWorker(QThread):
     def cancel(self) -> None:
         self.requestInterruption()
         if self._main_task is not None and self._loop is not None and self._loop.is_running():
-            self._loop.call_soon_threadsafe(self._main_task.cancel)
+            try:
+                self._loop.call_soon_threadsafe(self._main_task.cancel)
+            except RuntimeError:
+                pass
 
     async def _validate(self) -> dict:
         import aiohttp
@@ -2032,7 +2057,10 @@ class _SourceValidateAllWorker(QThread):
     def cancel(self) -> None:
         self.requestInterruption()
         if self._main_task is not None and self._loop is not None and self._loop.is_running():
-            self._loop.call_soon_threadsafe(self._main_task.cancel)
+            try:
+                self._loop.call_soon_threadsafe(self._main_task.cancel)
+            except RuntimeError:
+                pass
 
     async def _validate_all(self) -> dict:
         import aiohttp
@@ -2458,25 +2486,23 @@ class _SourcePage(QWidget):
         self._disable_all_buttons()
         worker.finished.connect(lambda r: self._on_operation_done(result_handler, r))
         worker.error_occurred.connect(lambda e: self._on_operation_error(error_handler, e))
-        worker.finished.connect(worker.deleteLater)
-        worker.error_occurred.connect(worker.deleteLater)
         worker.start()
 
     def _on_operation_done(self, handler, result):
+        self._active_worker = None
         self.busy_changed.emit(False)
         self._restore_all_buttons()
         self._sync_button_states()
         if handler:
             handler(result)
-        self._active_worker = None
 
     def _on_operation_error(self, handler, error):
+        self._active_worker = None
         self.busy_changed.emit(False)
         self._restore_all_buttons()
         self._sync_button_states()
         if handler:
             handler(error)
-        self._active_worker = None
 
     def _sync_button_states(self):
         has_sources = bool(list_sources_from_file())
@@ -2512,7 +2538,13 @@ class _SourcePage(QWidget):
 
     def _cleanup_worker(self) -> None:
         w = self._active_worker
-        if w is None or not w.isRunning():
+        if w is None:
+            return
+        if not w.isRunning():
+            self._active_worker = None
+            self.busy_changed.emit(False)
+            self._restore_all_buttons()
+            self._sync_button_states()
             return
         for sig_name in ("finished", "error_occurred", "source_progress"):
             try:

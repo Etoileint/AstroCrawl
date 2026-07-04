@@ -502,7 +502,6 @@ class ProxyProfileEditDialog(QDialog):
         )
         self._probe_worker = _ProbeWorker([parsed], self)
         self._probe_worker.single_result.connect(self._on_single_test_result)
-        self._probe_worker.finished.connect(self._probe_worker.deleteLater)
         self._probe_worker.finished.connect(lambda: setattr(self, "_probe_worker", None))
         self._probe_worker.finished.connect(lambda: self._psb.stop_pulse())
         self._probe_worker.probe_error.connect(self._on_probe_error)
@@ -593,7 +592,11 @@ class ProxyProfileEditDialog(QDialog):
 
     def _cleanup_worker(self) -> None:
         w = self._probe_worker
-        if w is None or not w.isRunning():
+        if w is None:
+            return
+        if not w.isRunning():
+            self._probe_worker = None
+            self._psb.stop_pulse()
             return
         try:
             w.single_result.disconnect()
@@ -690,7 +693,10 @@ class _ProbeWorker(QThread):
     def cancel(self) -> None:
         self.requestInterruption()
         if self._main_task is not None and self._loop is not None and self._loop.is_running():
-            self._loop.call_soon_threadsafe(self._main_task.cancel)
+            try:
+                self._loop.call_soon_threadsafe(self._main_task.cancel)
+            except RuntimeError:
+                pass
 
     async def _probe_all(self) -> dict[str, tuple[int, int]]:
         tasks = [self._probe_one_n_times(ep) for ep in self._endpoints]
@@ -885,7 +891,6 @@ class _ProxyProfilePage(_TableManagementPage):
         )
         self._probe_worker.all_results.connect(lambda _: self.refresh())
         self._probe_worker.finished.connect(lambda: setattr(self, "_probe_worker", None))
-        self._probe_worker.finished.connect(self._probe_worker.deleteLater)
         self._probe_worker.finished.connect(lambda: self.busy_changed.emit(False))
         self._probe_worker.probe_error.connect(
             lambda msg: self.status_message.emit(self.tr("Test failed: {0}").format(msg), "error")
@@ -896,7 +901,11 @@ class _ProxyProfilePage(_TableManagementPage):
 
     def _cleanup_worker(self) -> None:
         w = self._probe_worker
-        if w is None or not w.isRunning():
+        if w is None:
+            return
+        if not w.isRunning():
+            self._probe_worker = None
+            self.busy_changed.emit(False)
             return
         for sig_name in ("single_result", "all_results", "probe_error", "finished"):
             try:

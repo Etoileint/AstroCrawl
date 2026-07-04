@@ -503,7 +503,10 @@ class _FetchModelsWorker(QThread):
     def cancel(self) -> None:
         self.requestInterruption()
         if self._main_task is not None and self._loop is not None and self._loop.is_running():
-            self._loop.call_soon_threadsafe(self._main_task.cancel)
+            try:
+                self._loop.call_soon_threadsafe(self._main_task.cancel)
+            except RuntimeError:
+                pass
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -707,7 +710,6 @@ class _AIProfilePage(_TableManagementPage):
             worker.finished.connect(on_done)
         worker.finished.connect(lambda: setattr(self, "_fetching", False))
         worker.finished.connect(lambda: setattr(self, "_fetch_worker", None))
-        worker.finished.connect(worker.deleteLater)
         worker.finished.connect(lambda: self.busy_changed.emit(False))
         worker.start()
 
@@ -741,14 +743,18 @@ class _AIProfilePage(_TableManagementPage):
         )
         worker.finished.connect(lambda: setattr(self, "_fetching", False))
         worker.finished.connect(lambda: setattr(self, "_fetch_worker", None))
-        worker.finished.connect(worker.deleteLater)
         worker.finished.connect(lambda: self.busy_changed.emit(False))
         self.status_message.emit(self.tr("Testing {0}...").format(profile.name), "info")
         worker.start()
 
     def _cleanup_worker(self) -> None:
         w = self._fetch_worker
-        if w is None or not w.isRunning():
+        if w is None:
+            return
+        if not w.isRunning():
+            self._fetch_worker = None
+            self._fetching = False
+            self.busy_changed.emit(False)
             return
         for sig_name in ("models_fetched", "fetch_failed", "test_ok", "test_failed", "finished"):
             try:

@@ -542,14 +542,24 @@ class _SyncWorker(QThread):
 ```python
 def _cleanup_worker(self):
     w = self._worker
-    if w is None or not w.isRunning():
+    if w is None:
         return
-    # disconnect page slots (keep deleteLater for self-cleanup)
+    if not w.isRunning():
+        self._worker = None
+        # 手动恢复 UI 状态（幂等操作；worker 已自然完成但 handler 因信号断开未触发）
+        return
+    # 断开页面持有的信号槽
+    for sig_name in SIGNAL_NAMES:
+        try:
+            getattr(w, sig_name).disconnect()
+        except (RuntimeError, AttributeError):
+            pass
     w.cancel()
     if not w.wait(30000):                # AI 生成最长，给 30s
         w.terminate()
         w.wait(2000)
     self._worker = None
+    # 手动恢复 UI 状态（busy_changed、按钮等，与 completion handler 恢复内容一致）
 ```
 
 #### 模板 B — asyncio 网络 I/O
@@ -587,7 +597,10 @@ class _AsyncWorker(QThread):
     def cancel(self):
         self.requestInterruption()                              # 信号层
         if self._main_task and self._loop and self._loop.is_running():
-            self._loop.call_soon_threadsafe(self._main_task.cancel)  # 打断层
+            try:
+                self._loop.call_soon_threadsafe(self._main_task.cancel)  # 打断层
+            except RuntimeError:            # event loop 恰在此时关闭（TOCTOU 竞态防护）
+                pass
 ```
 
 **cleanup 侧**：
@@ -595,14 +608,24 @@ class _AsyncWorker(QThread):
 ```python
 def _cleanup_worker(self):
     w = self._worker
-    if w is None or not w.isRunning():
+    if w is None:
         return
-    # disconnect signals (lambdas 需全断——disconnect() 无参)
+    if not w.isRunning():
+        self._worker = None
+        # 手动恢复 UI 状态
+        return
+    # 断开所有页面持有的信号槽（disconnect() 无参断开全部，包括 lambda）
+    for sig_name in SIGNAL_NAMES:
+        try:
+            getattr(w, sig_name).disconnect()
+        except (RuntimeError, AttributeError):
+            pass
     w.cancel()
     if not w.wait(5000):                 # asyncio 1-3s 内必定完成
         w.terminate()
         w.wait(2000)
-    # manual state restore (busy_changed, buttons, flags)
+    self._worker = None
+    # 手动恢复 UI 状态
 ```
 
 **同步函数统一**：如 worker 内混用 sync/async 调用，sync 函数用 `asyncio.to_thread()` 包装以统一取消路径。
@@ -623,6 +646,32 @@ class _FileWorker(QThread):
         self.requestInterruption()
 ```
 
+#### 模板 C+ — 批量文件 I/O（cancel_event 协作式取消）
+
+适用于需要处理大量文件（> 50 个）的同步 I/O worker。与模板 C 的区别在于函数内部每条记录处理后检查 `cancel_event.is_set()`，可实现亚秒级取消响应。
+
+```python
+class _BatchFileWorker(QThread):
+    def __init__(self, ...):
+        super().__init__(parent)
+        ...
+        self._cancel_event = threading.Event()
+
+    def run(self):
+        if self.isInterruptionRequested():
+            return
+        results = process_files(..., cancel_event=self._cancel_event)
+        if self.isInterruptionRequested() or self._cancel_event.is_set():
+            return
+        self.finished.emit(results)
+
+    def cancel(self):
+        self.requestInterruption()
+        self._cancel_event.set()
+```
+
+被调用函数需接收 `cancel_event` 参数并在循环中检查 `cancel_event.is_set()`。
+
 #### Worker / Page 契约
 
 | 角色 | 必须实现 |
@@ -631,9 +680,88 @@ class _FileWorker(QThread):
 | 所属页面 | `_cleanup_worker()` 方法 — 断信号 → `w.cancel()` → `w.wait(N)` → `terminate()` 兜底 → 手动恢复 UI 状态 |
 | 所属对话框 | `reject()` 和 `accept()` 均调用各子页面的 `_cleanup_worker()`，在 `super().reject()/accept()` 之前 |
 
-**`_cleanup_worker()` 幂等性**：入口 `if w is None or not w.isRunning(): return`。重复调用时 `disconnect()` 抛 `RuntimeError`，`try/except` 静默。
+**`_cleanup_worker()` 幂等性**：三分支入口——`w is None` → return；`not w.isRunning()` → 清空引用 + 恢复 UI → return；running → 断信号 → cancel → wait → terminate → 清空引用 + 恢复 UI。重复调用时 `disconnect()` 抛 `RuntimeError`，`try/except` 静默。
 
 **UI 状态手动恢复**：`_cleanup_worker()` 断开 `finished`/`error_occurred` 信号后，正常回调不触发。所有由这些回调执行的状态恢复（`busy_changed(False)`、按钮启用、`_fetching`/`_probe_worker` 引用清除）必须在 `_cleanup_worker()` 中手动执行。
+
+### 12.6 QThread Worker 生命周期模式
+
+定义 QThread worker 从创建到销毁的完整生命周期规范。与 §12.5（如何安全终止运行中的线程）正交——§12.5 关注取消机制，§12.6 关注所有权和引用管理。
+
+#### 12.6.1 模式定义
+
+全项目统一使用**显式生命周期（Mode 2）**：worker 的 C++ 对象生命周期完全由持有页面的 Python 引用控制。不使用 `finished → deleteLater` 自清理模式（PySide6/Shiboken 绑定层中 `deleteLater` 销毁 C++ 对象后 Python 包装器仍存活，任何方法调用抛出 `RuntimeError`）。
+
+#### 12.6.2 创建契约
+
+```python
+# 禁止：finished/error_occurred 连接 deleteLater
+# worker.finished.connect(worker.deleteLater)    ← 全项目禁止
+
+# 正确：
+self._worker = XxxWorker(parent=self)
+self._worker.finished.connect(self._on_result)
+self._worker.start()
+```
+
+#### 12.6.3 完成 handler 契约
+
+完成 handler **第一行必须是 `self._worker = None`**。此规则确保引用在任何代码路径（包括异常路径）中都被清空。对于使用 lambda 独立连接的场景（如 `_ai_profile_page.py`），`setattr(None)` 必须在 `finished` 信号链上、位置优先于其他业务 handler——Qt 信号发射遍历连接列表，单个 slot 异常不阻断后续 slot 执行，因此 lambda 方案天然免疫业务 handler 异常。
+
+```python
+# 命名 handler 模式（推荐）
+def _on_result(self, result):
+    self._worker = None          # 第一行，无条件执行
+    self.busy_changed.emit(False)
+    ...
+
+# lambda 模式（复杂场景，多信号连接时更清晰）
+worker.finished.connect(lambda: setattr(self, "_worker", None))
+worker.finished.connect(self._on_result)
+```
+
+#### 12.6.4 `_cleanup_worker` 三分支模板
+
+```python
+def _cleanup_worker(self) -> None:
+    w = self._worker_attr
+    if w is None:
+        return
+    if not w.isRunning():
+        # handler 因信号已断开未触发（用户关闭对话框时 worker 恰好完成）
+        # 需手动恢复 UI 状态（全部操作幂等，重复调用无害）
+        self._worker_attr = None
+        # restore UI state
+        return
+    # worker 正在运行 — 断开所有页面持有的信号槽
+    for sig_name in SIGNAL_NAMES:
+        try:
+            getattr(w, sig_name).disconnect()
+        except (RuntimeError, AttributeError):
+            pass
+    w.cancel()
+    if not w.wait(TIMEOUT):
+        w.terminate()
+        w.wait(2000)
+    self._worker_attr = None
+    # restore UI state（与 not running 分支完全相同的恢复操作）
+```
+
+#### 12.6.5 Dialog 契约
+
+对话框 `accept()` 和 `reject()` 在调用 `super().accept()/reject()` 之前必须调用各子页面的 `_cleanup_worker()`。
+
+#### 12.6.6 新增 Worker 检查清单
+
+1. Worker 有 `cancel()` 方法，按 §12.5 要求实现对应模板的三层取消
+2. Worker 的 `run()` 中有适当的 `isInterruptionRequested()` 或 `cancel_event.is_set()` 检查点
+3. 页面将 worker 存储为实例属性（`self._worker`）
+4. 页面的完成/错误 handler 第一行清空 worker 引用，或使用独立 lambda 连接在 `finished` 信号链上
+5. 页面有 `_cleanup_worker()` 方法，使用 §12.6.4 三分支模板
+6. 对话框的 `accept()` 和 `reject()` 在 `super()` 之前调用各子页面的 `_cleanup_worker()`
+7. 创建 worker 的入口有防重入守卫（`if self._worker is not None: return` 或等价逻辑）
+8. Worker 创建处**禁止** `finished.connect(worker.deleteLater)` 和 `error_occurred.connect(worker.deleteLater)`
+9. 异步 worker 的 `cancel()` 中 `call_soon_threadsafe` 包 `try/except RuntimeError`
 
 ### 13. 通知与反馈体系
 

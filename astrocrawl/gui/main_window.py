@@ -49,6 +49,74 @@ from astrocrawl.utils.preferences import clear_qt_file_dialog_history, get_prefe
 from astrocrawl.utils.url import is_valid_http_url
 
 
+class _ProbeWorker(QThread):
+    """后台线程 — asyncio 并发探测代理端点可达性。"""
+
+    probe_completed = Signal(list)  # list of (url, reachable, latency_ms, error)
+
+    def __init__(self, parsed_proxies, parent=None):
+        super().__init__(parent)
+        self._parsed = parsed_proxies
+        self._main_task: asyncio.Task | None = None
+        self._loop: asyncio.AbstractEventLoop | None = None
+
+    def run(self):
+        import asyncio as _asyncio
+
+        from astrocrawl.proxy._probe import probe_one
+
+        async def _probe():
+            async def _probe_one_endpoint(pp):
+                results = []
+                for _ in range(10):
+                    r = await probe_one(pp)
+                    results.append((pp.to_url_with_auth(), r.reachable, r.latency_ms, r.error))
+                    await _asyncio.sleep(0.5)
+                return results
+
+            tasks = [_probe_one_endpoint(pp) for pp in self._parsed]
+            all_results = await _asyncio.gather(*tasks)
+            return [r for batch in all_results for r in batch]
+
+        loop = _asyncio.new_event_loop()
+        _asyncio.set_event_loop(loop)
+        self._loop = loop
+        try:
+            if self.isInterruptionRequested():
+                return
+            main_task = _asyncio.ensure_future(_probe(), loop=loop)
+            self._main_task = main_task
+            results = loop.run_until_complete(main_task)
+            self.probe_completed.emit(results)
+        except _asyncio.CancelledError:
+            pass
+        finally:
+            try:
+                pending = _asyncio.all_tasks(loop)
+                for t in pending:
+                    t.cancel()
+                if pending:
+                    loop.run_until_complete(_asyncio.gather(*pending, return_exceptions=True))
+            except Exception:
+                pass
+            finally:
+                try:
+                    loop.close()
+                except Exception:
+                    pass
+                _asyncio.set_event_loop(None)
+                self._loop = None
+                self._main_task = None
+
+    def cancel(self):
+        self.requestInterruption()
+        if self._main_task is not None and self._loop is not None and self._loop.is_running():
+            try:
+                self._loop.call_soon_threadsafe(self._main_task.cancel)
+            except RuntimeError:
+                pass
+
+
 class _ProfileCombo(QComboBox):
     """Profile 下拉框 — showPopup 时重读 Preferences 实现双向同步。"""
 
@@ -508,6 +576,8 @@ class MainWindow(QWidget):
     def _on_test_connection(self) -> None:
         """测试按钮：QThread Worker + asyncio.run() 并发探测所有端点。
         每端点 10 次（间隔 500ms），跨端点并行，单端点串行。结果通过 Signal 回传。"""
+        if getattr(self, "_probe_worker", None) is not None:
+            return
         if not self._proxy_session or not self._proxy_session.proxies:
             QMessageBox.information(
                 self, self.tr("No Proxy"), self.tr("Please select a Profile with proxy endpoints first.")
@@ -517,72 +587,9 @@ class MainWindow(QWidget):
         self._test_btn.setEnabled(False)
         self._test_btn.setText(self.tr("Testing..."))
 
-        class _ProbeWorker(QThread):
-            probe_completed = Signal(list)  # list of (url, reachable, latency_ms, error)
-
-            def __init__(self, parsed_proxies, parent=None):
-                super().__init__(parent)
-                self._parsed = parsed_proxies
-                self._main_task: asyncio.Task | None = None
-                self._loop: asyncio.AbstractEventLoop | None = None
-
-            def run(self):
-                import asyncio as _asyncio
-
-                from astrocrawl.proxy._probe import probe_one
-
-                async def _probe():
-                    async def _probe_one_endpoint(pp):
-                        results = []
-                        for _ in range(10):
-                            r = await probe_one(pp)
-                            results.append((pp.to_url_with_auth(), r.reachable, r.latency_ms, r.error))
-                            await _asyncio.sleep(0.5)
-                        return results
-
-                    tasks = [_probe_one_endpoint(pp) for pp in self._parsed]
-                    all_results = await _asyncio.gather(*tasks)
-                    return [r for batch in all_results for r in batch]
-
-                loop = _asyncio.new_event_loop()
-                _asyncio.set_event_loop(loop)
-                self._loop = loop
-                try:
-                    if self.isInterruptionRequested():
-                        return
-                    main_task = _asyncio.ensure_future(_probe(), loop=loop)
-                    self._main_task = main_task
-                    results = loop.run_until_complete(main_task)
-                    self.probe_completed.emit(results)
-                except _asyncio.CancelledError:
-                    pass
-                finally:
-                    try:
-                        pending = _asyncio.all_tasks(loop)
-                        for t in pending:
-                            t.cancel()
-                        if pending:
-                            loop.run_until_complete(_asyncio.gather(*pending, return_exceptions=True))
-                    except Exception:
-                        pass
-                    finally:
-                        try:
-                            loop.close()
-                        except Exception:
-                            pass
-                        _asyncio.set_event_loop(None)
-                        self._loop = None
-                        self._main_task = None
-
-            def cancel(self):
-                self.requestInterruption()
-                if self._main_task is not None and self._loop is not None and self._loop.is_running():
-                    self._loop.call_soon_threadsafe(self._main_task.cancel)
-
         self._probe_worker = _ProbeWorker(parsed, self)
         self._probe_worker.probe_completed.connect(self._on_probe_results)
         self._probe_worker.finished.connect(self._on_probe_finished)
-        self._probe_worker.finished.connect(self._probe_worker.deleteLater)
         self._probe_worker.start()
 
     def _on_probe_results(self, results: list) -> None:
@@ -597,6 +604,7 @@ class MainWindow(QWidget):
 
     def _on_probe_finished(self) -> None:
         """探测完成 → 恢复测试按钮。"""
+        self._probe_worker = None
         self._test_btn.setEnabled(True)
         self._test_btn.setText(self.tr("Test"))
 
@@ -876,13 +884,14 @@ class MainWindow(QWidget):
         self._closing = False
         self._pause_btn.setText(self.tr("Pause"))
         pw = getattr(self, "_probe_worker", None)
-        if pw is not None and pw.isRunning():
-            try:
-                pw.probe_completed.disconnect()
-            except RuntimeError:
-                pass
-            pw.cancel()
-            pw.wait(10000)
+        if pw is not None:
+            if pw.isRunning():
+                try:
+                    pw.probe_completed.disconnect()
+                except RuntimeError:
+                    pass
+                pw.cancel()
+                pw.wait(10000)
             self._probe_worker = None
 
     @Slot()
