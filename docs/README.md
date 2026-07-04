@@ -18,7 +18,7 @@
 |------|------|
 | [adr/](adr/) | 架构决策记录（10 条，含状态标注） |
 | [adr/README.md](adr/README.md) | ADR 索引与状态一览 |
-| [feature-tree.md](feature-tree.md) | 功能模块树状图（114 文件，~28.5k 行） |
+| [feature-tree.json](feature-tree.json) | 功能模块树状图（<!-- @stats stats.source_files -->115<!-- /@stats --> 文件，<!-- @stats stats.source_lines -->29,059<!-- /@stats --> 行） |
 | [../CLAUDE.md](../CLAUDE.md) | AI 辅助开发上下文（架构模式速查） |
 
 ## 开发规范

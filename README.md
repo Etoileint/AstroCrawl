@@ -16,7 +16,7 @@
 
 # 中文文档
 
-AstroCrawl 是基于 **Playwright 无头 Chromium** 的全功能异步网页爬虫，<!-- stats:zh -->约 29,059 行 Python，115 源文件，内置 3 个 AI Provider，97 测试文件 3824 测试用例<!-- /stats -->。支持 JavaScript 渲染、robots.txt 遵从（RFC 9309）、Sitemap 自动发现、代理轮换、内容去重、崩溃恢复，以及声明式 CSS 选择器提取规则引擎和多 Provider AI 基础设施。提供 PySide6 GUI 图形界面和功能完整的 CLI 命令行两种使用方式。
+AstroCrawl 是基于 **Playwright 无头 Chromium** 的全功能异步网页爬虫，约 <!-- @stats stats.source_lines -->29,059<!-- /@stats --> 行 Python，<!-- @stats stats.source_files -->115<!-- /@stats --> 源文件，内置 3 个 AI Provider，<!-- @stats stats.test_files -->105<!-- /@stats --> 测试文件 <!-- @stats stats.test_cases -->3,824<!-- /@stats --> 测试用例。支持 JavaScript 渲染、robots.txt 遵从（RFC 9309）、Sitemap 自动发现、代理轮换、内容去重、崩溃恢复，以及声明式 CSS 选择器提取规则引擎和多 Provider AI 基础设施。提供 PySide6 GUI 图形界面和功能完整的 CLI 命令行两种使用方式。
 
 ## 快速开始
 
@@ -347,7 +347,7 @@ CLI 显式 flag > --set 覆盖 > 环境变量 > --config 文件 > Preferences �
 
 ## 代理
 
-代理模块由 7 文件组成的三层架构：
+代理模块由 <!-- @stats stats.modules.proxy.files -->7<!-- /@stats --> 文件组成的三层架构：
 
 ```json
 [
@@ -427,7 +427,7 @@ astrocrawl https://example.com -d 3 -o data.jsonl   # 自动续爬
 
 ## AI 多 Provider 架构
 
-领域无关的通用 AI 底座，`astrocrawl/ai/` 16 文件约 2,440 行，零 Provider SDK 导入：
+领域无关的通用 AI 底座，`astrocrawl/ai/` <!-- @stats stats.modules.ai.files -->16<!-- /@stats --> 文件 <!-- @stats stats.modules.ai.lines -->2,646<!-- /@stats --> 行，零 Provider SDK 导入：
 
 | 组件 | 说明 |
 |------|------|
@@ -466,10 +466,10 @@ astrocrawl https://example.com -d 3 -o data.jsonl   # 自动续爬
 
 ```
 AstroCrawl/
-├── astrocrawl/                     # 主包<!-- stats:zh-src -->（115 源文件，~29,059 行）<!-- /stats -->
+├── astrocrawl/                     # 主包（<!-- @stats stats.source_files -->115<!-- /@stats --> 源文件，约 <!-- @stats stats.source_lines -->29,059<!-- /@stats --> 行）
 │   ├── [Kernel 16]               # __main__ main config _constants _types _version _path_strategy _retry_strategy
 │   │                               _startup _packaged _json_compat health resilience diagnostics health_monitor
-│   ├── crawler/                   # 引擎核心（8 文件）
+│   ├── crawler/                   # 引擎核心（<!-- @stats stats.modules.crawler.files -->8<!-- /@stats --> 文件）
 │   │   ├── engine.py              # AsyncCrawler + Pipeline + _run_worker_loop + 8 processors
 │   │   ├── supervisors.py         # WorkerSupervisor — OTP one_for_one
 │   │   ├── liveness.py            # LivenessTracker — 心跳存活检测
@@ -477,7 +477,7 @@ AstroCrawl/
 │   │   ├── progress.py            # ProgressReporter（CLI stderr / GUI Qt 信号）
 │   │   ├── signals.py             # CrawlerSignals 协议 + _StubSignals null-object
 │   │   └── _url_gate.py           # UrlGate — 统一 URL 准入（6 AdmitResult 变体）
-│   ├── browser/                   # 浏览器管理（10 文件）
+│   ├── browser/                   # 浏览器管理（<!-- @stats stats.modules.browser.files -->10<!-- /@stats --> 文件）
 │   │   ├── browser_pool.py        # BrowserPool Actor — K Chromium × N slots
 │   │   ├── context_pool.py        # ContextPool — strategy 层
 │   │   ├── _slot_pool.py          # SlotPool — mechanism 层，原子 swap
@@ -487,16 +487,16 @@ AstroCrawl/
 │   │   ├── _device_caps.py        # 设备 GPU 能力检测，SwiftShader fallback
 │   │   ├── _preview.py            # PreviewBrowser — 纯 async 组件（headed Chromium）
 │   │   └── _retry.py              # ProxyFailureClassifier SSOT（Playwright → RetryStrategy）
-│   ├── network/                   # 网络层（5 文件）
+│   ├── network/                   # 网络层（<!-- @stats stats.modules.network.files -->5<!-- /@stats --> 文件）
 │   │   ├── _fetch.py              # aiohttp_retry_fetch — 与 BrowserPool 策略等价的 aiohttp 重试引擎
 │   │   ├── robots.py              # RobotsCache — RFC 9309, data/policy 分离
 │   │   ├── sitemap.py             # SitemapDiscovery — 递归索引解析
 │   │   └── throttling.py          # DomainTracker + DomainRateLimiter + DomainConcurrencyLimiter (机制/策略分离)
-│   ├── storage/                   # 持久化（4 文件）
+│   ├── storage/                   # 持久化（<!-- @stats stats.modules.storage.files -->4<!-- /@stats --> 文件）
 │   │   ├── db.py                  # CrawlState — 9 tables, BEGIN IMMEDIATE, crash recovery
 │   │   ├── writer.py              # AsyncJsonlWriter — JSONL+GZip, periodic flush
 │   │   └── _protocol.py           # CrawlStateProtocol (PEP 544)
-│   ├── rules/                     # 提取规则引擎（15 文件）
+│   ├── rules/                     # 提取规则引擎（<!-- @stats stats.modules.rules.files -->15<!-- /@stats --> 文件）
 │   │   ├── _schema.py             # RuleSchema, ExtractionRule, FieldSchema
 │   │   ├── _loader.py             # RuleLoader — 3-tier source + dedup + RuleSnapshot
 │   │   ├── _matcher.py            # RuleMatcher — by_domain index, MatchScope 4 级
@@ -511,7 +511,7 @@ AstroCrawl/
 │   │   ├── _chatml.py             # ChatML 序列化 + tiktoken counting
 │   │   ├── _html_preprocess.py    # HTML 3 级预处理 (off/canonical/strict)
 │   │   └── _markdown.py           # Markdown code block stripping
-│   ├── ai/                        # AI 基础设施（16 文件，~2,440 行）
+│   ├── ai/                        # AI 基础设施（<!-- @stats stats.modules.ai.files -->16<!-- /@stats --> 文件，<!-- @stats stats.modules.ai.lines -->2,646<!-- /@stats --> 行）
 │   │   ├── _client.py             # AIClient facade (chat/achat/stream/embed)
 │   │   ├── _config.py             # AIConfig + GenerationParams + _resolve_params()
 │   │   ├── _constraint.py         # OutputConstraint — Provider 无关结构化输出
@@ -523,11 +523,11 @@ AstroCrawl/
 │   │   ├── _usage_tracker.py      # TokenUsage 累加器
 │   │   ├── _observability.py      # AIHook 协议 + LoggingHook
 │   │   ├── _profile.py            # AIProfile — 10-field frozen dataclass
-│   │   └── providers/             # 内置 Provider（4 文件，~1,065 行）
+│   │   └── providers/             # 内置 Provider（<!-- @stats stats.modules.ai.provider_files -->4<!-- /@stats --> 文件，<!-- @stats stats.modules.ai.provider_lines -->1,086<!-- /@stats --> 行）
 │   │       ├── openai.py          # OpenAIClient + create_provider + list_models
 │   │       ├── anthropic.py       # AnthropicClient + create_provider + list_models
 │   │       └── google.py          # GoogleClient + create_provider + list_models
-│   ├── gui/                       # GUI 界面（24 文件）
+│   ├── gui/                       # GUI 界面（<!-- @stats stats.modules.gui.files -->25<!-- /@stats --> 文件）
 │   │   ├── main_window.py         # MainWindow — 中央控制器 + TitleBar
 │   │   ├── crawl_session.py       # CrawlSession — MVP Presenter (QObject + QThread)
 │   │   ├── thread.py              # CrawlerThread — QThread + asyncio 隔离
@@ -551,24 +551,24 @@ AstroCrawl/
 │   │   ├── _route_settings_page.py    # _RouteSettingsPage — consumer→profile 路由
 │   │   ├── _i18n.py               # GUI i18n — QTranslator 生命周期 (en↔zh_CN)
 │   │   └── _animated_bar.py       # QTimer 驱动的动画条基类
-│   ├── cli/                       # CLI 界面（3 文件）
+│   ├── cli/                       # CLI 界面（<!-- @stats stats.modules.cli.files -->3<!-- /@stats --> 文件）
 │   │   ├── main.py                # argparse — crawl (22 flags) + rules (12) + source (7) + proxy (6) + ai (6)
 │   │   └── _i18n.py               # CLI i18n — .ts 复用，tr() 函数
-│   ├── proxy/                     # 代理模块（7 文件）
+│   ├── proxy/                     # 代理模块（<!-- @stats stats.modules.proxy.files -->7<!-- /@stats --> 文件）
 │   │   ├── _config.py             # ProxyType/ProxyAuth/ProxyEndpointSpec/ProxyProfile/ParsedProxy/ProxyConfig
 │   │   ├── _consumers.py          # PROXY_CONSUMERS — 静态 consumer→display-name 注册表
 │   │   ├── _hook.py               # ProxyHook Protocol + LoggingProxyHook (cold-path, sync)
 │   │   ├── _probe.py              # ProbeResult + probe_one() — TCP 连通性预检
 │   │   ├── _proxy.py              # ProxyManager (SWRR) + ProxyHealthTracker (3-tier CB)
 │   │   └── _session.py            # ProxySession — 组合根 + 生命周期门面 (DI, async ctx mgr)
-│   └── utils/                     # 工具（6 文件）
+│   └── utils/                     # 工具（<!-- @stats stats.modules.utils.files -->6<!-- /@stats --> 文件）
 │       ├── url.py                 # URL 规范化 + 凭证脱敏
 │       ├── html.py                # HTML 解析 + RobustHash (head-middle-tail sampling)
 │       ├── logging.py             # Logfmt 配置 + Qt log bridge
 │       ├── preferences.py         # Preferences — 16 data fields, AI/Proxy Profile CRUD, C-mode
 │       └── _atomic.py             # POSIX 原子写入 (mkstemp → fsync → os.replace)
 ├── LICENSE                         # Apache 2.0
-├── tests/                         # pytest 测试套件<!-- stats:zh-test -->（97 test 文件, 3824 tests）<!-- /stats -->
+├── tests/                         # pytest 测试套件（<!-- @stats stats.test_files -->105<!-- /@stats --> test 文件, <!-- @stats stats.test_cases -->3,824<!-- /@stats --> tests）
 │   ├── conftest.py                # 共享 + GUI fixtures
 │   ├── _fakes.py / _fakes_gui.py  # 核心 / GUI 测试替身
 │   ├── Kernel: test_types test_config test_constants test_version test_resilience test_health test_health_monitor
@@ -607,7 +607,7 @@ AstroCrawl/
 ```bash
 pip install -e ".[dev]"
 
-pytest                              # <!-- stats:zh-pytest -->全部测试（3824）<!-- /stats -->
+pytest                              # 全部测试（<!-- @stats stats.test_cases -->3,824<!-- /@stats -->）
 pytest --cov=astrocrawl              # 带覆盖率
 pytest -m "not gui"                 # 跳过 GUI 测试
 mypy astrocrawl/                     # 类型检查（strict 模式）
@@ -667,7 +667,7 @@ Apache 2.0 © Etoileint
 
 # English Documentation
 
-AstroCrawl is a full-featured async web crawler built on **Playwright headless Chromium** — <!-- stats:en -->~29,059 lines of Python across 115 source files, 3 built-in AI providers, 97 test files with 3824 tests<!-- /stats -->. It supports JavaScript rendering, robots.txt compliance (RFC 9309), automatic sitemap discovery, proxy rotation, content deduplication, crash recovery, a declarative CSS-selector extraction rules engine, and a multi-provider AI infrastructure. Available as both a PySide6 GUI desktop app and a feature-complete CLI tool.
+AstroCrawl is a full-featured async web crawler built on **Playwright headless Chromium** — <!-- @stats stats.source_lines -->29,059<!-- /@stats --> lines of Python across <!-- @stats stats.source_files -->115<!-- /@stats --> source files, 3 built-in AI providers, <!-- @stats stats.test_files -->105<!-- /@stats --> test files with <!-- @stats stats.test_cases -->3,824<!-- /@stats --> tests. It supports JavaScript rendering, robots.txt compliance (RFC 9309), automatic sitemap discovery, proxy rotation, content deduplication, crash recovery, a declarative CSS-selector extraction rules engine, and a multi-provider AI infrastructure. Available as both a PySide6 GUI desktop app and a feature-complete CLI tool.
 
 ## Quick Start
 
@@ -998,7 +998,7 @@ CLI explicit flag > --set override > env vars > --config file > Preferences glob
 
 ## Proxy
 
-Proxy module consists of 7 files in a three-tier architecture:
+Proxy module consists of <!-- @stats stats.modules.proxy.files -->7<!-- /@stats --> files in a three-tier architecture:
 
 ```json
 [
@@ -1078,7 +1078,7 @@ Declarative CSS-selector structured extraction system modeled on Zyte/Hext page-
 
 ## AI Multi-Provider Architecture
 
-Domain-agnostic, general-purpose AI foundation — `astrocrawl/ai/` 16 files, ~2,440 lines, zero Provider SDK imports:
+Domain-agnostic, general-purpose AI foundation — `astrocrawl/ai/` <!-- @stats stats.modules.ai.files -->16<!-- /@stats --> files, <!-- @stats stats.modules.ai.lines -->2,646<!-- /@stats --> lines, zero Provider SDK imports:
 
 | Component | Description |
 |------|------|
@@ -1117,10 +1117,10 @@ Core principle: **the engine layer has zero dependency on CLI or GUI code**, com
 
 ```
 AstroCrawl/
-├── astrocrawl/                     # Main package<!-- stats:en-src -->(115 source files, ~29,059 lines)<!-- /stats -->
+├── astrocrawl/                     # Main package（<!-- @stats stats.source_files -->115<!-- /@stats --> source files, about <!-- @stats stats.source_lines -->29,059<!-- /@stats --> lines）
 │   ├── [Kernel 16]               # __main__ main config _constants _types _version _path_strategy _retry_strategy
 │   │                               _startup _packaged _json_compat health resilience diagnostics health_monitor
-│   ├── crawler/                   # Engine core (8 files)
+│   ├── crawler/                   # Engine core (<!-- @stats stats.modules.crawler.files -->8<!-- /@stats --> files)
 │   │   ├── engine.py              # AsyncCrawler + Pipeline + _run_worker_loop + 8 processors
 │   │   ├── supervisors.py         # WorkerSupervisor — OTP one_for_one
 │   │   ├── liveness.py            # LivenessTracker — heartbeat-based worker liveness
@@ -1128,7 +1128,7 @@ AstroCrawl/
 │   │   ├── progress.py            # ProgressReporter (CLI stderr / GUI Qt signals)
 │   │   ├── signals.py             # CrawlerSignals protocol + _StubSignals null-object
 │   │   └── _url_gate.py           # UrlGate — unified URL admission (6 AdmitResult variants)
-│   ├── browser/                   # Browser management (10 files)
+│   ├── browser/                   # Browser management (<!-- @stats stats.modules.browser.files -->10<!-- /@stats --> files)
 │   │   ├── browser_pool.py        # BrowserPool Actor — K Chromium × N slots
 │   │   ├── context_pool.py        # ContextPool — strategy layer
 │   │   ├── _slot_pool.py          # SlotPool — mechanism layer, atomic swap
@@ -1138,16 +1138,16 @@ AstroCrawl/
 │   │   ├── _device_caps.py        # Device GPU capability detection, SwiftShader fallback
 │   │   ├── _preview.py            # PreviewBrowser — pure async component (headed Chromium)
 │   │   └── _retry.py              # ProxyFailureClassifier SSOT (Playwright → RetryStrategy)
-│   ├── network/                   # Network layer (5 files)
+│   ├── network/                   # Network layer (<!-- @stats stats.modules.network.files -->5<!-- /@stats --> files)
 │   │   ├── _fetch.py              # aiohttp_retry_fetch — BrowserPool-equivalent retry engine for aiohttp
 │   │   ├── robots.py              # RobotsCache — RFC 9309, data/policy separated
 │   │   ├── sitemap.py             # SitemapDiscovery — recursive index parsing
 │   │   └── throttling.py          # DomainTracker + DomainRateLimiter + DomainConcurrencyLimiter (mechanism/strategy)
-│   ├── storage/                   # Persistence (4 files)
+│   ├── storage/                   # Persistence (<!-- @stats stats.modules.storage.files -->4<!-- /@stats --> files)
 │   │   ├── db.py                  # CrawlState — 9 tables, BEGIN IMMEDIATE, crash recovery
 │   │   ├── writer.py              # AsyncJsonlWriter — JSONL+GZip, periodic flush
 │   │   └── _protocol.py           # CrawlStateProtocol (PEP 544)
-│   ├── rules/                     # Extraction rules engine (15 files)
+│   ├── rules/                     # Extraction rules engine (<!-- @stats stats.modules.rules.files -->15<!-- /@stats --> files)
 │   │   ├── _schema.py             # RuleSchema, ExtractionRule, FieldSchema
 │   │   ├── _loader.py             # RuleLoader — 3-tier source + dedup + RuleSnapshot
 │   │   ├── _matcher.py            # RuleMatcher — by_domain index, MatchScope 4-tier
@@ -1162,7 +1162,7 @@ AstroCrawl/
 │   │   ├── _chatml.py             # ChatML serialization + tiktoken counting
 │   │   ├── _html_preprocess.py    # HTML 3-tier preprocessing (off/canonical/strict)
 │   │   └── _markdown.py           # Markdown code block stripping
-│   ├── ai/                        # AI infrastructure (16 files, ~2,440 lines)
+│   ├── ai/                        # AI infrastructure (<!-- @stats stats.modules.ai.files -->16<!-- /@stats --> files, <!-- @stats stats.modules.ai.lines -->2,646<!-- /@stats --> lines)
 │   │   ├── _client.py             # AIClient facade (chat/achat/stream/embed)
 │   │   ├── _config.py             # AIConfig + GenerationParams + _resolve_params()
 │   │   ├── _constraint.py         # OutputConstraint — provider-agnostic structured output
@@ -1174,11 +1174,11 @@ AstroCrawl/
 │   │   ├── _usage_tracker.py      # TokenUsage accumulator
 │   │   ├── _observability.py      # AIHook protocol + LoggingHook
 │   │   ├── _profile.py            # AIProfile — 10-field frozen dataclass
-│   │   └── providers/             # Built-in providers (4 files, ~1,065 lines)
+│   │   └── providers/             # Built-in providers (<!-- @stats stats.modules.ai.provider_files -->4<!-- /@stats --> files, <!-- @stats stats.modules.ai.provider_lines -->1,086<!-- /@stats --> lines)
 │   │       ├── openai.py          # OpenAIClient + create_provider + list_models
 │   │       ├── anthropic.py       # AnthropicClient + create_provider + list_models
 │   │       └── google.py          # GoogleClient + create_provider + list_models
-│   ├── gui/                       # GUI interface (24 files)
+│   ├── gui/                       # GUI interface (<!-- @stats stats.modules.gui.files -->25<!-- /@stats --> files)
 │   │   ├── main_window.py         # MainWindow — central controller + TitleBar
 │   │   ├── crawl_session.py       # CrawlSession — MVP Presenter (QObject + QThread)
 │   │   ├── thread.py              # CrawlerThread — QThread + asyncio isolation
@@ -1202,24 +1202,24 @@ AstroCrawl/
 │   │   ├── _route_settings_page.py    # _RouteSettingsPage — consumer→profile routing
 │   │   ├── _i18n.py               # GUI i18n — QTranslator lifecycle (en↔zh_CN)
 │   │   └── _animated_bar.py       # QTimer-driven animated bar base class
-│   ├── cli/                       # CLI interface (3 files)
+│   ├── cli/                       # CLI interface (<!-- @stats stats.modules.cli.files -->3<!-- /@stats --> files)
 │   │   ├── main.py                # argparse — crawl (22 flags) + rules (12) + source (7) + proxy (6) + ai (6)
 │   │   └── _i18n.py               # CLI i18n — .ts reuse, tr() function
-│   ├── proxy/                     # Proxy module (7 files)
+│   ├── proxy/                     # Proxy module (<!-- @stats stats.modules.proxy.files -->7<!-- /@stats --> files)
 │   │   ├── _config.py             # ProxyType/ProxyAuth/ProxyEndpointSpec/ProxyProfile/ParsedProxy/ProxyConfig
 │   │   ├── _consumers.py          # PROXY_CONSUMERS — static consumer→display-name registry
 │   │   ├── _hook.py               # ProxyHook Protocol + LoggingProxyHook (cold-path, sync)
 │   │   ├── _probe.py              # ProbeResult + probe_one() — TCP connectivity pre-check
 │   │   ├── _proxy.py              # ProxyManager (SWRR) + ProxyHealthTracker (3-tier CB)
 │   │   └── _session.py            # ProxySession — composite root + lifecycle facade (DI, async ctx mgr)
-│   └── utils/                     # Utilities (6 files)
+│   └── utils/                     # Utilities (<!-- @stats stats.modules.utils.files -->6<!-- /@stats --> files)
 │       ├── url.py                 # URL normalize + credential redaction
 │       ├── html.py                # HTML parse + RobustHash (head-middle-tail sampling)
 │       ├── logging.py             # Logfmt config + Qt log bridge
 │       ├── preferences.py         # Preferences — 16 data fields, AI/Proxy Profile CRUD, C-mode
 │       └── _atomic.py             # POSIX atomic writes (mkstemp → fsync → os.replace)
 ├── LICENSE                         # Apache 2.0
-├── tests/                         # pytest test suite<!-- stats:en-test -->(97 test files, 3824 tests)<!-- /stats -->
+├── tests/                         # pytest test suite（<!-- @stats stats.test_files -->105<!-- /@stats --> test files, <!-- @stats stats.test_cases -->3,824<!-- /@stats --> tests）
 │   ├── conftest.py                # Shared + GUI fixtures
 │   ├── _fakes.py / _fakes_gui.py  # Core / GUI test doubles
 │   ├── Kernel: test_types test_config test_constants test_version test_resilience test_health test_health_monitor
@@ -1258,7 +1258,7 @@ AstroCrawl/
 ```bash
 pip install -e ".[dev]"
 
-pytest                              # <!-- stats:en-pytest -->All tests (3824)<!-- /stats -->
+pytest                              # All tests（<!-- @stats stats.test_cases -->3,824<!-- /@stats -->）
 pytest --cov=astrocrawl              # With coverage
 pytest -m "not gui"                 # Skip GUI tests
 mypy astrocrawl/                     # Type check (strict mode)

@@ -55,6 +55,10 @@ scripts/*
 !scripts/check_ts_dicts.py
 !scripts/generate_tree.py
 
+# ── Auto-generated docs ──
+docs/todo-descriptions.md
+docs/descriptions.json.bak
+
 # ── Environment / secrets ──
 .env
 .env.local
