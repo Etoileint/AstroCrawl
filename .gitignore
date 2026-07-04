@@ -53,6 +53,7 @@ errors/
 scripts/*
 !scripts/check_i18n.py
 !scripts/check_ts_dicts.py
+!scripts/generate_tree.py
 
 # ── Environment / secrets ──
 .env

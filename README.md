@@ -16,7 +16,7 @@
 
 # 中文文档
 
-AstroCrawl 是基于 **Playwright 无头 Chromium** 的全功能异步网页爬虫，约 28,500 行 Python，114 源文件，内置 3 个 AI Provider，103 测试文件 3,659 测试。支持 JavaScript 渲染、robots.txt 遵从（RFC 9309）、Sitemap 自动发现、代理轮换、内容去重、崩溃恢复，以及声明式 CSS 选择器提取规则引擎和多 Provider AI 基础设施。提供 PySide6 GUI 图形界面和功能完整的 CLI 命令行两种使用方式。
+AstroCrawl 是基于 **Playwright 无头 Chromium** 的全功能异步网页爬虫，<!-- stats:zh -->约 29,059 行 Python，115 源文件，内置 3 个 AI Provider，97 测试文件 3824 测试用例<!-- /stats -->。支持 JavaScript 渲染、robots.txt 遵从（RFC 9309）、Sitemap 自动发现、代理轮换、内容去重、崩溃恢复，以及声明式 CSS 选择器提取规则引擎和多 Provider AI 基础设施。提供 PySide6 GUI 图形界面和功能完整的 CLI 命令行两种使用方式。
 
 ## 快速开始
 
@@ -466,7 +466,7 @@ astrocrawl https://example.com -d 3 -o data.jsonl   # 自动续爬
 
 ```
 AstroCrawl/
-├── astrocrawl/                     # 主包（114 源文件，~28,500 行）
+├── astrocrawl/                     # 主包<!-- stats:zh-src -->（115 源文件，~29,059 行）<!-- /stats -->
 │   ├── [Kernel 16]               # __main__ main config _constants _types _version _path_strategy _retry_strategy
 │   │                               _startup _packaged _json_compat health resilience diagnostics health_monitor
 │   ├── crawler/                   # 引擎核心（8 文件）
@@ -568,7 +568,7 @@ AstroCrawl/
 │       ├── preferences.py         # Preferences — 16 data fields, AI/Proxy Profile CRUD, C-mode
 │       └── _atomic.py             # POSIX 原子写入 (mkstemp → fsync → os.replace)
 ├── LICENSE                         # Apache 2.0
-├── tests/                         # pytest 测试套件（103 test 文件, 3,659 tests）
+├── tests/                         # pytest 测试套件<!-- stats:zh-test -->（97 test 文件, 3824 tests）<!-- /stats -->
 │   ├── conftest.py                # 共享 + GUI fixtures
 │   ├── _fakes.py / _fakes_gui.py  # 核心 / GUI 测试替身
 │   ├── Kernel: test_types test_config test_constants test_version test_resilience test_health test_health_monitor
@@ -607,7 +607,7 @@ AstroCrawl/
 ```bash
 pip install -e ".[dev]"
 
-pytest                              # 全部测试（3,659）
+pytest                              # <!-- stats:zh-pytest -->全部测试（3824）<!-- /stats -->
 pytest --cov=astrocrawl              # 带覆盖率
 pytest -m "not gui"                 # 跳过 GUI 测试
 mypy astrocrawl/                     # 类型检查（strict 模式）
@@ -667,7 +667,7 @@ Apache 2.0 © Etoileint
 
 # English Documentation
 
-AstroCrawl is a full-featured async web crawler built on **Playwright headless Chromium** — ~28,500 lines of Python across 114 source files, 3 built-in AI providers, 103 test files with 3,659 tests. It supports JavaScript rendering, robots.txt compliance (RFC 9309), automatic sitemap discovery, proxy rotation, content deduplication, crash recovery, a declarative CSS-selector extraction rules engine, and a multi-provider AI infrastructure. Available as both a PySide6 GUI desktop app and a feature-complete CLI tool.
+AstroCrawl is a full-featured async web crawler built on **Playwright headless Chromium** — <!-- stats:en -->~29,059 lines of Python across 115 source files, 3 built-in AI providers, 97 test files with 3824 tests<!-- /stats -->. It supports JavaScript rendering, robots.txt compliance (RFC 9309), automatic sitemap discovery, proxy rotation, content deduplication, crash recovery, a declarative CSS-selector extraction rules engine, and a multi-provider AI infrastructure. Available as both a PySide6 GUI desktop app and a feature-complete CLI tool.
 
 ## Quick Start
 
@@ -1117,7 +1117,7 @@ Core principle: **the engine layer has zero dependency on CLI or GUI code**, com
 
 ```
 AstroCrawl/
-├── astrocrawl/                     # Main package (114 source files, ~28,500 lines)
+├── astrocrawl/                     # Main package<!-- stats:en-src -->(115 source files, ~29,059 lines)<!-- /stats -->
 │   ├── [Kernel 16]               # __main__ main config _constants _types _version _path_strategy _retry_strategy
 │   │                               _startup _packaged _json_compat health resilience diagnostics health_monitor
 │   ├── crawler/                   # Engine core (8 files)
@@ -1219,7 +1219,7 @@ AstroCrawl/
 │       ├── preferences.py         # Preferences — 16 data fields, AI/Proxy Profile CRUD, C-mode
 │       └── _atomic.py             # POSIX atomic writes (mkstemp → fsync → os.replace)
 ├── LICENSE                         # Apache 2.0
-├── tests/                         # pytest test suite (103 test files, 3,659 tests)
+├── tests/                         # pytest test suite<!-- stats:en-test -->(97 test files, 3824 tests)<!-- /stats -->
 │   ├── conftest.py                # Shared + GUI fixtures
 │   ├── _fakes.py / _fakes_gui.py  # Core / GUI test doubles
 │   ├── Kernel: test_types test_config test_constants test_version test_resilience test_health test_health_monitor
@@ -1258,7 +1258,7 @@ AstroCrawl/
 ```bash
 pip install -e ".[dev]"
 
-pytest                              # All tests (3,659)
+pytest                              # <!-- stats:en-pytest -->All tests (3824)<!-- /stats -->
 pytest --cov=astrocrawl              # With coverage
 pytest -m "not gui"                 # Skip GUI tests
 mypy astrocrawl/                     # Type check (strict mode)

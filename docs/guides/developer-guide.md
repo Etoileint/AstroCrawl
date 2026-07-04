@@ -1,6 +1,6 @@
 # AstroCrawl 开发者指南
 
-> **注意**: 测试数运行 `pytest --collect-only -q` 获取。行数运行 `wc -l tests/test_*.py tests/_fakes*.py tests/conftest.py tests/*/test_*.py | sort -t/ -k2` 刷新。
+> **注意**: 全部统计数据（文件数/行数/测试数/功能点数）运行 `python scripts/generate_tree.py --write` 自动更新 `docs/feature-tree.md`。
 
 > 贡献指南 / 架构设计 / 开发参考
 
