@@ -195,7 +195,7 @@ jobs:
       - run: pip install ".[dev,gui,full,yaml,fast,monitor]" pip-audit
 
       - name: Cache Playwright browsers
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ hashFiles('pyproject.toml') }}
