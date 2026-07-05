@@ -5,14 +5,35 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "astrocrawl"
 dynamic = ["version"]
-description = "Professional async web crawler with GUI + CLI dual interface — built on Playwright headless Chromium, with AI extraction, proxy rotation, and declarative CSS rule engine. 专业级异步网页爬虫"
+description = "Async web crawler powered by Playwright headless Chromium — JavaScript rendering, AI-powered extraction (OpenAI / Anthropic / Google), CSS rule engine with visual preview, and a full PySide6 desktop GUI. SQLite WAL crash recovery, proxy circuit breaker, RFC 9309 robots.txt, ReDoS-immune regex, 3,822 tests. pip install astrocrawl[full,gui,fast]."
 readme = "README.md"
 license = "Apache-2.0"
 authors = [
     {name = "Etoileint", email = "etoileint@163.com"},
     {name = "Etoileint", email = "littlestar@buaa.edu.cn"},
 ]
-keywords = ["web-crawler", "scraper", "async", "playwright", "gui"]
+keywords = [
+    "web-crawler",
+    "web-scraping",
+    "python",
+    "playwright",
+    "async",
+    "chromium",
+    "headless",
+    "ai",
+    "openai",
+    "anthropic",
+    "scraping",
+    "extraction",
+    "css-selectors",
+    "pyside6",
+    "gui",
+    "proxy",
+    "structured-data",
+    "robots-txt",
+    "sitemap",
+    "crawler",
+]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Framework :: AsyncIO",
@@ -25,6 +46,7 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
     "Topic :: Internet :: WWW/HTTP :: Indexing/Search",
 ]
 requires-python = ">=3.12"
