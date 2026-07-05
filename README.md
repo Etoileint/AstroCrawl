@@ -16,7 +16,7 @@
 
 # 中文文档
 
-AstroCrawl 是基于 **Playwright 无头 Chromium** 的全功能异步网页爬虫，约 <!-- @stats stats.source_lines -->29,059<!-- /@stats --> 行 Python，<!-- @stats stats.source_files -->115<!-- /@stats --> 源文件，内置 3 个 AI Provider，<!-- @stats stats.test_files -->105<!-- /@stats --> 测试文件 <!-- @stats stats.test_cases -->3,824<!-- /@stats --> 测试用例。支持 JavaScript 渲染、robots.txt 遵从（RFC 9309）、Sitemap 自动发现、代理轮换、内容去重、崩溃恢复，以及声明式 CSS 选择器提取规则引擎和多 Provider AI 基础设施。提供 PySide6 GUI 图形界面和功能完整的 CLI 命令行两种使用方式。
+AstroCrawl 是基于 **Playwright 无头 Chromium** 的全功能异步网页爬虫，约 <!-- @stats stats.source_lines -->29,106<!-- /@stats --> 行 Python，<!-- @stats stats.source_files -->115<!-- /@stats --> 源文件，内置 3 个 AI Provider，<!-- @stats stats.test_files -->105<!-- /@stats --> 测试文件 <!-- @stats stats.test_cases -->3,822<!-- /@stats --> 测试用例。支持 JavaScript 渲染、robots.txt 遵从（RFC 9309）、Sitemap 自动发现、代理轮换、内容去重、崩溃恢复，以及声明式 CSS 选择器提取规则引擎和多 Provider AI 基础设施。提供 PySide6 GUI 图形界面和功能完整的 CLI 命令行两种使用方式。
 
 ## 快速开始
 
@@ -427,7 +427,7 @@ astrocrawl https://example.com -d 3 -o data.jsonl   # 自动续爬
 
 ## AI 多 Provider 架构
 
-领域无关的通用 AI 底座，`astrocrawl/ai/` <!-- @stats stats.modules.ai.files -->16<!-- /@stats --> 文件 <!-- @stats stats.modules.ai.lines -->2,646<!-- /@stats --> 行，零 Provider SDK 导入：
+领域无关的通用 AI 底座，`astrocrawl/ai/` <!-- @stats stats.modules.ai.files -->16<!-- /@stats --> 文件 <!-- @stats stats.modules.ai.lines -->2,641<!-- /@stats --> 行，零 Provider SDK 导入：
 
 | 组件 | 说明 |
 |------|------|
@@ -466,7 +466,7 @@ astrocrawl https://example.com -d 3 -o data.jsonl   # 自动续爬
 
 ```
 AstroCrawl/
-├── astrocrawl/                     # 主包（<!-- @stats stats.source_files -->115<!-- /@stats --> 源文件，约 <!-- @stats stats.source_lines -->29,059<!-- /@stats --> 行）
+├── astrocrawl/                     # 主包（<!-- @stats stats.source_files -->115<!-- /@stats --> 源文件，约 <!-- @stats stats.source_lines -->29,106<!-- /@stats --> 行）
 │   ├── [Kernel 16]               # __main__ main config _constants _types _version _path_strategy _retry_strategy
 │   │                               _startup _packaged _json_compat health resilience diagnostics health_monitor
 │   ├── crawler/                   # 引擎核心（<!-- @stats stats.modules.crawler.files -->8<!-- /@stats --> 文件）
@@ -511,7 +511,7 @@ AstroCrawl/
 │   │   ├── _chatml.py             # ChatML 序列化 + tiktoken counting
 │   │   ├── _html_preprocess.py    # HTML 3 级预处理 (off/canonical/strict)
 │   │   └── _markdown.py           # Markdown code block stripping
-│   ├── ai/                        # AI 基础设施（<!-- @stats stats.modules.ai.files -->16<!-- /@stats --> 文件，<!-- @stats stats.modules.ai.lines -->2,646<!-- /@stats --> 行）
+│   ├── ai/                        # AI 基础设施（<!-- @stats stats.modules.ai.files -->16<!-- /@stats --> 文件，<!-- @stats stats.modules.ai.lines -->2,641<!-- /@stats --> 行）
 │   │   ├── _client.py             # AIClient facade (chat/achat/stream/embed)
 │   │   ├── _config.py             # AIConfig + GenerationParams + _resolve_params()
 │   │   ├── _constraint.py         # OutputConstraint — Provider 无关结构化输出
@@ -523,7 +523,7 @@ AstroCrawl/
 │   │   ├── _usage_tracker.py      # TokenUsage 累加器
 │   │   ├── _observability.py      # AIHook 协议 + LoggingHook
 │   │   ├── _profile.py            # AIProfile — 10-field frozen dataclass
-│   │   └── providers/             # 内置 Provider（<!-- @stats stats.modules.ai.provider_files -->4<!-- /@stats --> 文件，<!-- @stats stats.modules.ai.provider_lines -->1,086<!-- /@stats --> 行）
+│   │   └── providers/             # 内置 Provider（<!-- @stats stats.modules.ai.provider_files -->4<!-- /@stats --> 文件，<!-- @stats stats.modules.ai.provider_lines -->1,080<!-- /@stats --> 行）
 │   │       ├── openai.py          # OpenAIClient + create_provider + list_models
 │   │       ├── anthropic.py       # AnthropicClient + create_provider + list_models
 │   │       └── google.py          # GoogleClient + create_provider + list_models
@@ -568,7 +568,7 @@ AstroCrawl/
 │       ├── preferences.py         # Preferences — 16 data fields, AI/Proxy Profile CRUD, C-mode
 │       └── _atomic.py             # POSIX 原子写入 (mkstemp → fsync → os.replace)
 ├── LICENSE                         # Apache 2.0
-├── tests/                         # pytest 测试套件（<!-- @stats stats.test_files -->105<!-- /@stats --> test 文件, <!-- @stats stats.test_cases -->3,824<!-- /@stats --> tests）
+├── tests/                         # pytest 测试套件（<!-- @stats stats.test_files -->105<!-- /@stats --> test 文件, <!-- @stats stats.test_cases -->3,822<!-- /@stats --> tests）
 │   ├── conftest.py                # 共享 + GUI fixtures
 │   ├── _fakes.py / _fakes_gui.py  # 核心 / GUI 测试替身
 │   ├── Kernel: test_types test_config test_constants test_version test_resilience test_health test_health_monitor
@@ -607,7 +607,7 @@ AstroCrawl/
 ```bash
 pip install -e ".[dev]"
 
-pytest                              # 全部测试（<!-- @stats stats.test_cases -->3,824<!-- /@stats -->）
+pytest                              # 全部测试（<!-- @stats stats.test_cases -->3,822<!-- /@stats -->）
 pytest --cov=astrocrawl              # 带覆盖率
 pytest -m "not gui"                 # 跳过 GUI 测试
 mypy astrocrawl/                     # 类型检查（strict 模式）
@@ -667,7 +667,7 @@ Apache 2.0 © Etoileint
 
 # English Documentation
 
-AstroCrawl is a full-featured async web crawler built on **Playwright headless Chromium** — <!-- @stats stats.source_lines -->29,059<!-- /@stats --> lines of Python across <!-- @stats stats.source_files -->115<!-- /@stats --> source files, 3 built-in AI providers, <!-- @stats stats.test_files -->105<!-- /@stats --> test files with <!-- @stats stats.test_cases -->3,824<!-- /@stats --> tests. It supports JavaScript rendering, robots.txt compliance (RFC 9309), automatic sitemap discovery, proxy rotation, content deduplication, crash recovery, a declarative CSS-selector extraction rules engine, and a multi-provider AI infrastructure. Available as both a PySide6 GUI desktop app and a feature-complete CLI tool.
+AstroCrawl is a full-featured async web crawler built on **Playwright headless Chromium** — <!-- @stats stats.source_lines -->29,106<!-- /@stats --> lines of Python across <!-- @stats stats.source_files -->115<!-- /@stats --> source files, 3 built-in AI providers, <!-- @stats stats.test_files -->105<!-- /@stats --> test files with <!-- @stats stats.test_cases -->3,822<!-- /@stats --> tests. It supports JavaScript rendering, robots.txt compliance (RFC 9309), automatic sitemap discovery, proxy rotation, content deduplication, crash recovery, a declarative CSS-selector extraction rules engine, and a multi-provider AI infrastructure. Available as both a PySide6 GUI desktop app and a feature-complete CLI tool.
 
 ## Quick Start
 
@@ -1078,7 +1078,7 @@ Declarative CSS-selector structured extraction system modeled on Zyte/Hext page-
 
 ## AI Multi-Provider Architecture
 
-Domain-agnostic, general-purpose AI foundation — `astrocrawl/ai/` <!-- @stats stats.modules.ai.files -->16<!-- /@stats --> files, <!-- @stats stats.modules.ai.lines -->2,646<!-- /@stats --> lines, zero Provider SDK imports:
+Domain-agnostic, general-purpose AI foundation — `astrocrawl/ai/` <!-- @stats stats.modules.ai.files -->16<!-- /@stats --> files, <!-- @stats stats.modules.ai.lines -->2,641<!-- /@stats --> lines, zero Provider SDK imports:
 
 | Component | Description |
 |------|------|
@@ -1117,7 +1117,7 @@ Core principle: **the engine layer has zero dependency on CLI or GUI code**, com
 
 ```
 AstroCrawl/
-├── astrocrawl/                     # Main package（<!-- @stats stats.source_files -->115<!-- /@stats --> source files, about <!-- @stats stats.source_lines -->29,059<!-- /@stats --> lines）
+├── astrocrawl/                     # Main package（<!-- @stats stats.source_files -->115<!-- /@stats --> source files, about <!-- @stats stats.source_lines -->29,106<!-- /@stats --> lines）
 │   ├── [Kernel 16]               # __main__ main config _constants _types _version _path_strategy _retry_strategy
 │   │                               _startup _packaged _json_compat health resilience diagnostics health_monitor
 │   ├── crawler/                   # Engine core (<!-- @stats stats.modules.crawler.files -->8<!-- /@stats --> files)
@@ -1162,7 +1162,7 @@ AstroCrawl/
 │   │   ├── _chatml.py             # ChatML serialization + tiktoken counting
 │   │   ├── _html_preprocess.py    # HTML 3-tier preprocessing (off/canonical/strict)
 │   │   └── _markdown.py           # Markdown code block stripping
-│   ├── ai/                        # AI infrastructure (<!-- @stats stats.modules.ai.files -->16<!-- /@stats --> files, <!-- @stats stats.modules.ai.lines -->2,646<!-- /@stats --> lines)
+│   ├── ai/                        # AI infrastructure (<!-- @stats stats.modules.ai.files -->16<!-- /@stats --> files, <!-- @stats stats.modules.ai.lines -->2,641<!-- /@stats --> lines)
 │   │   ├── _client.py             # AIClient facade (chat/achat/stream/embed)
 │   │   ├── _config.py             # AIConfig + GenerationParams + _resolve_params()
 │   │   ├── _constraint.py         # OutputConstraint — provider-agnostic structured output
@@ -1174,7 +1174,7 @@ AstroCrawl/
 │   │   ├── _usage_tracker.py      # TokenUsage accumulator
 │   │   ├── _observability.py      # AIHook protocol + LoggingHook
 │   │   ├── _profile.py            # AIProfile — 10-field frozen dataclass
-│   │   └── providers/             # Built-in providers (<!-- @stats stats.modules.ai.provider_files -->4<!-- /@stats --> files, <!-- @stats stats.modules.ai.provider_lines -->1,086<!-- /@stats --> lines)
+│   │   └── providers/             # Built-in providers (<!-- @stats stats.modules.ai.provider_files -->4<!-- /@stats --> files, <!-- @stats stats.modules.ai.provider_lines -->1,080<!-- /@stats --> lines)
 │   │       ├── openai.py          # OpenAIClient + create_provider + list_models
 │   │       ├── anthropic.py       # AnthropicClient + create_provider + list_models
 │   │       └── google.py          # GoogleClient + create_provider + list_models
@@ -1219,7 +1219,7 @@ AstroCrawl/
 │       ├── preferences.py         # Preferences — 16 data fields, AI/Proxy Profile CRUD, C-mode
 │       └── _atomic.py             # POSIX atomic writes (mkstemp → fsync → os.replace)
 ├── LICENSE                         # Apache 2.0
-├── tests/                         # pytest test suite（<!-- @stats stats.test_files -->105<!-- /@stats --> test files, <!-- @stats stats.test_cases -->3,824<!-- /@stats --> tests）
+├── tests/                         # pytest test suite（<!-- @stats stats.test_files -->105<!-- /@stats --> test files, <!-- @stats stats.test_cases -->3,822<!-- /@stats --> tests）
 │   ├── conftest.py                # Shared + GUI fixtures
 │   ├── _fakes.py / _fakes_gui.py  # Core / GUI test doubles
 │   ├── Kernel: test_types test_config test_constants test_version test_resilience test_health test_health_monitor
@@ -1258,7 +1258,7 @@ AstroCrawl/
 ```bash
 pip install -e ".[dev]"
 
-pytest                              # All tests（<!-- @stats stats.test_cases -->3,824<!-- /@stats -->）
+pytest                              # All tests（<!-- @stats stats.test_cases -->3,822<!-- /@stats -->）
 pytest --cov=astrocrawl              # With coverage
 pytest -m "not gui"                 # Skip GUI tests
 mypy astrocrawl/                     # Type check (strict mode)

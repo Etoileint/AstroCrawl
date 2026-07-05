@@ -33,7 +33,8 @@ class TestAssembleMessages:
     def test_system_message_contains_template(self):
         msgs = _assemble_messages("https://example.com", "<html></html>", ["title"])
         assert msgs[0].role == Role.SYSTEM
-        assert "extract" in msgs[0].content and "transform" in msgs[0].content
+        assert "extract" in msgs[0].content
+        assert "transform" in msgs[0].content
         assert "selector" in msgs[0].content, "应含 Schema 示例"
 
     def test_user_message_contains_url(self):

@@ -9,10 +9,12 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import Any, Awaitable, Callable, List, Optional, Tuple
+from typing import TYPE_CHECKING, Any, Awaitable, Callable, List, Optional, Tuple
 
-from astrocrawl.health import Health
 from astrocrawl.resilience import Fuse
+
+if TYPE_CHECKING:
+    from astrocrawl.health import Health
 
 
 class Supervisor:

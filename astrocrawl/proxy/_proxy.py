@@ -15,7 +15,7 @@ import time
 from collections import deque
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Deque, Dict, List, Optional
+from typing import TYPE_CHECKING, Deque, Dict, List, Optional
 
 from astrocrawl._constants import (
     PROXY_COOLDOWN,
@@ -29,9 +29,11 @@ from astrocrawl._constants import (
     PROXY_SCORE_SUCCESS_DECAY,
     PROXY_SCORE_WINDOW,
 )
-from astrocrawl.proxy._config import ParsedProxy
-from astrocrawl.proxy._hook import ProxyHook
 from astrocrawl.proxy._probe import probe_one
+
+if TYPE_CHECKING:
+    from astrocrawl.proxy._config import ParsedProxy
+    from astrocrawl.proxy._hook import ProxyHook
 
 # ═══════════════════════════════════════════════════════════════════════
 # ProxyManager — 三级轮询代理选择器
@@ -408,7 +410,7 @@ class ProxyHealthTracker:
                 *[probe_one(p, timeout=PROXY_PROBE_TIMEOUT) for p in proxies],
                 return_exceptions=True,
             )
-            for proxy, result in zip(proxies, results):
+            for proxy, result in zip(proxies, results, strict=False):
                 if self._probe_stop.is_set():
                     return
                 proxy_url = proxy.to_url_with_auth()

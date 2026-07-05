@@ -1,0 +1,2 @@
+[codespell]
+skip = *.ts,*.qm,*.json,__pycache__

@@ -28,7 +28,7 @@ class TestRetryStrategy:
         assert len(vals) == len(set(vals))
 
     @pytest.mark.parametrize(
-        "name,value",
+        ("name", "value"),
         [("ROTATE_PROXY", "rotate"), ("REPLACE_CONTEXT", "replace"), ("TRANSIENT", "transient"), ("FATAL", "fatal")],
     )
     def test_value_names(self, name, value):
@@ -89,7 +89,7 @@ class TestCategoryToStrategy:
     def test_exact_entry_count(self):
         assert len(_CATEGORY_TO_STRATEGY) == 12
 
-    @pytest.mark.parametrize("category,expected", CATEGORY_MAPPING)
+    @pytest.mark.parametrize(("category", "expected"), CATEGORY_MAPPING)
     def test_category_maps_to_expected_strategy(self, category, expected):
         assert _CATEGORY_TO_STRATEGY[category] == expected
 
@@ -173,7 +173,7 @@ class TestClassifyFromCategory:
     # ── 静态映射表中的类别（_CATEGORY_TO_STRATEGY 回退路径）──
 
     @pytest.mark.parametrize(
-        "category,expected",
+        ("category", "expected"),
         [
             (FetchErrorCategory.SSL, RetryStrategy.FATAL),
             (FetchErrorCategory.DOWNLOAD, RetryStrategy.FATAL),

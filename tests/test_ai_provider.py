@@ -5,14 +5,16 @@ ADR-0006 #1: Provider Protocols + Registry
 
 from __future__ import annotations
 
-from typing import AsyncIterator, Iterator
+from typing import TYPE_CHECKING, AsyncIterator, Iterator
 
 import pytest
 
 from astrocrawl.ai._errors import AIError, AIProviderUnavailableError
 from astrocrawl.ai._provider import _ChatProvider, _SupportsEmbedding
 from astrocrawl.ai._provider_registry import _discover_provider, get_list_models_func, list_installed_providers
-from astrocrawl.ai._types import ChatResponse
+
+if TYPE_CHECKING:
+    from astrocrawl.ai._types import ChatResponse
 
 # ═══════════════════════════════════════════════════════════════════════
 # _ChatProvider Protocol — runtime_checkable isinstance

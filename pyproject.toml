@@ -55,8 +55,8 @@ dev = [
     "pytest>=7.0",
     "pytest-asyncio>=0.21",
     "pytest-cov>=4.0",
-    "mypy>=1.0",
-    "ruff>=0.1",
+    "mypy>=1.20,<2.0",
+    "ruff>=0.15,<1.0",
 ]
 yaml = ["pyyaml>=6.0"]
 monitor = ["psutil>=5.9"]
@@ -117,7 +117,28 @@ exclude = ["__pycache__", ".git", ".pytest_cache", ".mypy_cache"]
 extend-select = [
     "I",     # isort — import sorting
     "FA100", # flake8-future-annotations — require from __future__ import annotations
+    "C4",    # flake8-comprehensions — unnecessary comprehensions
+    "ERA",   # eradicate — commented-out code
+    "TCH",   # flake8-type-checking — typing imports to TYPE_CHECKING
+    "RUF100",# unused noqa
+    "B",     # flake8-bugbear — common bug patterns
+    "T20",   # flake8-print
+    "PT",    # flake8-pytest-style
 ]
+
+[tool.ruff.lint.per-file-ignores]
+"astrocrawl/main.py" = ["T201"]
+"astrocrawl/config.py" = ["T201"]
+"astrocrawl/crawler/progress.py" = ["T201"]
+"astrocrawl/utils/logging.py" = ["T201"]
+"astrocrawl/cli/**/*.py" = ["T201"]
+"astrocrawl/**/*.py" = ["ERA", "PT", "B008"]
+"tests/**/*.py" = ["ERA", "PT", "B017"]
+"scripts/**/*.py" = ["ERA", "T201", "B007"]
+"docs/**/*.py" = ["T201", "B007"]
+"tests/manual/**/*.py" = ["T201"]
+"astrocrawl/crawler/outcomes.py" = ["TC001"]
+"tests/test_gui_mainwindow_behavior.py" = ["B015"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["astrocrawl"]

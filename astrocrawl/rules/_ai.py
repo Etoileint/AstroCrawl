@@ -8,9 +8,8 @@ from __future__ import annotations
 
 import json
 import logging
-import threading
 import unicodedata
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from urllib.parse import urlparse, urlunparse
 
 from bs4 import BeautifulSoup
@@ -24,6 +23,9 @@ from astrocrawl.rules._html_preprocess import PreprocessTier, preprocess_html
 from astrocrawl.rules._markdown import clean_markdown_wrapper
 from astrocrawl.rules._schema import RuleSchema, validate_rule
 from astrocrawl.rules._template import get_prompt_template
+
+if TYPE_CHECKING:
+    import threading
 
 logger = logging.getLogger("astrocrawl.rules.ai")
 

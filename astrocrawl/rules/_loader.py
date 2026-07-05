@@ -8,9 +8,8 @@ from __future__ import annotations
 
 import logging
 import os
-import threading
 from pathlib import Path
-from typing import Any, Dict, List, Sequence, Tuple
+from typing import TYPE_CHECKING, Any, Dict, List, Sequence, Tuple
 
 from astrocrawl._constants import MAX_JSON_DEPTH, MAX_RULE_FILE_SIZE, MAX_RULES_TOTAL, SOURCE_PRIORITY
 from astrocrawl._types import DEFAULT_EXTRACTION_TYPE, RuleSnapshot
@@ -18,6 +17,9 @@ from astrocrawl.config import ConfigValidationError, CrawlerConfig
 from astrocrawl.rules._io import safe_read_rule_file
 from astrocrawl.rules._schema import MatchScope, RuleSchema, validate_rule
 from astrocrawl.rules._state import get_disabled_rules
+
+if TYPE_CHECKING:
+    import threading
 
 logger = logging.getLogger("astrocrawl.rules.loader")
 
@@ -195,7 +197,7 @@ def _load_from_dir(directory: Path, source: str) -> List[Tuple[RuleSchema, Path,
 
     try:
         json_files: List[Path] = []
-        for root, dirs, files in os.walk(str(directory), onerror=_on_walk_error):
+        for root, _dirs, files in os.walk(str(directory), onerror=_on_walk_error):
             for f in files:
                 if f.endswith(".json"):
                     json_files.append(Path(root) / f)

@@ -6,7 +6,6 @@ import logging
 import uuid
 from typing import TYPE_CHECKING, Any, AsyncIterator, Iterator
 
-from astrocrawl.ai._config import AIConfig
 from astrocrawl.ai._errors import AIAuthError, AIError, AIInvalidRequestError, AIRateLimitError, AIServerError
 from astrocrawl.ai._types import (
     ChatMessage,
@@ -20,6 +19,7 @@ from astrocrawl.ai._types import (
 )
 
 if TYPE_CHECKING:
+    from astrocrawl.ai._config import AIConfig, _ResolvedParams
     from astrocrawl.ai._provider import _ChatProvider
 
 logger = logging.getLogger("astrocrawl.ai.google")
@@ -153,7 +153,7 @@ class GoogleClient:
         return self._parse_response(response)
 
     async def achat_stream(
-        self, messages: list[ChatMessage], tools: list[dict] | None, params: Any
+        self, messages: list[ChatMessage], tools: list[dict] | None, params: _ResolvedParams
     ) -> AsyncIterator[StreamEvent]:
         contents, system = self._convert_messages(messages)
         client = self._get_async_client()
@@ -230,7 +230,7 @@ class GoogleClient:
         if params.stop:
             config["stop_sequences"] = params.stop
         if tools:
-            config["tools"] = [{"function_declarations": [t for t in tools]}]
+            config["tools"] = [{"function_declarations": list(tools)}]
         # ADR-0008: structured output
         if params.output:
             config["response_mime_type"] = "application/json"

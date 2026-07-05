@@ -10,16 +10,19 @@ from __future__ import annotations
 
 import warnings
 from dataclasses import replace
-from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 from PySide6.QtCore import QObject, Signal
 
-from astrocrawl.config import CrawlerConfig, GlobalSettings
 from astrocrawl.crawler.engine import AsyncCrawler, create_crawler
 from astrocrawl.crawler.signals import SIGNAL_NAMES, create_worker_signals
 from astrocrawl.gui.thread import CrawlerThread
-from astrocrawl.proxy import ProxyProfile
+
+if TYPE_CHECKING:
+    from pathlib import Path
+
+    from astrocrawl.config import CrawlerConfig, GlobalSettings
+    from astrocrawl.proxy import ProxyProfile
 
 # ── 信号注册表：connect/disconnect 的唯一真源 ──
 # 新增信号只需在此加一个名字，_wire_signals() 和 dispose() 自动配对

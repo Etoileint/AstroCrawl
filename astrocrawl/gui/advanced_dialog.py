@@ -57,7 +57,7 @@ def _form_row(label_text: str = "", widget=None, *stretches: int) -> QHBoxLayout
     it = iter(stretches)
     row.addWidget(lbl, next(it))
     if isinstance(widget, (list, tuple)):
-        for w, s in zip(widget, it):
+        for w, s in zip(widget, it, strict=False):
             row.addWidget(w, s)
     else:
         row.addWidget(widget, next(it))

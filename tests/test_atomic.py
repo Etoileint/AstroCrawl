@@ -84,7 +84,8 @@ class TestAtomicWriteJsonPermissions:
         atomic_write_json(path, {"a": 1}, chmod_mask=0o644)
         mode = stat.S_IMODE(path.stat().st_mode)
         assert mode == 0o644
-        assert mode & stat.S_IRUSR and mode & stat.S_IWUSR
+        assert mode & stat.S_IRUSR
+        assert mode & stat.S_IWUSR
         assert mode & stat.S_IRGRP
         assert mode & stat.S_IROTH
 

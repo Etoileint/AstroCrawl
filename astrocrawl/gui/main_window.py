@@ -1,11 +1,10 @@
 from __future__ import annotations
 
-import asyncio
 import json
 import logging
 from dataclasses import replace
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional
 
 from PySide6.QtCore import Qt, QThread, QTimer, Signal, Slot
 from PySide6.QtWidgets import (
@@ -47,6 +46,9 @@ from astrocrawl.utils._atomic import atomic_write_json
 from astrocrawl.utils.logging import setup_root_logger
 from astrocrawl.utils.preferences import clear_qt_file_dialog_history, get_preferences
 from astrocrawl.utils.url import is_valid_http_url
+
+if TYPE_CHECKING:
+    import asyncio
 
 
 class _ProbeWorker(QThread):
@@ -145,6 +147,7 @@ class MainWindow(QWidget):
         self._session: Optional[CrawlSession] = None
         self._proxy_session: Optional[ProxySession] = None
         self._current_profile: Optional[ProxyProfile] = None
+        self._probe_worker: _ProbeWorker | None = None
         self._paused = False
         self._closing = False
         self._advanced_cfg = CrawlerConfig()

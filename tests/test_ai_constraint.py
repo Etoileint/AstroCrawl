@@ -226,7 +226,9 @@ class TestGenerateSchemaExample:
 
     def test_contains_extract_enum_in_comment(self):
         desc = _generate_schema_example()
-        assert "attr" in desc and "html" in desc and "text" in desc
+        assert "attr" in desc
+        assert "html" in desc
+        assert "text" in desc
         assert "//" in desc.split('"extract"')[1].split("\n")[0], "extract 行应有注释"
 
 

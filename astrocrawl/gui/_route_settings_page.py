@@ -6,7 +6,7 @@ Profile/Node 列使用 QComboBox 委托，变更即时写入 Preferences。
 
 from __future__ import annotations
 
-from typing import Callable
+from typing import TYPE_CHECKING, Callable
 
 from PySide6.QtCore import QAbstractTableModel, QModelIndex, Qt, Signal
 from PySide6.QtWidgets import QAbstractItemView, QComboBox, QMessageBox, QPushButton, QStyledItemDelegate
@@ -14,7 +14,9 @@ from PySide6.QtWidgets import QAbstractItemView, QComboBox, QMessageBox, QPushBu
 from astrocrawl.gui._style import ColumnDef
 from astrocrawl.gui._table_page import _TableManagementPage
 from astrocrawl.proxy._consumers import PROXY_CONSUMERS
-from astrocrawl.utils.preferences import Preferences
+
+if TYPE_CHECKING:
+    from astrocrawl.utils.preferences import Preferences
 
 # ═══════════════════════════════════════════════════════════════════════════
 # ProxyRouteModel

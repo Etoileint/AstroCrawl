@@ -14,13 +14,16 @@
 from __future__ import annotations
 
 import asyncio
+from typing import TYPE_CHECKING
 from urllib.parse import urlparse
 
 from astrocrawl._constants import PROXY_PROBE_TIMEOUT
-from astrocrawl.proxy._config import ParsedProxy, ProxyConfig
 from astrocrawl.proxy._hook import LoggingProxyHook, ProxyHook
 from astrocrawl.proxy._probe import ProbeResult, probe_one
 from astrocrawl.proxy._proxy import CircuitState, ProxyHealthTracker, ProxyManager, ProxyStats
+
+if TYPE_CHECKING:
+    from astrocrawl.proxy._config import ParsedProxy, ProxyConfig
 
 
 class ProxySession:
@@ -169,7 +172,7 @@ class ProxySession:
             return_exceptions=True,
         )
         out: dict[str, ProbeResult] = {}
-        for proxy, result in zip(self._parsed_proxies, results):
+        for proxy, result in zip(self._parsed_proxies, results, strict=False):
             if isinstance(result, BaseException):
                 out[proxy.to_url_with_auth()] = ProbeResult(reachable=False, error=type(result).__name__)
             else:

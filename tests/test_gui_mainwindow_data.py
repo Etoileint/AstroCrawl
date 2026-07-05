@@ -48,7 +48,7 @@ def window_no_theme(qapp, theme_mgr):
 
 class TestGetUrls:
     @pytest.mark.parametrize(
-        "url_text,expected",
+        ("url_text", "expected"),
         [
             ("https://a.com\nhttps://b.com", ["https://a.com", "https://b.com"]),
             ("https://a.com\nhttps://a.com", ["https://a.com"]),
@@ -75,7 +75,7 @@ class TestGetUrls:
 
 class TestValidateUrls:
     @pytest.mark.parametrize(
-        "text,expect_warning",
+        ("text", "expect_warning"),
         [
             ("https://a.com\nhttps://b.com", False),
             ("https://a.com\nnot-a-url", True),
@@ -140,7 +140,7 @@ class TestUpdateLayerProgress:
 
 class TestUpdateStats:
     @pytest.mark.parametrize(
-        "completed,queue_size,limit,expected_in,expected_limit",
+        ("completed", "queue_size", "limit", "expected_in", "expected_limit"),
         [
             (5, 10, 100, ("Completed: 5", "Queue: 10"), "Limit: 100"),
             (0, 5, 0, ("Completed: 0", "Queue: 5"), "Limit: Unlimited"),
@@ -155,7 +155,7 @@ class TestUpdateStats:
 
 class TestUpdateOutcome:
     @pytest.mark.parametrize(
-        "stats,fragments",
+        ("stats", "fragments"),
         [
             ({}, []),
             ({"ok": 5, "duplicate": 2}, ["Saved: 5", "Duplicates: 2", " | "]),

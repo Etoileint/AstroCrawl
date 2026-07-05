@@ -28,14 +28,16 @@ class TestTemplateLoading:
     def test_load_returns_string_type(self):
         template = get_prompt_template()
         assert isinstance(template, str)
-        assert "extract" in template and "transform" in template
+        assert "extract" in template
+        assert "transform" in template
         assert "selector" in template, "应含 Schema 示例"
         assert "Core Principle" in template
 
     def test_load_returns_string_position(self):
         template = get_prompt_template("position")
         assert isinstance(template, str)
-        assert "extract" in template and "transform" in template
+        assert "extract" in template
+        assert "transform" in template
         assert "selector" in template, "应含 Schema 示例"
         assert "Mode: Position" in template
 
@@ -109,7 +111,8 @@ class TestPromptFile:
         p = Path(__file__).resolve().parent.parent / "astrocrawl" / "rules" / "_prompt_template_type.txt"
         raw = p.read_text(encoding="utf-8")
         assert "RE2 Regex" in raw
-        assert "extract" in raw.lower() and "transform" in raw.lower()
+        assert "extract" in raw.lower()
+        assert "transform" in raw.lower()
 
 
 class TestPromptFilePosition:
@@ -129,7 +132,8 @@ class TestPromptFilePosition:
         p = Path(__file__).resolve().parent.parent / "astrocrawl" / "rules" / "_prompt_template_position.txt"
         raw = p.read_text(encoding="utf-8")
         assert "RE2 Regex" in raw
-        assert "extract" in raw.lower() and "transform" in raw.lower()
+        assert "extract" in raw.lower()
+        assert "transform" in raw.lower()
 
 
 class TestSchemaExampleContract:
@@ -209,7 +213,7 @@ class TestSchemaExampleContract:
         assert "[a-z0-9_-]" in example, "name 注释应含合法字符提示"
 
     @pytest.mark.parametrize(
-        "builtin,label",
+        ("builtin", "label"),
         [
             (_BUILTIN_SYSTEM_PROMPT_TYPE, "type"),
             (_BUILTIN_SYSTEM_PROMPT_POSITION, "position"),

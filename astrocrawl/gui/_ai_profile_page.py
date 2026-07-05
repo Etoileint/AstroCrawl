@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import asyncio
 from dataclasses import replace
-from typing import Callable
+from typing import TYPE_CHECKING, Callable
 
 from PySide6.QtCore import QAbstractTableModel, QModelIndex, Qt, QThread, Signal
 from PySide6.QtWidgets import (
@@ -35,7 +35,9 @@ from astrocrawl.gui._style import ColumnDef
 from astrocrawl.gui._table_page import _TableManagementPage
 from astrocrawl.gui._tokens import FONT_MD, SPACE_MD, SPACE_SM
 from astrocrawl.gui.theme import get_theme_manager
-from astrocrawl.utils.preferences import Preferences
+
+if TYPE_CHECKING:
+    from astrocrawl.utils.preferences import Preferences
 
 # ═══════════════════════════════════════════════════════════════════════════
 # AIProfileListModel
@@ -193,7 +195,7 @@ class AIProfileEditDialog(QDialog):
             it = iter(stretches)
             row.addWidget(lbl, next(it))
             if isinstance(widget, (list, tuple)):
-                for w, s in zip(widget, it):
+                for w, s in zip(widget, it, strict=False):
                     row.addWidget(w, s)
             else:
                 row.addWidget(widget, next(it))

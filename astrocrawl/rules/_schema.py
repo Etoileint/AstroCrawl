@@ -312,7 +312,7 @@ def _resolve_url_pattern(raw: object) -> str:
 
         re2.compile(raw)
     except Exception as e:
-        raise ValueError(f"url_pattern re2 编译失败: {e}")
+        raise ValueError(f"url_pattern re2 编译失败: {e}") from e
     return raw
 
 
@@ -321,7 +321,7 @@ def _resolve_scope(scope_raw: str, domains: list[str], url_pattern: str) -> Matc
         try:
             return MatchScope(scope_raw)
         except ValueError:
-            raise ValueError(f"match.scope 无效: {scope_raw} (可选: {[s.value for s in MatchScope]})")
+            raise ValueError(f"match.scope 无效: {scope_raw} (可选: {[s.value for s in MatchScope]})") from None
     if domains and url_pattern:
         return MatchScope.DOMAIN_PATTERN
     if domains:
@@ -455,7 +455,7 @@ def _validate_transform(data: Any) -> dict[str, Any]:
 
                     re2.compile(val)
                 except Exception as e:
-                    raise ValueError(f"transform.regex re2 编译失败: {e}")
+                    raise ValueError(f"transform.regex re2 编译失败: {e}") from e
                 result[key] = val
         elif key == "replace":
             if isinstance(val, dict) and "from" in val and "to" in val:

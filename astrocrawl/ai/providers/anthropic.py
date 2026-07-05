@@ -6,7 +6,6 @@ import json
 import logging
 from typing import TYPE_CHECKING, Any, AsyncIterator, Iterator
 
-from astrocrawl.ai._config import AIConfig
 from astrocrawl.ai._errors import AIAuthError, AIError, AIInvalidRequestError, AIRateLimitError, AIServerError
 from astrocrawl.ai._types import (
     ChatMessage,
@@ -22,6 +21,7 @@ from astrocrawl.ai._types import (
 )
 
 if TYPE_CHECKING:
+    from astrocrawl.ai._config import AIConfig, _ResolvedParams
     from astrocrawl.ai._provider import _ChatProvider
 
 logger = logging.getLogger("astrocrawl.ai.anthropic")
@@ -144,7 +144,7 @@ class AnthropicClient:
         return self._parse_response(response)
 
     async def achat_stream(
-        self, messages: list[ChatMessage], tools: list[dict] | None, params: Any
+        self, messages: list[ChatMessage], tools: list[dict] | None, params: _ResolvedParams
     ) -> AsyncIterator[StreamEvent]:
         system, user_msgs = self._split_messages(messages)
         kwargs = self._build_kwargs(system, user_msgs, tools, params, stream=True)

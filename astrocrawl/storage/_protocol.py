@@ -11,9 +11,10 @@ CrawlState 无需显式继承——结构子类型按鸭子类型自动匹配。
 
 from __future__ import annotations
 
-from typing import Dict, List, Optional, Protocol, Tuple
+from typing import TYPE_CHECKING, Dict, List, Optional, Protocol, Tuple
 
-from astrocrawl._types import EnqueueResult
+if TYPE_CHECKING:
+    from astrocrawl._types import EnqueueResult
 
 
 class CrawlStateConfig(Protocol):

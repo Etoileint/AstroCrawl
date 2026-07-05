@@ -10,14 +10,16 @@ from __future__ import annotations
 import asyncio
 import concurrent.futures
 import logging
-from typing import Any, Dict, Optional
+from typing import TYPE_CHECKING, Any, Dict, Optional
 
 import cssselect
 from bs4 import BeautifulSoup
 from cssselect.parser import Pseudo
 
 from astrocrawl._constants import MAX_FALLBACK_DEPTH, MULTIPLE_MAX_ITEMS, SELECTOR_TIMEOUT_PER_RULE
-from astrocrawl.rules._schema import FieldRule
+
+if TYPE_CHECKING:
+    from astrocrawl.rules._schema import FieldRule
 
 logger = logging.getLogger("astrocrawl.rules.extractor")
 

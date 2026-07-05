@@ -44,12 +44,12 @@ pytest tests/test_db.py                    # 指定文件
 
 | 文件 | 测试内容 | 行数 |
 |------|---------|------|
-| `tests/conftest.py` | 共享夹具（test_config / fake_state / fake_writer）+ GUI fixtures | <!-- @stats tests.modules.conftest.lines -->130<!-- /@stats --> |
+| `tests/conftest.py` | 共享夹具（test_config / fake_state / fake_writer）+ GUI fixtures | <!-- @stats tests.modules.conftest.lines -->145<!-- /@stats --> |
 | `tests/_fakes.py` | 测试替身（FakeBrowserPool / FakeContextPool / FakeBrowser / FakeBrowserContext / FakeProxyManager / FakePage / FakePagePool / FakeWriter）| <!-- @stats tests.modules._fakes.lines -->501<!-- /@stats --> |
 | `tests/test_config.py` | CrawlerConfig 字段验证、默认值、from_env、ConfigError、GlobalSettings | <!-- @stats tests.modules.test_config.lines -->569<!-- /@stats --> |
 | `tests/test_db.py` | CrawlState 队列操作、去重、重试、深度管理 | <!-- @stats tests.modules.test_db.lines -->274<!-- /@stats --> |
 | `tests/test_html.py` | extract_text_from_soup、extract_links_from_soup、extract_title、compute_robust_hash、check_meta_robots | <!-- @stats tests.modules.test_html.lines -->517<!-- /@stats --> |
-| `tests/test_atomic.py` | POSIX 原子写入原语 atomic_write_json (18 用例) | <!-- @stats tests.modules.test_atomic.lines -->283<!-- /@stats --> |
+| `tests/test_atomic.py` | POSIX 原子写入原语 atomic_write_json (18 用例) | <!-- @stats tests.modules.test_atomic.lines -->284<!-- /@stats --> |
 | `tests/test_preferences.py` | Preferences 路径记忆/主题/LLM/AI 速率限制/迁移 (36 用例) | <!-- @stats tests.modules.test_preferences.lines -->1,440<!-- /@stats --> |
 | `tests/test_logging.py` | logfmt 日志配置幂等 + Qt 桥接 (13 用例) | <!-- @stats tests.modules.test_logging.lines -->346<!-- /@stats --> |
 | `tests/test_json_compat.py` | JSON 序列化兼容 orjson/stdlib (8 用例) | <!-- @stats tests.modules.test_json_compat.lines -->124<!-- /@stats --> |
@@ -100,22 +100,22 @@ pytest tests/test_db.py                    # 指定文件
 | `tests/test_signals.py` | CrawlerSignals + TestSignalPayloads emit→connect→handler 完整链路 (16 用例) | <!-- @stats tests.modules.test_signals.lines -->225<!-- /@stats --> |
 | `tests/test_ai_client.py` | AIClient Provider 门面, _ResolvedParams, Hook 链, StreamEvent (69 用例, ADR-0006/0008) | <!-- @stats tests.modules.test_ai_client.lines -->1,350<!-- /@stats --> |
 | `tests/test_ai_errors.py` | AIError 层次 9 类 + 重试分类 + 错误实例化 (34 用例) | <!-- @stats tests.modules.test_ai_errors.lines -->214<!-- /@stats --> |
-| `tests/test_ai_constraint.py` | OutputConstraint 结构化输出 + 能力降级 + Provider 能力 (49 用例, ADR-0008) | <!-- @stats tests.modules.test_ai_constraint.lines -->489<!-- /@stats --> |
-| `tests/test_ai_provider.py` | _ChatProvider / _SupportsEmbedding Protocol + entry point 发现 (27 用例) | <!-- @stats tests.modules.test_ai_provider.lines -->276<!-- /@stats --> |
+| `tests/test_ai_constraint.py` | OutputConstraint 结构化输出 + 能力降级 + Provider 能力 (49 用例, ADR-0008) | <!-- @stats tests.modules.test_ai_constraint.lines -->491<!-- /@stats --> |
+| `tests/test_ai_provider.py` | _ChatProvider / _SupportsEmbedding Protocol + entry point 发现 (27 用例) | <!-- @stats tests.modules.test_ai_provider.lines -->278<!-- /@stats --> |
 | `tests/test_ai_rate_limiter.py` | TokenBucket + BoundedSemaphore + UsageTracker (35 用例, 100% cov) | <!-- @stats tests.modules.test_ai_rate_limiter.lines -->497<!-- /@stats --> |
 | `tests/ai_openai/test_client.py` | _map_error + OpenAIClient 单元测试 | <!-- @stats tests.modules.ai_openai.test_client.lines -->300<!-- /@stats --> |
 | `tests/test_ai_generation.py` | RuleGenerator AI 规则生成端到端 (6 用例) | <!-- @stats tests.modules.test_ai_generation.lines -->79<!-- /@stats --> |
-| `tests/test_ai_rules.py` | AI 生成规则验证与导入 (27 用例) | <!-- @stats tests.modules.test_ai_rules.lines -->753<!-- /@stats --> |
-| `tests/test_ai_template.py` | AI Prompt 模板加载/回退 + Schema 契约测试 (19 用例) | <!-- @stats tests.modules.test_ai_template.lines -->228<!-- /@stats --> |
+| `tests/test_ai_rules.py` | AI 生成规则验证与导入 (27 用例) | <!-- @stats tests.modules.test_ai_rules.lines -->754<!-- /@stats --> |
+| `tests/test_ai_template.py` | AI Prompt 模板加载/回退 + Schema 契约测试 (19 用例) | <!-- @stats tests.modules.test_ai_template.lines -->232<!-- /@stats --> |
 | `tests/test_ai_profile.py` | AIProfile 多 Profile 管理 (25 用例, 100% cov) | <!-- @stats tests.modules.test_ai_profile.lines -->243<!-- /@stats --> |
-| `tests/ai_anthropic/test_client.py` | AnthropicClient + _map_error + 辅助函数 (55 用例) | <!-- @stats tests.modules.ai_anthropic.test_client.lines -->539<!-- /@stats --> |
-| `tests/ai_google/test_client.py` | GoogleClient + _map_error + 辅助函数 (47 用例) | <!-- @stats tests.modules.ai_google.test_client.lines -->498<!-- /@stats --> |
+| `tests/ai_anthropic/test_client.py` | AnthropicClient + _map_error + 辅助函数 (55 用例) | <!-- @stats tests.modules.ai_anthropic.test_client.lines -->522<!-- /@stats --> |
+| `tests/ai_google/test_client.py` | GoogleClient + _map_error + 辅助函数 (47 用例) | <!-- @stats tests.modules.ai_google.test_client.lines -->483<!-- /@stats --> |
 | `tests/test_rules_state.py` | fcntl 锁状态机 + 损坏恢复 + 优雅降级 (23 用例) | <!-- @stats tests.modules.test_rules_state.lines -->415<!-- /@stats --> |
 | `tests/test_rules_engine.py` | 规则引擎核心 — 加载/匹配/提取/Transform | <!-- @stats tests.modules.test_rules_engine.lines -->1,817<!-- /@stats --> |
 | `tests/test_rules_lifecycle.py` | 规则生命周期 — 启用/禁用/删除/校验 | <!-- @stats tests.modules.test_rules_lifecycle.lines -->613<!-- /@stats --> |
 | `tests/test_rules_source.py` | 远程规则源 — Manifest/下载/增量更新 | <!-- @stats tests.modules.test_rules_source.lines -->1,533<!-- /@stats --> |
 | `tests/test_rules_diagnostics.py` | 规则诊断 — trace 模式/统计 | <!-- @stats tests.modules.test_rules_diagnostics.lines -->169<!-- /@stats --> |
-| `tests/test_html_preprocess.py` | HTML 三级清洗预处理 (19 用例) | <!-- @stats tests.modules.test_html_preprocess.lines -->150<!-- /@stats --> |
+| `tests/test_html_preprocess.py` | HTML 三级清洗预处理 (19 用例) | <!-- @stats tests.modules.test_html_preprocess.lines -->151<!-- /@stats --> |
 | `tests/test_chatml.py` | ChatML 序列化/tiktoken (15 用例) | <!-- @stats tests.modules.test_chatml.lines -->95<!-- /@stats --> |
 | `tests/test_rules_browser_edge.py` | rules 子模块 + browser 辅助函数边界用例 (58 用例) | <!-- @stats tests.modules.test_rules_browser_edge.lines -->387<!-- /@stats --> |
 | `tests/test_rules_io.py` | _io.py — model_dump / BOM 处理 / 非 dict JSON 拒绝 (41 用例) | <!-- @stats tests.modules.test_rules_io.lines -->404<!-- /@stats --> |
@@ -328,9 +328,9 @@ gui/*.py     ←  crawler/engine.py, config.py, crawler/signals.py, rules/*
 
 **ISP 窄接口（PEP 544 Protocol）**：
 
-为解决 `CrawlerConfig`（50 字段）被多模块消费、`CrawlState`（<!-- @stats modules.storage.by_name.db.lines -->728<!-- /@stats --> 行）被 engine 依赖的问题，引入多个 Protocol 接口：
+为解决 `CrawlerConfig`（50 字段）被多模块消费、`CrawlState`（<!-- @stats modules.storage.by_name.db.lines -->730<!-- /@stats --> 行）被 engine 依赖的问题，引入多个 Protocol 接口：
 
-- **`CrawlStateProtocol`**（`storage/_protocol.py`，<!-- @stats modules.storage.by_name._protocol.lines -->89<!-- /@stats --> 行）—— 完整接口，约 30 个方法签名。另提供 `CrawlStateReader`、`CrawlStateWriter`、`CrawlStateAdmin` 三个更窄的视角。
+- **`CrawlStateProtocol`**（`storage/_protocol.py`，<!-- @stats modules.storage.by_name._protocol.lines -->90<!-- /@stats --> 行）—— 完整接口，约 30 个方法签名。另提供 `CrawlStateReader`、`CrawlStateWriter`、`CrawlStateAdmin` 三个更窄的视角。
 - **`AsyncCloseable`**（`_types.py`）—— 异步资源生命周期协议：`async def aclose()`。
 - **`HealthChecked`**（`health.py`）—— 统一健康报告协议：`get_health() → Health`。
 
@@ -604,7 +604,7 @@ astrocrawl/
 ├── health.py (<!-- @stats modules.kernel.by_name.health.lines -->58<!-- /@stats --> 行)         ← Health 数据类 + HealthChecked Protocol + health_to_report()
 ├── resilience.py (<!-- @stats modules.kernel.by_name.resilience.lines -->107<!-- /@stats --> 行)    ← Fuse 两态熔断器（CLOSED → OPEN）
 ├── diagnostics.py (<!-- @stats modules.kernel.by_name.diagnostics.lines -->256<!-- /@stats --> 行)   ← 三层运行时诊断（SIGUSR1 / HTTP /health / 自动 dump）
-├── health_monitor.py (<!-- @stats modules.kernel.by_name.health_monitor.lines -->175<!-- /@stats --> 行) ← HealthMonitor — 统一健康检查调度（A/B/C 分类 + 被动指示器）
+├── health_monitor.py (<!-- @stats modules.kernel.by_name.health_monitor.lines -->171<!-- /@stats --> 行) ← HealthMonitor — 统一健康检查调度（A/B/C 分类 + 被动指示器）
 │
 ├── cli/                      ← 命令行接口
 │   └── main.py (<!-- @stats modules.cli.by_name.main.lines -->1,771<!-- /@stats --> 行)     ← argparse 定义 + 配置合并 + rules/source 子命令
@@ -613,24 +613,24 @@ astrocrawl/
 │   ├── engine.py (<!-- @stats modules.crawler.by_name.engine.lines -->2,143<!-- /@stats --> 行)   ← AsyncCrawler + Pipeline (8 Processors) + PipelineDeps
 │   ├── outcomes.py (<!-- @stats modules.crawler.by_name.outcomes.lines -->381<!-- /@stats --> 行)  ← UrlOutcome / FetchErrorCategory / CrawlStats
 │   ├── progress.py (<!-- @stats modules.crawler.by_name.progress.lines -->204<!-- /@stats --> 行)  ← ProgressReporter — CLI/GUI 进度发射与摘要
-│   ├── supervisors.py (<!-- @stats modules.crawler.by_name.supervisors.lines -->112<!-- /@stats --> 行) ← WorkerSupervisor — one_for_one 监督器
+│   ├── supervisors.py (<!-- @stats modules.crawler.by_name.supervisors.lines -->114<!-- /@stats --> 行) ← WorkerSupervisor — one_for_one 监督器
 │   ├── liveness.py (<!-- @stats modules.crawler.by_name.liveness.lines -->53<!-- /@stats --> 行)   ← LivenessTracker — 心跳存活检测
 │   ├── signals.py (<!-- @stats modules.crawler.by_name.signals.lines -->89<!-- /@stats --> 行)    ← CrawlerSignals — Qt 信号封装（含 CLI no-op + worker_state）
-│   └── _url_gate.py (<!-- @stats modules.crawler.by_name._url_gate.lines -->82<!-- /@stats --> 行)   ← UrlGate — 统一 URL 准入门禁（AdmitResult 6 态，纯策略 @staticmethod）
+│   └── _url_gate.py (<!-- @stats modules.crawler.by_name._url_gate.lines -->84<!-- /@stats --> 行)   ← UrlGate — 统一 URL 准入门禁（AdmitResult 6 态，纯策略 @staticmethod）
 │
 ├── browser/                  ← 浏览器管理
 │   ├── browser_pool.py (<!-- @stats modules.browser.by_name.browser_pool.lines -->848<!-- /@stats --> 行) ← BrowserPool — Actor 消息模式，三阶段抓取，内部重试
 │   ├── context_pool.py (<!-- @stats modules.browser.by_name.context_pool.lines -->179<!-- /@stats --> 行) ← ContextPool — 槽位生命周期管理 + ConfigError 启动门控
-│   ├── _slot_pool.py (<!-- @stats modules.browser.by_name._slot_pool.lines -->279<!-- /@stats --> 行)   ← SlotPool — 槽位分配、代理绑定、路径切换
-│   ├── page_pool.py (<!-- @stats modules.browser.by_name.page_pool.lines -->79<!-- /@stats --> 行)     ← PagePool — 页面生命周期管理
+│   ├── _slot_pool.py (<!-- @stats modules.browser.by_name._slot_pool.lines -->281<!-- /@stats --> 行)   ← SlotPool — 槽位分配、代理绑定、路径切换
+│   ├── page_pool.py (<!-- @stats modules.browser.by_name.page_pool.lines -->80<!-- /@stats --> 行)     ← PagePool — 页面生命周期管理
 │   ├── _retry.py (<!-- @stats modules.browser.by_name._retry.lines -->41<!-- /@stats --> 行)        ← ProxyFailureClassifier + RetryStrategy SSOT
 │   ├── _domain_memory.py (<!-- @stats modules.browser.by_name._domain_memory.lines -->54<!-- /@stats --> 行)← DomainPathMemory — 双缓存域名路径记忆（TTL 过期）
 │   ├── _device_caps.py (<!-- @stats modules.browser.by_name._device_caps.lines -->23<!-- /@stats --> 行)  ← 设备 GPU 能力检测，SwiftShader fallback
-│   ├── _preview.py (<!-- @stats modules.browser.by_name._preview.lines -->299<!-- /@stats --> 行)     ← PreviewBrowser — 纯 async headed Chromium 预览
+│   ├── _preview.py (<!-- @stats modules.browser.by_name._preview.lines -->301<!-- /@stats --> 行)     ← PreviewBrowser — 纯 async headed Chromium 预览
 │   └── navigation.py (<!-- @stats modules.browser.by_name.navigation.lines -->38<!-- /@stats --> 行)    ← safe_goto — 带超时保护的页面导航
 │
 ├── network/                  ← 网络层
-│   ├── _fetch.py (<!-- @stats modules.network.by_name._fetch.lines -->152<!-- /@stats --> 行)       ← aiohttp_retry_fetch — 与 BrowserPool 策略等价的 aiohttp 重试引擎
+│   ├── _fetch.py (<!-- @stats modules.network.by_name._fetch.lines -->153<!-- /@stats --> 行)       ← aiohttp_retry_fetch — 与 BrowserPool 策略等价的 aiohttp 重试引擎
 │   ├── robots.py (<!-- @stats modules.network.by_name.robots.lines -->319<!-- /@stats --> 行)       ← AsyncRobotsParser + RobotsCache（RFC 9309）
 │   ├── sitemap.py (<!-- @stats modules.network.by_name.sitemap.lines -->554<!-- /@stats --> 行)      ← SitemapParser + SitemapDiscovery
 │   └── throttling.py (<!-- @stats modules.network.by_name.throttling.lines -->206<!-- /@stats --> 行)   ← DomainRateLimiter + DomainConcurrencyLimiter
@@ -671,34 +671,34 @@ astrocrawl/
 │
 ├── proxy/                     ← ADR-0010 代理模块
 │   ├── _config.py (<!-- @stats modules.proxy.by_name._config.lines -->292<!-- /@stats --> 行)       ← ProxyType/ProxyAuth/ProxyEndpointSpec/ProxyProfile/ProxyConfig
-│   ├── _proxy.py (<!-- @stats modules.proxy.by_name._proxy.lines -->451<!-- /@stats --> 行)        ← ProxyManager (SWRR) + ProxyHealthTracker (3-tier CB)
-│   ├── _session.py (<!-- @stats modules.proxy.by_name._session.lines -->232<!-- /@stats --> 行)      ← ProxySession — 组合根 + 生命周期门面 (DI, async ctx mgr)
-│   ├── _probe.py (<!-- @stats modules.proxy.by_name._probe.lines -->46<!-- /@stats --> 行)         ← ProbeResult + probe_one() — TCP 连通性预检
+│   ├── _proxy.py (<!-- @stats modules.proxy.by_name._proxy.lines -->453<!-- /@stats --> 行)        ← ProxyManager (SWRR) + ProxyHealthTracker (3-tier CB)
+│   ├── _session.py (<!-- @stats modules.proxy.by_name._session.lines -->235<!-- /@stats --> 行)      ← ProxySession — 组合根 + 生命周期门面 (DI, async ctx mgr)
+│   ├── _probe.py (<!-- @stats modules.proxy.by_name._probe.lines -->49<!-- /@stats --> 行)         ← ProbeResult + probe_one() — TCP 连通性预检
 │   ├── _hook.py (<!-- @stats modules.proxy.by_name._hook.lines -->44<!-- /@stats --> 行)          ← ProxyHook Protocol + LoggingProxyHook
 │   └── _consumers.py (<!-- @stats modules.proxy.by_name._consumers.lines -->15<!-- /@stats --> 行)     ← PROXY_CONSUMERS — 静态 consumer→display-name 注册表
 │
 ├── storage/                  ← 持久化层
-│   ├── _protocol.py (<!-- @stats modules.storage.by_name._protocol.lines -->89<!-- /@stats --> 行)     ← CrawlStateProtocol — PEP 544 窄接口（full/reader/writer/admin）
-│   ├── db.py (<!-- @stats modules.storage.by_name.db.lines -->728<!-- /@stats --> 行)           ← CrawlState — SQLite 队列/去重/状态/恢复
-│   └── writer.py (<!-- @stats modules.storage.by_name.writer.lines -->117<!-- /@stats --> 行)       ← AsyncJsonlWriter — 缓冲 JSONL 写入器（含 GZip）
+│   ├── _protocol.py (<!-- @stats modules.storage.by_name._protocol.lines -->90<!-- /@stats --> 行)     ← CrawlStateProtocol — PEP 544 窄接口（full/reader/writer/admin）
+│   ├── db.py (<!-- @stats modules.storage.by_name.db.lines -->730<!-- /@stats --> 行)           ← CrawlState — SQLite 队列/去重/状态/恢复
+│   └── writer.py (<!-- @stats modules.storage.by_name.writer.lines -->119<!-- /@stats --> 行)       ← AsyncJsonlWriter — 缓冲 JSONL 写入器（含 GZip）
 │
-├── gui/                      ← 图形界面（<!-- @stats stats.modules.gui.files -->25<!-- /@stats --> 文件，<!-- @stats stats.modules.gui.lines -->9,641<!-- /@stats --> 行）
-│   ├── main_window.py (<!-- @stats modules.gui.by_name.main_window.lines -->1,021<!-- /@stats --> 行)    ← MainWindow — Qt 主窗口
+├── gui/                      ← 图形界面（<!-- @stats stats.modules.gui.files -->25<!-- /@stats --> 文件，<!-- @stats stats.modules.gui.lines -->9,659<!-- /@stats --> 行）
+│   ├── main_window.py (<!-- @stats modules.gui.by_name.main_window.lines -->1,024<!-- /@stats --> 行)    ← MainWindow — Qt 主窗口
 │   ├── advanced_dialog.py (<!-- @stats modules.gui.by_name.advanced_dialog.lines -->618<!-- /@stats --> 行)← AdvancedSettingsDialog — 高级设置（5 Tab：常规/全局/AI/代理/路由）
-│   ├── rules_dialog.py (<!-- @stats modules.gui.by_name.rules_dialog.lines -->2,969<!-- /@stats --> 行)  ← RulesDialog — 规则管理（3 Tab）+ RuleEditDialog + _SourceEditDialog + Workers
+│   ├── rules_dialog.py (<!-- @stats modules.gui.by_name.rules_dialog.lines -->2,971<!-- /@stats --> 行)  ← RulesDialog — 规则管理（3 Tab）+ RuleEditDialog + _SourceEditDialog + Workers
 │   ├── completion_dialog.py (<!-- @stats modules.gui.by_name.completion_dialog.lines -->194<!-- /@stats --> 行)← CompletionReportDialog — 完成报告弹窗
-│   ├── crawl_session.py (<!-- @stats modules.gui.by_name.crawl_session.lines -->211<!-- /@stats --> 行)  ← CrawlSession QObject — 爬取生命周期状态机
-│   ├── thread.py (<!-- @stats modules.gui.by_name.thread.lines -->80<!-- /@stats --> 行)          ← CrawlerThread — QThread 异步事件循环
+│   ├── crawl_session.py (<!-- @stats modules.gui.by_name.crawl_session.lines -->214<!-- /@stats --> 行)  ← CrawlSession QObject — 爬取生命周期状态机
+│   ├── thread.py (<!-- @stats modules.gui.by_name.thread.lines -->82<!-- /@stats --> 行)          ← CrawlerThread — QThread 异步事件循环
 │   ├── proxy_health_bar.py (<!-- @stats modules.gui.by_name.proxy_health_bar.lines -->159<!-- /@stats --> 行)← ProxyHealthBar — 代理健康可视化
 │   ├── theme.py (<!-- @stats modules.gui.by_name.theme.lines -->176<!-- /@stats --> 行)          ← ThemeManager — 主题管理器 + 15 令牌预设
 │   ├── theme_dialog.py (<!-- @stats modules.gui.by_name.theme_dialog.lines -->279<!-- /@stats --> 行)   ← ThemeDialog — 主题设置（模式外置 + 色块 QScrollArea）
 │   ├── title_bar.py (<!-- @stats modules.gui.by_name.title_bar.lines -->61<!-- /@stats --> 行)       ← TitleBar — 标题栏（状态条 + 主题按钮）
-│   ├── worker_status_bar.py (<!-- @stats modules.gui.by_name.worker_status_bar.lines -->76<!-- /@stats --> 行)← WorkerStatusBar — Worker 脉动渐变状态条
+│   ├── worker_status_bar.py (<!-- @stats modules.gui.by_name.worker_status_bar.lines -->78<!-- /@stats --> 行)← WorkerStatusBar — Worker 脉动渐变状态条
 │   ├── _tokens.py (<!-- @stats modules.gui.by_name._tokens.lines -->40<!-- /@stats --> 行)         ← 布局常量 — 间距/圆角/字体/高度/动画
 │   ├── _style.py (<!-- @stats modules.gui.by_name._style.lines -->105<!-- /@stats --> 行)         ← ColumnDef + create_managed_table + style helpers
 │   ├── _delegates.py (<!-- @stats modules.gui.by_name._delegates.lines -->132<!-- /@stats --> 行)     ← StatusColorDelegate (token 化) + CheckboxDelegate (editorEvent + 居中)
 │   ├── _table_page.py (<!-- @stats modules.gui.by_name._table_page.lines -->228<!-- /@stats --> 行)    ← _TableManagementPage + _FilterProxy (Template Method)
-│   ├── _ai_profile_page.py (<!-- @stats modules.gui.by_name._ai_profile_page.lines -->795<!-- /@stats --> 行)← _AIProfilePage + AIProfileEditDialog (ADR-0007)
+│   ├── _ai_profile_page.py (<!-- @stats modules.gui.by_name._ai_profile_page.lines -->797<!-- /@stats --> 行)← _AIProfilePage + AIProfileEditDialog (ADR-0007)
 │   ├── _proxy_profile_page.py     ← _ProxyProfilePage + ProxyProfileEditDialog
 │   ├── _proxy_endpoint_dialog.py  ← ProxyEndpointEditDialog — 7 字段端点编辑器
 │   ├── _route_settings_page.py    ← _RouteSettingsPage — consumer→profile 路由
@@ -709,9 +709,9 @@ astrocrawl/
 │
 └── utils/                    ← 工具函数
     ├── url.py (<!-- @stats modules.utils.by_name.url.lines -->118<!-- /@stats --> 行)            ← URL 规范化、脱敏、PSL 域名提取、验证
-    ├── html.py (<!-- @stats modules.utils.by_name.html.lines -->227<!-- /@stats --> 行)          ← HTML 解析、链接提取、内容哈希
+    ├── html.py (<!-- @stats modules.utils.by_name.html.lines -->228<!-- /@stats --> 行)          ← HTML 解析、链接提取、内容哈希
     ├── logging.py (<!-- @stats modules.utils.by_name.logging.lines -->42<!-- /@stats --> 行)        ← 日志设置 + Qt 日志桥接 + logfmt 格式
-    ├── _atomic.py (<!-- @stats modules.utils.by_name._atomic.lines -->61<!-- /@stats --> 行)        ← atomic_write_json POSIX 原子写入原语
+    ├── _atomic.py (<!-- @stats modules.utils.by_name._atomic.lines -->63<!-- /@stats --> 行)        ← atomic_write_json POSIX 原子写入原语
     └── preferences.py (<!-- @stats modules.utils.by_name.preferences.lines -->579<!-- /@stats --> 行)   ← Preferences — 用户偏好持久化（路径记忆 + 主题 + LLM 配置）
 ```
 
@@ -891,11 +891,11 @@ argparse 参数解析 → 配置文件 → 环境变量 → CLI 参数（优先�
 
 #### GUI 层（`gui/`）
 
-- **MainWindow**（<!-- @stats modules.gui.by_name.main_window.lines -->1,021<!-- /@stats --> 行）：PySide6 QWidget 主窗口，动态深度层进度条、实时 URL 校验、爬取控制
-- **CrawlSession**（<!-- @stats modules.gui.by_name.crawl_session.lines -->211<!-- /@stats --> 行）：QObject 状态机，管理爬取生命周期（idle → discovering → running → draining → finished/error），发出 Qt 信号驱动 UI 状态转换
+- **MainWindow**（<!-- @stats modules.gui.by_name.main_window.lines -->1,024<!-- /@stats --> 行）：PySide6 QWidget 主窗口，动态深度层进度条、实时 URL 校验、爬取控制
+- **CrawlSession**（<!-- @stats modules.gui.by_name.crawl_session.lines -->214<!-- /@stats --> 行）：QObject 状态机，管理爬取生命周期（idle → discovering → running → draining → finished/error），发出 Qt 信号驱动 UI 状态转换
 - **CompletionReportDialog**（<!-- @stats modules.gui.by_name.completion_dialog.lines -->194<!-- /@stats --> 行）：爬取完成弹窗，QTableWidget 展示完整统计明细
 - **AdvancedSettingsDialog**（<!-- @stats modules.gui.by_name.advanced_dialog.lines -->618<!-- /@stats --> 行）：CrawlerConfig 全字段编辑表单，5 个标签页（常规设置/全局设置/AI 设置/代理设置/路由设置），常规设置含 6 个 QGroupBox 分区。表单类页面统一使用 QScrollArea 外包，表格类页面（AI/代理/路由设置）使用专用 Page 组件管理。支持"应用"即时预览、"确认"保存关闭、"取消"还原
-- **CrawlerThread**（<!-- @stats modules.gui.by_name.thread.lines -->80<!-- /@stats --> 行）：QThread 子类，独立线程运行 asyncio 事件循环
+- **CrawlerThread**（<!-- @stats modules.gui.by_name.thread.lines -->82<!-- /@stats --> 行）：QThread 子类，独立线程运行 asyncio 事件循环
 - **ProxyHealthBar**（<!-- @stats modules.gui.by_name.proxy_health_bar.lines -->159<!-- /@stats --> 行）：代理健康状态可视化，实时显示断路器状态和健康评分。颜色从主题令牌 `danger`/`warning`/`success` 动态读取，深浅主题自动跟随。构造函数接受 theme 参数（ThemeManager），若未传入则自动获取全局单例
 
 #### 主题系统（`gui/theme.py` + `gui/theme_dialog.py`）
@@ -908,7 +908,7 @@ argparse 参数解析 → 配置文件 → 环境变量 → CLI 参数（优先�
 
 **TitleBar**（`gui/title_bar.py`，<!-- @stats modules.gui.by_name.title_bar.lines -->61<!-- /@stats --> 行）：WorkerStatusBar（左，stretch）+ 主题按钮（右，24×24）。主题按钮显示当前模式符号（☀/★/✿），点击弹出 ThemeDialog。
 
-**WorkerStatusBar**（`gui/worker_status_bar.py`，<!-- @stats modules.gui.by_name.worker_status_bar.lines -->76<!-- /@stats --> 行）：24px 高自定义 QWidget。通过 `worker_state(int, str)` 信号推模式跟踪 Worker 状态，无需轮询。`paintEvent` 用 QLinearGradient 4-stop 双周期绘制脉动渐变条——4×width 画布上无缝滚动，速度随活跃 Worker 数量变化。空闲时显示静态 disabled 色。渐变颜色从主题令牌动态读取。
+**WorkerStatusBar**（`gui/worker_status_bar.py`，<!-- @stats modules.gui.by_name.worker_status_bar.lines -->78<!-- /@stats --> 行）：24px 高自定义 QWidget。通过 `worker_state(int, str)` 信号推模式跟踪 Worker 状态，无需轮询。`paintEvent` 用 QLinearGradient 4-stop 双周期绘制脉动渐变条——4×width 画布上无缝滚动，速度随活跃 Worker 数量变化。空闲时显示静态 disabled 色。渐变颜色从主题令牌动态读取。
 
 #### 用户偏好（`utils/preferences.py`）
 

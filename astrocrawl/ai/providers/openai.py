@@ -6,7 +6,6 @@ import json
 import logging
 from typing import TYPE_CHECKING, Any, AsyncIterator, Dict, Iterator
 
-from astrocrawl.ai._config import AIConfig
 from astrocrawl.ai._errors import (
     AIAuthError,
     AIConnectionError,
@@ -30,6 +29,7 @@ from astrocrawl.ai._types import (
 )
 
 if TYPE_CHECKING:
+    from astrocrawl.ai._config import AIConfig, _ResolvedParams
     from astrocrawl.ai._provider import _ChatProvider
 
 logger = logging.getLogger("astrocrawl.ai.openai")
@@ -138,13 +138,7 @@ class OpenAIClient:
         self._sync_client: Any = None
         self._async_client: Any = None
 
-    @property
-    def supported_output_formats(self) -> frozenset[str]:
-        """ADR-0008: 声明最大能力集，不做 hostname 白名单。
-        实际能力由 AIClient._resolve_output_format() 在每次 json_schema 请求前
-        通过轻量探针运行时检测。
-        """
-        return _STRUCTURED_OUTPUT_MODES
+    supported_output_formats: frozenset[str] = _STRUCTURED_OUTPUT_MODES
 
     # ── _ChatProvider.chat ─────────────────────────────────────────────
 
@@ -227,7 +221,7 @@ class OpenAIClient:
         self,
         messages: list[ChatMessage],
         tools: list[dict] | None,
-        params: Any,
+        params: _ResolvedParams,
     ) -> AsyncIterator[StreamEvent]:
         kwargs = self._build_request_kwargs(messages, tools, params, stream=True)
         client = self._get_async_client()
@@ -408,12 +402,12 @@ class OpenAIClient:
         if self._sync_client is None:
             from openai import OpenAI
 
-            kwargs: dict[str, Any] = dict(
-                api_key=self._api_key,
-                base_url=self._base_url,
-                timeout=self._timeout,
-                max_retries=self._max_retries,
-            )
+            kwargs: dict[str, Any] = {
+                "api_key": self._api_key,
+                "base_url": self._base_url,
+                "timeout": self._timeout,
+                "max_retries": self._max_retries,
+            }
             if self._http_client is not None:
                 kwargs["http_client"] = self._http_client
             self._sync_client = OpenAI(**kwargs)
@@ -423,12 +417,12 @@ class OpenAIClient:
         if self._async_client is None:
             from openai import AsyncOpenAI
 
-            kwargs: dict[str, Any] = dict(
-                api_key=self._api_key,
-                base_url=self._base_url,
-                timeout=self._timeout,
-                max_retries=self._max_retries,
-            )
+            kwargs: dict[str, Any] = {
+                "api_key": self._api_key,
+                "base_url": self._base_url,
+                "timeout": self._timeout,
+                "max_retries": self._max_retries,
+            }
             if self._async_http_client is not None:
                 kwargs["http_client"] = self._async_http_client
             self._async_client = AsyncOpenAI(**kwargs)

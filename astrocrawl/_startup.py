@@ -44,7 +44,7 @@ def _check_re2() -> None:
             "google-re2 未正确安装。请执行: pip install google-re2\n"
             "若编译安装失败，请确保已安装 build-essential 和 libre2-dev (Linux) "
             "或 cmake (macOS/Windows)。"
-        )
+        ) from None
 
 
 def check_gui_dependencies() -> None:
@@ -52,7 +52,7 @@ def check_gui_dependencies() -> None:
     try:
         __import__("PySide6")
     except ImportError:
-        raise StartupError("GUI 模式需要 PySide6。请执行: pip install astrocrawl[gui]")
+        raise StartupError("GUI 模式需要 PySide6。请执行: pip install astrocrawl[gui]") from None
 
 
 def verify_chromium() -> None:
@@ -65,8 +65,8 @@ def verify_chromium() -> None:
     if browsers_root:
         try:
             entries = os.listdir(browsers_root)
-        except OSError:
-            raise StartupError(f"无法读取捆绑的浏览器目录: {browsers_root}")
+        except OSError as e:
+            raise StartupError(f"无法读取捆绑的浏览器目录: {browsers_root}") from e
         chromium_dirs = [d for d in entries if d.startswith("chromium-")]
         if not chromium_dirs:
             raise StartupError(f"捆绑目录中未找到 Chromium 浏览器: {browsers_root}")
@@ -89,11 +89,11 @@ def verify_chromium() -> None:
                 exe = p.chromium.executable_path
                 if not os.path.isfile(exe):
                     raise FileNotFoundError(f"浏览器可执行文件未找到: {exe}")
-        except FileNotFoundError:
-            raise StartupError("Playwright Chromium 浏览器未安装，请运行: playwright install chromium")
+        except FileNotFoundError as e:
+            raise StartupError("Playwright Chromium 浏览器未安装，请运行: playwright install chromium") from e
         except Exception as e:
-            raise StartupError(f"Playwright 运行时初始化失败: {e}")
-    except ImportError:
+            raise StartupError(f"Playwright 运行时初始化失败: {e}") from e
+    except ImportError as e:
         raise StartupError(
             "Playwright Python 包未正确安装，请运行: pip install playwright && playwright install chromium"
-        )
+        ) from e

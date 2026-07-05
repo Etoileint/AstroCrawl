@@ -7,8 +7,10 @@ tiktoken 为可选依赖（对标 orjson 优雅降级模式）——导入失败
 from __future__ import annotations
 
 import logging
+from typing import TYPE_CHECKING
 
-from astrocrawl.ai._types import ChatMessage
+if TYPE_CHECKING:
+    from astrocrawl.ai._types import ChatMessage
 
 logger = logging.getLogger("astrocrawl.rules.chatml")
 

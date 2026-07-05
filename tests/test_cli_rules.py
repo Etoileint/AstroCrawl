@@ -570,7 +570,7 @@ class TestRulesGenerateProfile:
     # ── --output-format ──
 
     @pytest.mark.parametrize(
-        "flag_value,expected",
+        ("flag_value", "expected"),
         [
             ("auto", "auto"),
             ("json_schema", "json_schema"),
@@ -632,7 +632,7 @@ class TestRulesGenerateProfile:
     # ── --rule-mode ──
 
     @pytest.mark.parametrize(
-        "flag_value,expected",
+        ("flag_value", "expected"),
         [
             ("type", "type"),
             ("position", "position"),

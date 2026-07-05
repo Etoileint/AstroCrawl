@@ -251,7 +251,7 @@ class AIClient:
 
         try:
             async with self._rate_limiter.acquire():
-                async for chunk in self._provider.achat_stream(messages, tools, resolved):  # type: ignore[attr-defined]  # mypy async-gen Protocol false positive
+                async for chunk in self._provider.achat_stream(messages, tools, resolved):
                     yield session.consume(chunk)
         except AIError as e:
             ctx.duration_ms = (time.monotonic() - start) * 1000
@@ -398,6 +398,7 @@ class AIClient:
                     return True  # 两次都瞬态失败 → 探针无法判断，不降级
             except Exception:
                 return True  # 认证/未知错误 → 探针无法判断，不降级
+        return True  # unreachable — mypy can't prove the for loop always returns
 
     # ── output format resolution ──────────────────────────────────
 

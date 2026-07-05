@@ -159,7 +159,7 @@ class TestConcurrentWrites:
         async def worker(domain: str):
             for i in range(10):
                 await state.push_to_queue_single(f"https://{domain}.com/{i}", 1)
-            for i in range(5):
+            for _ in range(5):
                 result = await state.pop_from_domain(domain)
                 if result:
                     await state.mark_completed(result[0], result[1])

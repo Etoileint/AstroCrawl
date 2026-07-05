@@ -8,11 +8,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, AsyncIterator, Iterator, Protocol, runtime_checkable
 
-from astrocrawl.ai._types import ChatMessage, ChatResponse
-
 if TYPE_CHECKING:
     from astrocrawl.ai._config import _ResolvedParams
-    from astrocrawl.ai._types import EmbedResult, StreamEvent
+    from astrocrawl.ai._types import ChatMessage, ChatResponse, EmbedResult, StreamEvent
 
 
 @runtime_checkable
@@ -63,7 +61,7 @@ class _ChatProvider(Protocol):
         params: _ResolvedParams,
     ) -> ChatResponse: ...
 
-    async def achat_stream(
+    def achat_stream(
         self,
         messages: list[ChatMessage],
         tools: list[dict] | None,

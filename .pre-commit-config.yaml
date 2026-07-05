@@ -1,4 +1,26 @@
 repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: check-yaml
+      - id: check-toml
+      - id: check-json
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: [--maxkb=1024]
+      - id: detect-private-key
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: mixed-line-ending
+
+  - repo: https://github.com/codespell-project/codespell
+    rev: v2.4.0
+    hooks:
+      - id: codespell
+        # finshed: test_signals.py:39 + 2 archive docs 故意保留
+        # （测试/文档引述属性名拼写错误的行为，非笔误）
+        args: [--write-changes, --ignore-words-list=finshed]
+
   - repo: local
     hooks:
       - id: ruff-lint

@@ -11,7 +11,6 @@ from __future__ import annotations
 
 import asyncio
 import errno
-import logging
 import random
 import ssl
 from dataclasses import dataclass
@@ -24,6 +23,8 @@ from astrocrawl._retry_strategy import RetryStrategy, classify_from_category, cl
 from astrocrawl._types import FetchErrorCategory
 
 if TYPE_CHECKING:
+    import logging
+
     from astrocrawl._path_strategy import PathSwitch
     from astrocrawl.proxy import ProxySession
 

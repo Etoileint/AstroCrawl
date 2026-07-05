@@ -16,11 +16,11 @@ from typing import TYPE_CHECKING, AsyncIterator, Optional
 
 from astrocrawl._constants import SLOT_CREATE_RETRIES
 from astrocrawl.browser._slot_pool import SlotPool
-from astrocrawl.browser.page_pool import PagePool
 from astrocrawl.config import ConfigError, CrawlerConfig, GlobalSettings
 
 if TYPE_CHECKING:
     from astrocrawl._path_strategy import PathSwitch
+    from astrocrawl.browser.page_pool import PagePool
     from astrocrawl.proxy import ProxySession
 
 

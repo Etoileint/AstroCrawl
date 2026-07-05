@@ -9,13 +9,15 @@ from __future__ import annotations
 import json
 import logging
 import time
-from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from astrocrawl._constants import MAX_RULE_FILE_SIZE, MAX_RULES_CACHE_SIZE, RULES_TMP_MAX_AGE_HOURS
 from astrocrawl.rules._markdown import clean_markdown_wrapper
 from astrocrawl.rules._schema import RuleSchema, validate_rule
 from astrocrawl.utils._atomic import atomic_write_json
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 logger = logging.getLogger("astrocrawl.rules.io")
 
@@ -67,7 +69,7 @@ def rule_to_dict(rule: RuleSchema) -> dict[str, Any]:
 
     Pydantic model_dump(mode="json") 自动递归序列化全部嵌套模型，
     包含 MatchConfig、FieldRule 的 fallback 链、transform 等。"""
-    return rule.model_dump(mode="json")
+    return rule.model_dump(mode="json")  # type: ignore[no-any-return]
 
 
 # ═══════════════════════════════════════════════════════════════════
@@ -136,7 +138,7 @@ def import_rule_preview(file_path: Path) -> dict[str, Any]:
         decoder = json.JSONDecoder(object_pairs_hook=_check_duplicate_keys)
         data = decoder.decode(cleaned)
     except json.JSONDecodeError as e:
-        raise ValueError(f"无法解析为 JSON: {e}")
+        raise ValueError(f"无法解析为 JSON: {e}") from e
 
     if not isinstance(data, dict) or "name" not in data:
         raise ValueError("文件不含有效的规则定义（缺少 name 字段）")

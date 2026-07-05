@@ -5,15 +5,16 @@ import re
 import unicodedata
 from dataclasses import dataclass
 from hashlib import md5
-from typing import Any, Dict, List, Optional, Set, Tuple, cast
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set, Tuple, cast
 from typing import Protocol as _Protocol
 from urllib.parse import urljoin, urlparse
-
-from bs4 import BeautifulSoup
 
 from astrocrawl._constants import DOWNLOAD_EXTENSIONS
 from astrocrawl.config import DEFAULT_CONFIG
 from astrocrawl.utils.url import is_valid_http_url, normalize_url, parse_domain
+
+if TYPE_CHECKING:
+    from bs4 import BeautifulSoup
 
 
 @dataclass
@@ -176,14 +177,14 @@ def extract_title(soup: BeautifulSoup) -> str:
     """从页面提取标题：<title> → <h1> → og:title fallback。"""
     tag = soup.find("title")
     if tag:
-        t = tag.get_text(strip=True)
-        if t:
-            return t
+        title_text: str = tag.get_text(strip=True)
+        if title_text:
+            return title_text
     h1 = soup.find("h1")
     if h1:
-        t = h1.get_text(strip=True)
-        if t:
-            return t
+        h1_text: str = h1.get_text(strip=True)
+        if h1_text:
+            return h1_text
     og = soup.find("meta", attrs={"property": "og:title"})
     if og:
         content = cast("str", og.get("content", "")).strip()

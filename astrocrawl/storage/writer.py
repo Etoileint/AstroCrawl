@@ -5,10 +5,12 @@ import gzip
 import io
 import logging
 import os
-from pathlib import Path
-from typing import IO, Optional
+from typing import IO, TYPE_CHECKING, Optional
 
 from astrocrawl._json_compat import _json_dumps
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 class AsyncJsonlWriter:

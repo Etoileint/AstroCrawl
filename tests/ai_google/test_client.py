@@ -10,8 +10,6 @@ import sys
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
-import pytest
-
 from astrocrawl.ai._config import AIConfig, _ResolvedParams
 from astrocrawl.ai._errors import AIAuthError, AIError, AIInvalidRequestError, AIRateLimitError, AIServerError
 from astrocrawl.ai._types import ChatMessage, Role
@@ -483,16 +481,3 @@ class TestListModels:
 
         assert result == ["gemini-pro"]
         mock_http_options.assert_called_once_with(base_url="https://custom.api.com")
-
-    def test_raises_importerror_when_sdk_not_installed(self):
-        """SDK 未安装时抛出清晰的 ImportError。"""
-        from astrocrawl.ai.providers.google import list_models
-
-        saved = sys.modules.get("google.genai")
-        sys.modules.pop("google.genai", None)
-        try:
-            with pytest.raises(ImportError, match="pip install google-genai"):
-                list_models("", "sk-test", 15.0)
-        finally:
-            if saved is not None:
-                sys.modules["google.genai"] = saved

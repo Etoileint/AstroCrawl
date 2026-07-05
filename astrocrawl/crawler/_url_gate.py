@@ -9,12 +9,14 @@ UrlGate.admit() 判断是否入队、存入边界链接或拒绝。
 
 from __future__ import annotations
 
-import re
 from enum import Enum
-from typing import List, Protocol, runtime_checkable
+from typing import TYPE_CHECKING, List, Protocol, runtime_checkable
 
 from astrocrawl._types import EnqueueResult
 from astrocrawl.utils.url import is_valid_http_url
+
+if TYPE_CHECKING:
+    import re
 
 
 class AdmitResult(Enum):

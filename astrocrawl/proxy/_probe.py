@@ -8,9 +8,12 @@ from __future__ import annotations
 import asyncio
 import time
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 from astrocrawl._constants import PROXY_PROBE_TIMEOUT
-from astrocrawl.proxy._config import ParsedProxy
+
+if TYPE_CHECKING:
+    from astrocrawl.proxy._config import ParsedProxy
 
 
 @dataclass(frozen=True)

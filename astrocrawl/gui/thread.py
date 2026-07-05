@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 import asyncio
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 from PySide6.QtCore import QThread
 
 from astrocrawl._constants import SHUTDOWN_ASYNCGEN_TIMEOUT, SHUTDOWN_EXECUTOR_TIMEOUT, SHUTDOWN_PENDING_TIMEOUT
-from astrocrawl.crawler.engine import AsyncCrawler
+
+if TYPE_CHECKING:
+    from astrocrawl.crawler.engine import AsyncCrawler
 
 
 class CrawlerThread(QThread):

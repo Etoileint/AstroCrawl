@@ -221,7 +221,7 @@ VALUE_CONSTRAINT_CASES = [
 class TestConfigValueConstraints:
     """__post_init__ 值约束全覆盖 — parametrize 驱动。"""
 
-    @pytest.mark.parametrize("field_name,invalid_value,expected_fragment", VALUE_CONSTRAINT_CASES)
+    @pytest.mark.parametrize(("field_name", "invalid_value", "expected_fragment"), VALUE_CONSTRAINT_CASES)
     def test_invalid_value_raises_value_error(self, field_name, invalid_value, expected_fragment):
         with pytest.raises(ValueError, match=expected_fragment):
             CrawlerConfig(**{field_name: invalid_value})

@@ -9,11 +9,13 @@ from __future__ import annotations
 
 import importlib
 import logging
-from typing import Any, Callable
+from typing import TYPE_CHECKING, Any, Callable
 
-from astrocrawl.ai._config import AIConfig
 from astrocrawl.ai._errors import AIProviderUnavailableError
-from astrocrawl.ai._provider import _ChatProvider
+
+if TYPE_CHECKING:
+    from astrocrawl.ai._config import AIConfig
+    from astrocrawl.ai._provider import _ChatProvider
 
 logger = logging.getLogger("astrocrawl.ai")
 

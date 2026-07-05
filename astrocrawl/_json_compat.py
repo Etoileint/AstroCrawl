@@ -17,7 +17,7 @@ try:
     import orjson as _json_mod
 
     def _json_dumps(obj: Any) -> bytes:
-        return _json_mod.dumps(obj, option=_json_mod.OPT_APPEND_NEWLINE)
+        return _json_mod.dumps(obj, option=_json_mod.OPT_APPEND_NEWLINE)  # type: ignore[no-any-return]
 
 except ImportError:
     logger.debug("event=orjson_unavailable dumper=stdlib")

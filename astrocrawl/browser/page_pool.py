@@ -3,9 +3,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import random
-from typing import Optional
-
-from playwright.async_api import BrowserContext, Page
+from typing import TYPE_CHECKING, Optional
 
 from astrocrawl._constants import (
     ABOUT_BLANK_ASYNCIO_TIMEOUT,
@@ -14,6 +12,9 @@ from astrocrawl._constants import (
     PAGE_CREATE_RETRIES,
     PAGE_CREATE_TIMEOUT,
 )
+
+if TYPE_CHECKING:
+    from playwright.async_api import BrowserContext, Page
 
 
 async def safe_close_page(page: Optional[Page], log: logging.Logger) -> None:

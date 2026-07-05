@@ -9,11 +9,13 @@ from __future__ import annotations
 import logging
 import time
 from pathlib import Path
-from typing import Dict, Optional
+from typing import TYPE_CHECKING, Dict, Optional
 
 from astrocrawl._types import RuleSnapshot
-from astrocrawl.config import CrawlerConfig
 from astrocrawl.rules._loader import build_rule_snapshot
+
+if TYPE_CHECKING:
+    from astrocrawl.config import CrawlerConfig
 
 logger = logging.getLogger("astrocrawl.rules.lifecycle")
 

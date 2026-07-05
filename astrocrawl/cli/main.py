@@ -405,7 +405,7 @@ def _parse_set_value(key: str, val: str) -> tuple[str, Any]:
         except ValueError:
             level = getattr(_logging, val.upper(), None)
             if level is None:
-                raise ValueError(f"log_level must be an integer or DEBUG/INFO/WARNING/ERROR, got: {val}")
+                raise ValueError(f"log_level must be an integer or DEBUG/INFO/WARNING/ERROR, got: {val}") from None
             return (target, level)
 
     # 复杂类型 → 拒绝，提示用 --config
@@ -549,16 +549,16 @@ def _merge_cli_config(args) -> Optional[dict]:
     elif extra.get("same_domain_only") is not None:
         same_domain = extra["same_domain_only"]
 
-    return dict(
-        cfg=cfg,
-        global_settings=global_settings,
-        urls=urls,
-        depth=depth,
-        proxy_profile=proxy_profile,
-        proxy_mode_override=proxy_mode_override,
-        output=output,
-        same_domain=same_domain,
-    )
+    return {
+        "cfg": cfg,
+        "global_settings": global_settings,
+        "urls": urls,
+        "depth": depth,
+        "proxy_profile": proxy_profile,
+        "proxy_mode_override": proxy_mode_override,
+        "output": output,
+        "same_domain": same_domain,
+    }
 
 
 def _find_user_rule_file(name: str, rules_dirs: list | None = None) -> Path | None:
@@ -775,7 +775,7 @@ def _handle_rules(args) -> None:
         if changed:
             from astrocrawl.rules import set_rules_enabled
 
-            bulk = {name: target_state for name in changed}
+            bulk = dict.fromkeys(changed, target_state)
             set_rules_enabled(bulk)
 
         print(tr("{action_word} {n} rules").format(action_word=action_word_en, n=len(changed)))

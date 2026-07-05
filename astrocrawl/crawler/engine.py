@@ -57,7 +57,6 @@ from astrocrawl.crawler.outcomes import (
     classify_fetch_error,
 )
 from astrocrawl.crawler.progress import ProgressReporter
-from astrocrawl.crawler.signals import CrawlerSignals
 from astrocrawl.crawler.supervisors import WorkerSupervisor
 from astrocrawl.health import Health
 from astrocrawl.health_monitor import CheckOnUnhealthy, HealthCheckSpec, HealthMonitor
@@ -75,7 +74,6 @@ from astrocrawl.rules import (
     match_url_with_candidates,
     setup_rule_directories,
 )
-from astrocrawl.storage import CrawlStateProtocol
 from astrocrawl.storage.db import CrawlState
 from astrocrawl.storage.writer import AsyncJsonlWriter
 from astrocrawl.utils.html import (
@@ -92,8 +90,10 @@ from astrocrawl.utils.html import (
 from astrocrawl.utils.url import normalize_url, parse_domain, safe_log_url
 
 if TYPE_CHECKING:
+    from astrocrawl.crawler.signals import CrawlerSignals
     from astrocrawl.diagnostics import CrawlDiagnostics
     from astrocrawl.rules._schema import FieldRule
+    from astrocrawl.storage import CrawlStateProtocol
 
 
 class UrlDisposition(enum.Enum):
@@ -728,7 +728,7 @@ class AsyncCrawler:
         self._rule_lifecycle: Optional[RuleLifecycle] = None  # S4: 规则生命周期
         self._source_manager: Optional[SourceManager] = None  # S6: 远程源管理
 
-        self._progress_layers: Dict[int, Tuple[int, int]] = {d: (0, 0) for d in range(self.depth)}
+        self._progress_layers: Dict[int, Tuple[int, int]] = dict.fromkeys(range(self.depth), (0, 0))
         self._start_time = 0.0
         self._crawl_stats = CrawlStats()
         self._reporter: Optional[ProgressReporter] = None
@@ -1392,7 +1392,7 @@ class AsyncCrawler:
         ensure_no_rule_conflicts(self._rule_lifecycle.get_snapshot())
 
         # 重新初始化 _progress_layers 以匹配当前 depth（必须在 _seed_new_urls 之前）
-        self._progress_layers = {d: (0, 0) for d in range(self.depth)}
+        self._progress_layers = dict.fromkeys(range(self.depth), (0, 0))
 
         await self._crawl_stats.set_initial_completed(await self._st.completed_count())
         # 从 DB 恢复会话前 outcome 计数（用于崩溃恢复后合并统计）

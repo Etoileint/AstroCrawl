@@ -247,9 +247,9 @@ class CrawlerConfig:
                 data = json.load(f)
         elif suffix in (".yaml", ".yml"):
             try:
-                import yaml
+                import yaml  # type: ignore[import-untyped]
             except ImportError:
-                raise ImportError("需要 PyYAML 来加载 .yaml 配置文件: pip install pyyaml")
+                raise ImportError("需要 PyYAML 来加载 .yaml 配置文件: pip install pyyaml") from None
             with open(path) as f:
                 data = yaml.safe_load(f)
         elif suffix == ".toml":

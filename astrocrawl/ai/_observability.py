@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 import logging
-from typing import Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
-from astrocrawl.ai._types import CallContext, ChatResponse
+if TYPE_CHECKING:
+    from astrocrawl.ai._types import CallContext, ChatResponse
 
 logger = logging.getLogger("astrocrawl.ai")
 

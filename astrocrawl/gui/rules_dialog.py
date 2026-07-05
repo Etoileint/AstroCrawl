@@ -7,12 +7,11 @@ Tab 3: 远程源 — 源列表 + 开关
 
 from __future__ import annotations
 
-import asyncio
 import json
 import logging
 import threading
 from pathlib import Path
-from typing import Any, Optional, Protocol
+from typing import TYPE_CHECKING, Any, Optional, Protocol
 
 from PySide6.QtCore import QAbstractTableModel, QModelIndex, Qt, QThread, QTimer, Signal, Slot
 from PySide6.QtGui import QColor, QPalette
@@ -81,6 +80,9 @@ from astrocrawl.rules import (
 )
 from astrocrawl.rules import clean_markdown_wrapper as _clean_markdown_wrapper
 from astrocrawl.utils.preferences import clear_qt_file_dialog_history, get_preferences
+
+if TYPE_CHECKING:
+    import asyncio
 
 logger = logging.getLogger("astrocrawl.gui.rules_dialog")
 

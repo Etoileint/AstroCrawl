@@ -8,7 +8,6 @@ from __future__ import annotations
 
 import asyncio
 import base64
-import logging
 import math
 import re
 import zlib
@@ -19,14 +18,15 @@ from typing import TYPE_CHECKING, Awaitable, Callable, ClassVar, List, Optional,
 from typing import Protocol as _Protocol
 from urllib.parse import urljoin
 
-import aiohttp
-
 from astrocrawl._constants import SITEMAP_FETCH_TIMEOUT, SITEMAP_MAX_CONTENT_SIZE, SITEMAP_MAX_DECOMPRESSED
 from astrocrawl._types import DropReason
 from astrocrawl.network._fetch import aiohttp_retry_fetch
 from astrocrawl.utils.url import is_valid_http_url, normalize_url
 
 if TYPE_CHECKING:
+    import logging
+
+    import aiohttp
     from bs4 import BeautifulSoup
 
     from astrocrawl._path_strategy import PathSwitch

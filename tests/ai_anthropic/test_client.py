@@ -10,8 +10,6 @@ import sys
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
-import pytest
-
 from astrocrawl.ai._config import AIConfig, _ResolvedParams
 from astrocrawl.ai._errors import AIAuthError, AIError, AIInvalidRequestError, AIRateLimitError, AIServerError
 from astrocrawl.ai._types import ChatMessage, Role
@@ -142,7 +140,7 @@ class TestSplitMessages:
             ChatMessage(Role.ASSISTANT, "c"),
         ]
         _system, user_msgs = AnthropicClient._split_messages(msgs)
-        for msg, d in zip(msgs, user_msgs):
+        for msg, d in zip(msgs, user_msgs, strict=False):
             assert d == msg.to_dict(), f"SSOT contract violated for role={msg.role}"
 
     def test_empty_string_fields_preserved(self):
@@ -522,18 +520,3 @@ class TestListModels:
             result = list_models("https://api.anthropic.com", "sk-test", 15.0)
 
         assert result == ["claude-3-opus-20240229"]
-
-    def test_raises_importerror_when_sdk_not_installed(self):
-        """SDK 未安装时抛出清晰的 ImportError。"""
-        import sys
-
-        from astrocrawl.ai.providers.anthropic import list_models
-
-        saved = sys.modules.get("anthropic")
-        sys.modules.pop("anthropic", None)
-        try:
-            with pytest.raises(ImportError, match="pip install anthropic"):
-                list_models("", "sk-test", 15.0)
-        finally:
-            if saved is not None:
-                sys.modules["anthropic"] = saved

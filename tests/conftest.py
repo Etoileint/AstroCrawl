@@ -10,11 +10,26 @@ import pytest
 # 确保 re2 在测试环境中可用（_startup.py 的 check_dependencies 在测试路径中不会执行）
 from astrocrawl._startup import _check_re2
 
-_check_re2()  # noqa: E402
+_check_re2()
 
 from astrocrawl.config import CrawlerConfig  # noqa: E402
 from astrocrawl.storage.db import CrawlState  # noqa: E402
 from tests._fakes import FakeBrowserPool, FakeWriter  # noqa: E402
+
+
+def pytest_collection_modifyitems(config, items):
+    """使用 qapp fixture 的测试自动标记为 gui。
+
+    pytest 7+ fixturenames 包含完整传递闭包：
+    - def test(self, qapp)  → 直接依赖
+    - def test(self, theme_mgr)  → theme_mgr 依赖 qapp → 传递依赖
+    - @pytest.mark.usefixtures('qapp')  → 显式 use
+
+    开发者无需手写 @pytest.mark.gui，框架自动归类。
+    """
+    for item in items:
+        if "qapp" in item.fixturenames:
+            item.add_marker(pytest.mark.gui)
 
 
 @pytest.fixture
@@ -90,7 +105,7 @@ def fake_writer():
 # ═══════════════════════════════════════════════════════════════════════
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def qapp():
     """确保每个 GUI 测试有 QApplication 实例（offscreen 平台）。
 
@@ -101,7 +116,7 @@ def qapp():
     app = QApplication.instance()
     if app is None:
         app = QApplication([])
-    yield app
+    return app
 
 
 @pytest.fixture

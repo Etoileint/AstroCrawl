@@ -8,15 +8,17 @@ from __future__ import annotations
 
 import asyncio
 import json
-import logging
 import random
 from pathlib import Path
-from typing import Dict, List, Optional, Protocol
-
-from playwright.async_api import Browser, BrowserContext
+from typing import TYPE_CHECKING, Dict, List, Optional, Protocol
 
 from astrocrawl._constants import CONTEXT_CREATE_TIMEOUT, PAGE_CLOSE_TIMEOUT, SLOT_CREATE_BACKOFF
 from astrocrawl.browser.page_pool import PagePool
+
+if TYPE_CHECKING:
+    import logging
+
+    from playwright.async_api import Browser, BrowserContext
 
 
 class BrowserSlotContextConfig(Protocol):

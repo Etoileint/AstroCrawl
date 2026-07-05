@@ -388,7 +388,7 @@ class TestCustomPageOutputFormat:
         assert custom_page._output_format_combo.currentData() == "auto"
 
     @pytest.mark.parametrize(
-        "index,expected_label,expected_data",
+        ("index", "expected_label", "expected_data"),
         [
             (0, "Auto (Recommended)", "auto"),
             (1, "JSON Schema", "json_schema"),

@@ -17,11 +17,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Awaitable, Callable, Optional
 
-from astrocrawl.health import (  # noqa: F401 — HealthChecked used only in type annotations
-    Health,
-    HealthChecked,
-    health_to_report,
-)
+from astrocrawl.health import Health, HealthChecked, health_to_report
 
 _log = logging.getLogger("astrocrawl.health")
 

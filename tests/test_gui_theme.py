@@ -557,7 +557,7 @@ class TestScoreToColor:
         return _T()
 
     @pytest.mark.parametrize(
-        "score,expected",
+        ("score", "expected"),
         [
             (0.0, "#c0392b"),
             (0.5, "#f39c12"),

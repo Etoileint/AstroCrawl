@@ -5,13 +5,15 @@ import logging
 import os
 import time
 from contextlib import asynccontextmanager
-from typing import Dict, List, Optional, Tuple
+from typing import TYPE_CHECKING, Dict, List, Optional, Tuple
 
 import aiosqlite
 
 from astrocrawl._types import EnqueueResult
-from astrocrawl.storage._protocol import CrawlStateConfig
 from astrocrawl.utils.url import parse_domain, safe_log_url
+
+if TYPE_CHECKING:
+    from astrocrawl.storage._protocol import CrawlStateConfig
 
 
 class _Rollback(Exception):
@@ -266,7 +268,7 @@ class CrawlState:
             async with self._db.execute(
                 "INSERT OR IGNORE INTO content_hashes(hash, url, created_at) VALUES(?,?,?)", (h, url, time.time())
             ) as cur:
-                rowcount = cur.rowcount
+                rowcount: int = cur.rowcount
         return rowcount > 0
 
     # ── 队列操作 ──────────────────────────────────────────────
@@ -700,7 +702,7 @@ class CrawlState:
     async def purge_failures_depth_ge(self, max_depth: int) -> int:
         async with self._transaction():
             async with self._db.execute("DELETE FROM failures WHERE depth >= ?", (max_depth,)) as cur:
-                removed = cur.rowcount
+                removed: int = cur.rowcount
         if removed > 0:
             self._log.info("event=depth_purge_failures removed=%d new_max_depth=%d", removed, max_depth)
         return removed

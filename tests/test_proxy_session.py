@@ -294,7 +294,7 @@ class TestProxySessionProbe:
         session = ProxySession(config)
         results = await session.probe_all()
         assert isinstance(results, dict)
-        for url, res in results.items():
+        for _url, res in results.items():
             assert isinstance(res, ProbeResult)
             assert res.reachable is True
             assert res.latency_ms == 1.5

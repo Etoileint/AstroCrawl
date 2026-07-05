@@ -48,15 +48,15 @@ def _make_stats():
 
 
 def _make_discovery(**overrides):
-    kwargs = dict(
-        http_session=MagicMock(),
-        robots_cache=None,
-        stats=_make_stats(),
-        enqueue_callback=AsyncMock(return_value=True),
-        stop_event=asyncio.Event(),
-        config=_FakeConfig(),
-        log=logging.getLogger("test"),
-    )
+    kwargs = {
+        "http_session": MagicMock(),
+        "robots_cache": None,
+        "stats": _make_stats(),
+        "enqueue_callback": AsyncMock(return_value=True),
+        "stop_event": asyncio.Event(),
+        "config": _FakeConfig(),
+        "log": logging.getLogger("test"),
+    }
     kwargs.update(overrides)
     return SitemapDiscovery(**kwargs)
 

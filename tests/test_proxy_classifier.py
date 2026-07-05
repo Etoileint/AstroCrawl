@@ -25,7 +25,7 @@ STATIC_MAPPING = [
 ]
 
 
-@pytest.mark.parametrize("error_str,expected", STATIC_MAPPING)
+@pytest.mark.parametrize(("error_str", "expected"), STATIC_MAPPING)
 def test_static_category_to_strategy(error_str, expected):
     assert ProxyFailureClassifier.classify(error_str) == expected
 
