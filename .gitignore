@@ -1,21 +1,23 @@
-# ── Python ──
+# AstroCrawl .gitignore
+
+# Build artifacts
 __pycache__/
 *.py[cod]
 *.pyo
+*.so
 *.egg-info/
 *.egg
+*.manifest
 dist/
 build/
-*.so
-*.manifest
 
-# ── Virtual environments ──
+# Virtual environments
 .venv/
 venv/
 env/
 *.conda/
 
-# ── Testing & coverage ──
+# Testing & coverage
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
@@ -24,43 +26,25 @@ coverage.xml
 htmlcov/
 .tox/
 
-# ── IDE ──
+# IDE
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
 
-# ── OS ──
+# OS
 .DS_Store
 Thumbs.db
 
-# ── Project-specific ──
+# Secrets
+.env
+.env.local
+*.local.toml
+
+# Crawler output (generated when testing from repo root)
 *.db
 *.db-journal
 *.db-wal
 crawler_output.jsonl
 crawler_output.report.json
-history/
-
-# ── Build artifacts ──
-nuitka-crash-report.xml
-err_record.txt
-QtProject.conf
-errors/
-
-# ── Build / debug scripts (CI scripts whitelisted below) ──
-scripts/*
-!scripts/check_i18n.py
-!scripts/check_ts_dicts.py
-!scripts/check_qm_fresh.py
-!scripts/generate_tree.py
-
-# ── Auto-generated docs ──
-docs/todo-descriptions.md
-docs/descriptions.json.bak
-
-# ── Environment / secrets ──
-.env
-.env.local
-*.local.toml

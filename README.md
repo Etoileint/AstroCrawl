@@ -550,6 +550,7 @@ AstroCrawl/
 │   │   ├── _proxy_profile_page.py     # _ProxyProfilePage + ProxyProfileEditDialog
 │   │   ├── _route_settings_page.py    # _RouteSettingsPage — consumer→profile 路由
 │   │   ├── _i18n.py               # GUI i18n — QTranslator 生命周期 (en↔zh_CN)
+│   │   ├── _log_bridge.py         # Qt log bridge — 日志桥接到 GUI
 │   │   └── _animated_bar.py       # QTimer 驱动的动画条基类
 │   ├── cli/                       # CLI 界面（<!-- @stats stats.modules.cli.files -->3<!-- /@stats --> 文件）
 │   │   ├── main.py                # argparse — crawl (22 flags) + rules (12) + source (7) + proxy (6) + ai (6)
@@ -1201,6 +1202,7 @@ AstroCrawl/
 │   │   ├── _proxy_profile_page.py     # _ProxyProfilePage + ProxyProfileEditDialog
 │   │   ├── _route_settings_page.py    # _RouteSettingsPage — consumer→profile routing
 │   │   ├── _i18n.py               # GUI i18n — QTranslator lifecycle (en↔zh_CN)
+│   │   ├── _log_bridge.py         # Qt log bridge — log bridge to GUI
 │   │   └── _animated_bar.py       # QTimer-driven animated bar base class
 │   ├── cli/                       # CLI interface (<!-- @stats stats.modules.cli.files -->3<!-- /@stats --> files)
 │   │   ├── main.py                # argparse — crawl (22 flags) + rules (12) + source (7) + proxy (6) + ai (6)
