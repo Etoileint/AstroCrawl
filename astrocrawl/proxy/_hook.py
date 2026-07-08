@@ -6,9 +6,9 @@
 
 from __future__ import annotations
 
-import logging
 from typing import Protocol, runtime_checkable
 
+from astrocrawl.utils.logging import LogfmtLogger
 from astrocrawl.utils.url import redact_proxy_url
 
 
@@ -35,10 +35,10 @@ class LoggingProxyHook:
     """
 
     def __init__(self) -> None:
-        self._log = logging.getLogger("astrocrawl.proxy.hook")
+        self._log = LogfmtLogger("astrocrawl.proxy.hook")
 
     def on_circuit_open(self, proxy_url: str) -> None:
-        self._log.warning("event=proxy.circuit_open proxy=%s", redact_proxy_url(proxy_url))
+        self._log.warning("proxy.circuit_open", proxy=redact_proxy_url(proxy_url))
 
     def on_circuit_recover(self, proxy_url: str) -> None:
-        self._log.info("event=proxy.circuit_recover proxy=%s", redact_proxy_url(proxy_url))
+        self._log.info("proxy.circuit_recover", proxy=redact_proxy_url(proxy_url))

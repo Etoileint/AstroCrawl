@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-import logging
 from typing import TYPE_CHECKING, Any, AsyncIterator, Dict, Iterator
 
 from astrocrawl.ai._errors import (
@@ -27,12 +26,13 @@ from astrocrawl.ai._types import (
     StreamToolCallStart,
     TokenUsage,
 )
+from astrocrawl.utils.logging import LogfmtLogger
 
 if TYPE_CHECKING:
     from astrocrawl.ai._config import AIConfig, _ResolvedParams
     from astrocrawl.ai._provider import _ChatProvider
 
-logger = logging.getLogger("astrocrawl.ai.openai")
+logger = LogfmtLogger("astrocrawl.ai.openai")
 
 # ADR-0008: OpenAI native json_object + json_schema. Custom endpoints (vLLM/Ollama) conservative json_object only.
 _STRUCTURED_OUTPUT_MODES = frozenset({"json_object", "json_schema"})

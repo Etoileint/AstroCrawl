@@ -9,7 +9,6 @@
 from __future__ import annotations
 
 import json
-import logging
 import os
 import sys
 from pathlib import Path
@@ -21,8 +20,9 @@ else:
 
 from astrocrawl._types import DEFAULT_EXTRACTION_TYPE
 from astrocrawl.utils._atomic import atomic_write_json
+from astrocrawl.utils.logging import LogfmtLogger
 
-logger = logging.getLogger("astrocrawl.rules.state")
+logger = LogfmtLogger("astrocrawl.rules.state")
 
 STATE_FILE = Path.home() / ".astrocrawl" / "rules_state.json"
 _MAX_FILE_BYTES = 128 * 1024
@@ -40,7 +40,7 @@ def _acquire_lock(state_file: Path, exclusive: bool = True) -> int | None:
         fcntl.flock(fd, fcntl.LOCK_EX if exclusive else fcntl.LOCK_SH)
         return fd
     except OSError:
-        logger.warning("event=lock_acquire_failed path=%s", lock_file)
+        logger.warning("lock_acquire_failed", path=lock_file)
         return None
 
 
@@ -70,7 +70,7 @@ def get_disabled_rules(path: Path | None = None) -> tuple[set[str], bool]:
     try:
         size = state_file.stat().st_size
         if size > _MAX_FILE_BYTES:
-            logger.warning("event=state_file_oversized size=%d max=%d — 丢弃", size, _MAX_FILE_BYTES)
+            logger.warning("state_file_oversized", size=size, max=_MAX_FILE_BYTES)
             state_file.unlink(missing_ok=True)
             return set(), False
 
@@ -85,7 +85,7 @@ def get_disabled_rules(path: Path | None = None) -> tuple[set[str], bool]:
         valid = {e for e in entries if isinstance(e, str) and e}
         return valid, True
     except (json.JSONDecodeError, UnicodeDecodeError, ValueError, OSError) as exc:
-        logger.warning("event=state_file_corrupt error=%s — 丢弃", exc)
+        logger.warning("state_file_corrupt", error=exc)
         state_file.unlink(missing_ok=True)
         return set(), False
     finally:
@@ -98,7 +98,7 @@ def set_rule_enabled(name: str, enabled: bool, path: Path | None = None) -> None
     default 规则不可禁用，调用无效。
     """
     if name == DEFAULT_EXTRACTION_TYPE:
-        logger.warning("event=state_default_protected — default 规则不可禁用")
+        logger.warning("state_default_protected")
         return
 
     state_file = path if path is not None else STATE_FILE
@@ -145,7 +145,7 @@ def get_disabled_rules_locked(state_file: Path) -> tuple[set[str], bool]:
     try:
         size = state_file.stat().st_size
         if size > _MAX_FILE_BYTES:
-            logger.warning("event=state_file_oversized size=%d max=%d — 丢弃", size, _MAX_FILE_BYTES)
+            logger.warning("state_file_oversized", size=size, max=_MAX_FILE_BYTES)
             state_file.unlink(missing_ok=True)
             return set(), False
 
@@ -160,7 +160,7 @@ def get_disabled_rules_locked(state_file: Path) -> tuple[set[str], bool]:
         valid = {e for e in entries if isinstance(e, str) and e}
         return valid, True
     except (json.JSONDecodeError, UnicodeDecodeError, ValueError, OSError) as exc:
-        logger.warning("event=state_file_corrupt error=%s — 丢弃", exc)
+        logger.warning("state_file_corrupt", error=exc)
         state_file.unlink(missing_ok=True)
         return set(), False
 

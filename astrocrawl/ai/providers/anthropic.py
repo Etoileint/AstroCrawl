@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-import logging
 from typing import TYPE_CHECKING, Any, AsyncIterator, Iterator
 
 from astrocrawl.ai._errors import AIAuthError, AIError, AIInvalidRequestError, AIRateLimitError, AIServerError
@@ -19,12 +18,13 @@ from astrocrawl.ai._types import (
     TokenUsage,
     ToolCall,
 )
+from astrocrawl.utils.logging import LogfmtLogger
 
 if TYPE_CHECKING:
     from astrocrawl.ai._config import AIConfig, _ResolvedParams
     from astrocrawl.ai._provider import _ChatProvider
 
-logger = logging.getLogger("astrocrawl.ai.anthropic")
+logger = LogfmtLogger("astrocrawl.ai.anthropic")
 
 # ADR-0008: json_schema via Tool Use native; json_object via system prompt (soft constraint).
 _STRUCTURED_OUTPUT_MODES = frozenset({"json_schema", "json_object"})

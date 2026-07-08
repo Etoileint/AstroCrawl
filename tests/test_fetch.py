@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import asyncio
 import errno
-import logging
 import ssl
 from unittest.mock import AsyncMock, MagicMock
 
@@ -193,11 +192,6 @@ def _make_mock_session(responses):
 
 
 @pytest.fixture
-def _log():
-    return logging.getLogger("test_fetch")
-
-
-@pytest.fixture
 def _direct_path_switch():
     from astrocrawl._path_strategy import PathSwitch
 
@@ -206,7 +200,7 @@ def _direct_path_switch():
 
 class TestAiohttpRetryFetch:
     @pytest.mark.asyncio
-    async def test_200_returns_content(self, _log, _direct_path_switch):
+    async def test_200_returns_content(self, _direct_path_switch):
         session = _make_mock_session([(200, b"hello")])
         result = await aiohttp_retry_fetch(
             url="https://example.com/test",
@@ -216,13 +210,12 @@ class TestAiohttpRetryFetch:
             timeout=5.0,
             max_retries=3,
             retry_backoff_base=2.0,
-            log=_log,
         )
         assert result.content == b"hello"
         assert result.http_status == 200
 
     @pytest.mark.asyncio
-    async def test_404_returns_http_status_no_content(self, _log, _direct_path_switch):
+    async def test_404_returns_http_status_no_content(self, _direct_path_switch):
         session = _make_mock_session([(404, b"")])
         result = await aiohttp_retry_fetch(
             url="https://example.com/notfound",
@@ -232,13 +225,12 @@ class TestAiohttpRetryFetch:
             timeout=5.0,
             max_retries=3,
             retry_backoff_base=2.0,
-            log=_log,
         )
         assert result.content is None
         assert result.http_status == 404
 
     @pytest.mark.asyncio
-    async def test_503_transient_retries_then_succeeds(self, _log, _direct_path_switch):
+    async def test_503_transient_retries_then_succeeds(self, _direct_path_switch):
         session = _make_mock_session([(503, b""), (200, b"ok")])
         with pytest.MonkeyPatch.context() as mp:
             mp.setattr("astrocrawl.network._fetch.asyncio.sleep", AsyncMock())
@@ -250,13 +242,12 @@ class TestAiohttpRetryFetch:
                 timeout=5.0,
                 max_retries=3,
                 retry_backoff_base=2.0,
-                log=_log,
             )
         assert result.content == b"ok"
         assert result.http_status == 200
 
     @pytest.mark.asyncio
-    async def test_all_retries_exhausted_returns_empty(self, _log, _direct_path_switch):
+    async def test_all_retries_exhausted_returns_empty(self, _direct_path_switch):
         session = _make_mock_session([(503, b"")] * 10)
         with pytest.MonkeyPatch.context() as mp:
             mp.setattr("astrocrawl.network._fetch.asyncio.sleep", AsyncMock())
@@ -268,13 +259,12 @@ class TestAiohttpRetryFetch:
                 timeout=5.0,
                 max_retries=2,
                 retry_backoff_base=2.0,
-                log=_log,
             )
         assert result.content is None
         assert result.http_status == 503
 
     @pytest.mark.asyncio
-    async def test_network_error_transient_retries_then_succeeds(self, _log, _direct_path_switch):
+    async def test_network_error_transient_retries_then_succeeds(self, _direct_path_switch):
         exc = aiohttp.ClientError("transient")
         session = _make_mock_session([exc, (200, b"recovered")])
         with pytest.MonkeyPatch.context() as mp:
@@ -287,12 +277,11 @@ class TestAiohttpRetryFetch:
                 timeout=5.0,
                 max_retries=3,
                 retry_backoff_base=2.0,
-                log=_log,
             )
         assert result.content == b"recovered"
 
     @pytest.mark.asyncio
-    async def test_max_bytes_truncation(self, _log, _direct_path_switch):
+    async def test_max_bytes_truncation(self, _direct_path_switch):
         session = _make_mock_session([(200, b"x" * 200)])
         result = await aiohttp_retry_fetch(
             url="https://example.com/big",
@@ -303,12 +292,11 @@ class TestAiohttpRetryFetch:
             max_retries=3,
             retry_backoff_base=2.0,
             max_bytes=100,
-            log=_log,
         )
         assert len(result.content) == 100
 
     @pytest.mark.asyncio
-    async def test_max_bytes_exact_size_no_truncation(self, _log, _direct_path_switch):
+    async def test_max_bytes_exact_size_no_truncation(self, _direct_path_switch):
         session = _make_mock_session([(200, b"x" * 100)])
         result = await aiohttp_retry_fetch(
             url="https://example.com/exact",
@@ -319,12 +307,11 @@ class TestAiohttpRetryFetch:
             max_retries=3,
             retry_backoff_base=2.0,
             max_bytes=100,
-            log=_log,
         )
         assert len(result.content) == 100
 
     @pytest.mark.asyncio
-    async def test_proxy_success_marked(self, _log):
+    async def test_proxy_success_marked(self):
         from astrocrawl._path_strategy import PathSwitch
         from astrocrawl.proxy import ProxyManager
         from tests._fakes import _pp
@@ -341,7 +328,6 @@ class TestAiohttpRetryFetch:
             timeout=5.0,
             max_retries=3,
             retry_backoff_base=2.0,
-            log=_log,
         )
         assert result.content == b"ok"
         stats = pm.health.get_all_stats()
@@ -349,7 +335,7 @@ class TestAiohttpRetryFetch:
         assert stats["http://good:8080"].total_successes >= 1
 
     @pytest.mark.asyncio
-    async def test_rotate_proxy_on_timeout(self, _log):
+    async def test_rotate_proxy_on_timeout(self):
         from astrocrawl._path_strategy import PathSwitch
         from astrocrawl.proxy import ProxyManager
         from tests._fakes import _pp
@@ -367,7 +353,6 @@ class TestAiohttpRetryFetch:
                 timeout=5.0,
                 max_retries=3,
                 retry_backoff_base=2.0,
-                log=_log,
             )
         assert result.content == b"ok"
         stats = pm.health.get_all_stats()
@@ -375,7 +360,7 @@ class TestAiohttpRetryFetch:
         assert stats["http://good:8080"].total_successes >= 1
 
     @pytest.mark.asyncio
-    async def test_prefer_direct_fallback_to_proxy(self, _log):
+    async def test_prefer_direct_fallback_to_proxy(self):
         from astrocrawl._path_strategy import PathSwitch
         from astrocrawl.proxy import ProxyManager
         from tests._fakes import _pp
@@ -394,12 +379,11 @@ class TestAiohttpRetryFetch:
                 timeout=5.0,
                 max_retries=3,
                 retry_backoff_base=2.0,
-                log=_log,
             )
         assert result.content == b"via-proxy"
 
     @pytest.mark.asyncio
-    async def test_prefer_direct_transient_error_fallback_to_proxy(self, _log):
+    async def test_prefer_direct_transient_error_fallback_to_proxy(self):
         from astrocrawl._path_strategy import PathSwitch
         from astrocrawl.proxy import ProxyManager
         from tests._fakes import _pp
@@ -418,12 +402,11 @@ class TestAiohttpRetryFetch:
                 timeout=5.0,
                 max_retries=3,
                 retry_backoff_base=2.0,
-                log=_log,
             )
         assert result.content == b"via-proxy-transient"
 
     @pytest.mark.asyncio
-    async def test_prefer_proxy_fallback_to_direct(self, _log):
+    async def test_prefer_proxy_fallback_to_direct(self):
         from astrocrawl._path_strategy import PathSwitch
         from astrocrawl.proxy import ProxyManager
         from tests._fakes import _pp
@@ -443,12 +426,11 @@ class TestAiohttpRetryFetch:
                 timeout=5.0,
                 max_retries=3,
                 retry_backoff_base=2.0,
-                log=_log,
             )
         assert result.content == b"direct-success"
 
     @pytest.mark.asyncio
-    async def test_proxy_only_no_fallback(self, _log):
+    async def test_proxy_only_no_fallback(self):
         from astrocrawl._path_strategy import PathSwitch
         from astrocrawl.proxy import ProxyManager
         from tests._fakes import _pp
@@ -467,13 +449,12 @@ class TestAiohttpRetryFetch:
                 timeout=5.0,
                 max_retries=3,
                 retry_backoff_base=2.0,
-                log=_log,
             )
         assert result.content is None
         assert result.http_status == 0
 
     @pytest.mark.asyncio
-    async def test_ssl_error_returns_empty_no_retry(self, _log, _direct_path_switch):
+    async def test_ssl_error_returns_empty_no_retry(self, _direct_path_switch):
         session = _make_mock_session([aiohttp.ClientSSLError(None, ssl.SSLError(1, "TLS"))])
         result = await aiohttp_retry_fetch(
             url="https://example.com/bad-tls",
@@ -483,13 +464,12 @@ class TestAiohttpRetryFetch:
             timeout=5.0,
             max_retries=3,
             retry_backoff_base=2.0,
-            log=_log,
         )
         assert result.content is None
         assert result.http_status == 0
 
     @pytest.mark.asyncio
-    async def test_headers_passed_to_session(self, _log, _direct_path_switch):
+    async def test_headers_passed_to_session(self, _direct_path_switch):
         session = _make_mock_session([(200, b"ok")])
         calls = []
 
@@ -509,7 +489,6 @@ class TestAiohttpRetryFetch:
             max_retries=3,
             retry_backoff_base=2.0,
             headers={"User-Agent": "TestBot", "X-Custom": "v"},
-            log=_log,
         )
         assert calls[0]["headers"]["User-Agent"] == "TestBot"
         assert calls[0]["headers"]["X-Custom"] == "v"

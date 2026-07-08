@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import asyncio
 import base64
-import logging
 import re
 import time
 from typing import TYPE_CHECKING, Callable, Dict, List, Optional, Tuple
@@ -13,7 +12,10 @@ from aiohttp import ClientTimeout
 
 from astrocrawl._constants import ROBOTS_FETCH_MAX_CONCURRENT, ROBOTS_FETCH_TIMEOUT, ROBOTS_MAX_SIZE
 from astrocrawl.network._fetch import aiohttp_retry_fetch
+from astrocrawl.utils.logging import LogfmtLogger
 from astrocrawl.utils.url import strip_www
+
+_logger = LogfmtLogger("astrocrawl.robots")
 
 if TYPE_CHECKING:
     from astrocrawl._path_strategy import PathSwitch
@@ -72,10 +74,10 @@ class AsyncRobotsParser:
                 if resp.status == 200:
                     raw = await resp.content.read(ROBOTS_MAX_SIZE + 1)
                     if len(raw) > ROBOTS_MAX_SIZE:
-                        logging.getLogger("astrocrawl.robots").warning(
-                            "robots.txt at %s exceeds %d bytes, truncating",
-                            url,
-                            ROBOTS_MAX_SIZE,
+                        _logger.warning(
+                            "robots_txt_oversize",
+                            url=url,
+                            max_bytes=ROBOTS_MAX_SIZE,
                         )
                         raw = raw[:ROBOTS_MAX_SIZE]
                     text = raw.decode("utf-8", errors="replace")
@@ -206,7 +208,7 @@ class RobotsCache:
         self._cache: Dict[str, Tuple[AsyncRobotsParser, float]] = {}
         self._tasks: Dict[str, asyncio.Task] = {}
         self._fetch_semaphore = asyncio.Semaphore(ROBOTS_FETCH_MAX_CONCURRENT)
-        self._log = logging.getLogger("astrocrawl.robots")
+        self._log = LogfmtLogger("astrocrawl.robots")
         self.domain_rate_limiter = domain_rate_limiter
         self.respect_crawl_delay = respect_crawl_delay
         self._fetch_status: Dict[str, str] = {}
@@ -279,7 +281,6 @@ class RobotsCache:
                 retry_backoff_base=self._retry_backoff_base,
                 headers=self._build_headers(),
                 max_bytes=ROBOTS_MAX_SIZE,
-                log=self._log,
             )
             parser = AsyncRobotsParser(self._ua)
             if result.content is not None:
@@ -291,7 +292,7 @@ class RobotsCache:
             else:
                 parser.allow_all = True
                 parser.fetch_status = "fetch_failed"
-                self._log.debug("event=robots_fetch_failed origin=%s fallback=allow_all", origin)
+                self._log.debug("robots_fetch_failed", origin=origin, fallback="allow_all")
         async with self._lock:
             expire = time.monotonic() + self._ttl
             self._cache[origin] = (parser, expire)

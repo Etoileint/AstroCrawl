@@ -10,13 +10,13 @@ OPEN 后不自动恢复，不设 HALF_OPEN 探测状态。
 
 from __future__ import annotations
 
-import logging
 import time
 from typing import Awaitable, Callable, Optional
 
 from astrocrawl.health import Health
+from astrocrawl.utils.logging import LogfmtLogger
 
-_log = logging.getLogger("astrocrawl.resilience")
+_log = LogfmtLogger("astrocrawl.resilience")
 
 
 class Fuse:
@@ -76,16 +76,16 @@ class Fuse:
     async def _on_open_impl(self) -> None:
         """熔断回调实现。"""
         _log.critical(
-            "event=fuse_open name=%s failures=%d window=%ds",
-            self.name,
-            self._max_failures,
-            self._within_seconds,
+            "fuse_open",
+            name=self.name,
+            failures=self._max_failures,
+            window=self._within_seconds,
         )
         if self._on_open:
             try:
                 await self._on_open(f"{self.name} 熔断")
             except Exception:
-                _log.exception("event=fuse_callback_error name=%s", self.name)
+                _log.exception("fuse_callback_error", name=self.name)
 
     def _window_filtered_count(self) -> int:
         """只读计数——滑动窗口内的失败次数（不修改 _death_times）。

@@ -636,7 +636,7 @@ class TestSchemaValidation:
             }
         )
         assert rule.fields["x"].transform == {}
-        assert "未知 transform 类型" in caplog.text
+        assert "event=unknown_transform_type" in caplog.text
 
     def test_transform_valid_regex(self):
         rule = validate_rule(

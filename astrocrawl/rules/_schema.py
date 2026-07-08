@@ -6,7 +6,6 @@
 
 from __future__ import annotations
 
-import logging
 import re
 from enum import Enum
 from typing import Any, Literal
@@ -24,8 +23,9 @@ from astrocrawl._constants import (
     RULE_NAME_PATTERN,
 )
 from astrocrawl._types import DEFAULT_EXTRACTION_TYPE
+from astrocrawl.utils.logging import LogfmtLogger
 
-logger = logging.getLogger("astrocrawl.rules.schema")
+logger = LogfmtLogger("astrocrawl.rules.schema")
 
 # 顶层保留字段名 — 规则 fields key 不得使用 (N34)
 _RESERVED_FIELD_NAMES = frozenset(
@@ -221,7 +221,7 @@ def validate_rule(data: dict[str, Any]) -> RuleSchema:
 
     # 向后兼容推断日志 — name 在此作用域天然可用
     if not match_data.get("scope") and scope in (MatchScope.DOMAIN_ALL, MatchScope.ANY):
-        logger.warning("event=rule_scope_inferred rule=%s scope=%s domains=%s", name, scope.value, domains)
+        logger.warning("rule_scope_inferred", rule=name, scope=scope.value, domains=domains)
 
     _validate_scope_consistency(scope, domains, url_pattern)
     match = MatchConfig(scope=scope, domains=domains, url_pattern=url_pattern)
@@ -268,7 +268,7 @@ def validate_rule(data: dict[str, Any]) -> RuleSchema:
             if isinstance(t, str):
                 tags.append(t)
             else:
-                logger.warning("event=rule_tag_invalid_type rule=%s tag=%r", name, t)
+                logger.warning("rule_tag_invalid_type", rule=name, tag=t)
     else:
         tags = []
 
@@ -364,10 +364,10 @@ def _validate_test_urls(raw: Any) -> list[dict[str, str]]:
             continue
         parsed = urlparse(url)
         if parsed.scheme != "https":
-            logger.warning("event=test_url_not_https url=%s", url)
+            logger.warning("test_url_not_https", url=url)
             continue
         if not parsed.netloc:
-            logger.warning("event=test_url_no_netloc url=%s", url)
+            logger.warning("test_url_no_netloc", url=url)
             continue
         if url in seen:
             continue
@@ -442,7 +442,7 @@ def _validate_transform(data: Any) -> dict[str, Any]:
     result: dict[str, Any] = {}
     for key, val in data.items():
         if key not in _VALID_TRANSFORMS:
-            logger.warning("未知 transform 类型 '%s'，已忽略", key)
+            logger.warning("unknown_transform_type", type=key)
             continue
         if key == "strip":
             result[key] = bool(val)

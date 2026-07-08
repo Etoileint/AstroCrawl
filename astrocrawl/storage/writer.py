@@ -3,11 +3,11 @@ from __future__ import annotations
 import asyncio
 import gzip
 import io
-import logging
 import os
 from typing import IO, TYPE_CHECKING, Optional
 
 from astrocrawl._json_compat import _json_dumps
+from astrocrawl.utils.logging import LogfmtLogger
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -26,7 +26,7 @@ class AsyncJsonlWriter:
         self._flush_task: Optional[asyncio.Task] = None
         self._closed = False
         self._started = False
-        self._log = logging.getLogger("astrocrawl.writer")
+        self._log = LogfmtLogger("astrocrawl.writer")
 
     _SCHEMA_HEADER = b'{"_schema":"astrocrawl_output/1"}\n'
 

@@ -6,7 +6,6 @@ Provider 自适应：内部 Dispatch → entry point 自动发现 → Provider �
 
 from __future__ import annotations
 
-import logging
 import time
 from dataclasses import replace
 from typing import Any, AsyncIterator, Iterator, List, Optional
@@ -34,8 +33,9 @@ from astrocrawl.ai._types import (
     TokenUsage,
 )
 from astrocrawl.ai._usage_tracker import UsageTracker
+from astrocrawl.utils.logging import LogfmtLogger
 
-logger = logging.getLogger("astrocrawl.ai")
+logger = LogfmtLogger("astrocrawl.ai")
 
 
 class _StreamSession:
@@ -409,9 +409,9 @@ class AIClient:
 
         if resolved.output.format == "json_schema" and not self._probe_json_schema():
             logger.warning(
-                "event=json_schema_denied provider=%s base_url=%s — 降级 json_object",
-                self._config.provider,
-                self._config.base_url,
+                "json_schema_denied",
+                provider=self._config.provider,
+                base_url=self._config.base_url,
             )
             return replace(
                 resolved,
@@ -430,19 +430,19 @@ class AIClient:
         for fallback in degradation[idx + 1 :]:
             if fallback in caps:
                 logger.warning(
-                    "event=output_format_degraded from=%s to=%s provider=%s",
-                    resolved.output.format,
-                    fallback,
-                    self._config.provider,
+                    "output_format_degraded",
+                    from_=resolved.output.format,
+                    to_=fallback,
+                    provider=self._config.provider,
                 )
                 return replace(
                     resolved,
                     output=replace(resolved.output, format=fallback, json_schema=None),
                 )
         logger.warning(
-            "event=output_format_disabled provider=%s unsupported=%s",
-            self._config.provider,
-            resolved.output.format,
+            "output_format_disabled",
+            provider=self._config.provider,
+            unsupported=resolved.output.format,
         )
         return replace(resolved, output=None)
 

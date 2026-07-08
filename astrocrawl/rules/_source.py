@@ -9,7 +9,6 @@ import asyncio
 import hashlib
 import ipaddress
 import json
-import logging
 import os
 import sys
 import time
@@ -38,8 +37,9 @@ from astrocrawl._constants import (
 )
 from astrocrawl.rules._io import safe_write_rule_file
 from astrocrawl.utils._atomic import atomic_write_json
+from astrocrawl.utils.logging import LogfmtLogger
 
-logger = logging.getLogger("astrocrawl.rules.source")
+logger = LogfmtLogger("astrocrawl.rules.source")
 
 SOURCES_FILE = Path.home() / ".astrocrawl" / "sources.json"
 _SOURCES_LOCK_SUFFIX = ".lock"
@@ -55,7 +55,7 @@ def _acquire_sources_lock(exclusive: bool = True) -> int | None:
         fcntl.flock(fd, fcntl.LOCK_EX if exclusive else fcntl.LOCK_SH)
         return fd
     except OSError:
-        logger.warning("event=sources_lock_acquire_failed path=%s", lock_file)
+        logger.warning("sources_lock_acquire_failed", path=lock_file)
         return None
 
 
@@ -111,7 +111,7 @@ def list_sources_from_file() -> List[Dict[str, Any]]:
         if isinstance(data, dict) and isinstance(data.get("sources"), list):
             return cast("list[dict[str, Any]]", data["sources"])
     except (json.JSONDecodeError, UnicodeDecodeError, OSError) as exc:
-        logger.warning("event=sources_file_corrupt error=%s", exc)
+        logger.warning("sources_file_corrupt", error=exc)
     return []
 
 
@@ -130,7 +130,7 @@ def add_source_to_file(name: str, url: str, **kwargs) -> Dict[str, Any]:
         _write_sources_file(sources)
     finally:
         _release_sources_lock(lock_fd)
-    logger.info("event=source_added name=%s url=%s", name, _log_safe_url(url))
+    logger.info("source_added", name=name, url=_log_safe_url(url))
     return entry
 
 
@@ -145,7 +145,7 @@ def remove_source_from_file(name: str) -> bool:
         _write_sources_file(new_sources)
     finally:
         _release_sources_lock(lock_fd)
-    logger.info("event=source_removed name=%s", name)
+    logger.info("source_removed", name=name)
     return True
 
 
@@ -224,7 +224,7 @@ class SourceManager:
                     entry["name"], entry["url"], **{k: v for k, v in entry.items() if k not in ("name", "url")}
                 )
             except Exception as exc:
-                logger.warning("event=source_load_failed name=%s error=%s", entry.get("name", ""), exc)
+                logger.warning("source_load_failed", name=entry.get("name", ""), error=exc)
 
         self._last_request: float = 0.0
 
@@ -254,9 +254,9 @@ class SourceManager:
             try:
                 shutil.rmtree(source_dir)
             except OSError as exc:
-                logger.warning("event=source_cache_cleanup_failed name=%s error=%s", name, exc)
+                logger.warning("source_cache_cleanup_failed", name=name, error=exc)
         remove_source_from_file(name)
-        logger.info("event=source_removed name=%s", name)
+        logger.info("source_removed", name=name)
 
     def get_source(self, name: str) -> Optional[SourceState]:
         return self._sources.get(name)
@@ -327,13 +327,13 @@ class SourceManager:
         # Manifest schema_version 检查 (N81 + N15)
         sv = data.get("schema_version", 1)
         if not isinstance(sv, int) or sv < 1 or sv > 2:
-            logger.warning("event=manifest_schema_version_skip source=%s version=%s", source.name, sv)
+            logger.warning("manifest_schema_version_skip", source=source.name, version=sv)
             raise ValueError(f"不支持的 manifest schema_version: {sv}")
 
         # N8: emergency_disable — N16: 提前退出避免继续处理 rules 列表
         if data.get("emergency_disable"):
             source.state = "emergency_disabled"
-            logger.warning("event=source_emergency_disable source=%s", source.name)
+            logger.warning("source_emergency_disable", source=source.name)
             return cast("dict[str, Any]", data)
 
         # N83: moved_to
@@ -341,7 +341,7 @@ class SourceManager:
         if moved and isinstance(moved, str) and moved.strip():
             source.moved_to = moved
             source.state = "moved"
-            logger.info("event=source_moved source=%s moved_to=%s", source.name, moved)
+            logger.info("source_moved", source=source.name, moved_to=moved)
 
         # 更新状态
         source.last_updated = time.time()
@@ -359,7 +359,7 @@ class SourceManager:
         source.consecutive_failures = 0
         if source.state == "degraded":
             source.state = "active"
-            logger.info("event=source_recovered source=%s", source.name)
+            logger.info("source_recovered", source=source.name)
 
         return cast("dict[str, Any]", data)
 
@@ -446,7 +446,7 @@ class SourceManager:
         data = json.loads(raw.decode("utf-8"))
         safe_write_rule_file(target, data)
 
-        logger.debug("event=rule_downloaded source=%s rule=%s", source.name, safe_rule_name)
+        logger.debug("rule_downloaded", source=source.name, rule=safe_rule_name)
         return target
 
     # ── 批量更新 ───────────────────────────────────────
@@ -465,9 +465,9 @@ class SourceManager:
         # M2: Degraded 状态机——冷却期满后放行探测
         if source.state == "degraded":
             if time.monotonic() - source.degraded_at < SOURCE_DEGRADED_COOLDOWN:
-                logger.debug("event=source_update_skip reason=degraded_cooldown source=%s", source_name)
+                logger.debug("source_update_skip", reason="degraded_cooldown", source=source_name)
                 return {"updated": False, "rules_downloaded": 0, "diff": {}}
-            logger.info("event=source_probing source=%s", source_name)
+            logger.info("source_probing", source=source_name)
 
         # N9: 每日更新次数限制
         today = time.strftime("%Y-%m-%d")
@@ -475,19 +475,19 @@ class SourceManager:
             source.daily_update_count = 0
             source.daily_update_date = today
         if source.daily_update_count >= SOURCE_DAILY_UPDATE_LIMIT:
-            logger.info("event=source_update_skip reason=daily_limit source=%s", source_name)
+            logger.info("source_update_skip", reason="daily_limit", source=source_name)
             return {"updated": False, "rules_downloaded": 0, "diff": {}}
         source.daily_update_count += 1
 
         try:
             manifest = await self.fetch_manifest(source_name)
         except Exception as exc:
-            logger.warning("event=manifest_fetch_failed source=%s error=%s", source_name, exc)
+            logger.warning("manifest_fetch_failed", source=source_name, error=exc)
             source.consecutive_failures += 1
             if source.consecutive_failures >= 3:
                 source.state = "degraded"
                 source.degraded_at = time.monotonic()
-                logger.warning("event=source_degraded source=%s failures=%d", source_name, source.consecutive_failures)
+                logger.warning("source_degraded", source=source_name, failures=source.consecutive_failures)
             raise
 
         # 增量更新：manifest hash 未变则跳过规则下载
@@ -497,7 +497,7 @@ class SourceManager:
         if old_hash == new_hash and old_hash:
             # M12: 哈希匹配 = 积极信号（源可访问），重置失败计数
             source.consecutive_failures = 0
-            logger.debug("event=source_update_skip reason=manifest_unchanged source=%s", source_name)
+            logger.debug("source_update_skip", reason="manifest_unchanged", source=source_name)
             return {"updated": False, "rules_downloaded": 0, "diff": {}}
 
         if dry_run:
@@ -515,10 +515,10 @@ class SourceManager:
                 downloaded += 1
             except Exception as exc:
                 logger.warning(
-                    "event=rule_download_failed source=%s rule=%s error=%s",
-                    source_name,
-                    entry.get("name", ""),
-                    exc,
+                    "rule_download_failed",
+                    source=source_name,
+                    rule=entry.get("name", ""),
+                    error=exc,
                 )
 
         return {"updated": True, "rules_downloaded": downloaded, "diff": {}}
@@ -530,7 +530,7 @@ class SourceManager:
         调用方可根据 sources_updated 是否非空决定是否触发 reload。
         """
         if not self._auto_update:
-            logger.debug("event=source_update_skip reason=auto_update_disabled")
+            logger.debug("source_update_skip", reason="auto_update_disabled")
             return {"sources_updated": [], "sources_skipped": 0}
 
         updated: List[str] = []
@@ -547,7 +547,7 @@ class SourceManager:
                 else:
                     skipped += 1
             except Exception as exc:
-                logger.debug("event=source_update_error source=%s error=%s", name, exc)
+                logger.debug("source_update_error", source=name, error=exc)
                 skipped += 1
         return {"sources_updated": updated, "sources_skipped": skipped}
 
@@ -645,7 +645,7 @@ async def check_dns_rebinding(url: str) -> None:
     except ValueError:
         raise
     except Exception:
-        logger.warning("event=dns_check_failed hostname=%s", hostname)
+        logger.warning("dns_check_failed", hostname=hostname)
 
 
 # 公共别名

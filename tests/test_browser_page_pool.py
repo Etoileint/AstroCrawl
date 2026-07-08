@@ -5,11 +5,10 @@
 
 from __future__ import annotations
 
-import logging
-
 import pytest
 
 from astrocrawl.browser.page_pool import PagePool, safe_close_page
+from astrocrawl.utils.logging import LogfmtLogger
 from tests._fakes import FakeBrowserContext, FakePage
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -20,7 +19,7 @@ from tests._fakes import FakeBrowserContext, FakePage
 class TestSafeClosePage:
     """safe_close_page 安全关闭。"""
 
-    _log = logging.getLogger("astrocrawl.test")
+    _log = LogfmtLogger("astrocrawl.test")
 
     async def test_none_page_noop(self):
         """None → 无操作, 不抛异常。"""

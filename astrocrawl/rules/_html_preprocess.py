@@ -7,11 +7,12 @@ Tier 2: strict — canonical + nav/footer/aside/header
 
 from __future__ import annotations
 
-import logging
 from enum import IntEnum
 from typing import cast
 
-logger = logging.getLogger("astrocrawl.rules.html_preprocess")
+from astrocrawl.utils.logging import LogfmtLogger
+
+logger = LogfmtLogger("astrocrawl.rules.html_preprocess")
 
 _MAX_INPUT_BYTES = 5 * 1024 * 1024  # 5MB
 
@@ -44,20 +45,20 @@ def preprocess_html(html: str, tier: PreprocessTier = PreprocessTier.CANONICAL) 
 
     input_bytes = len(html.encode("utf-8", errors="replace"))
     if input_bytes > _MAX_INPUT_BYTES:
-        logger.warning("event=html_preprocess_too_large bytes=%d limit=%d", input_bytes, _MAX_INPUT_BYTES)
+        logger.warning("html_preprocess_too_large", bytes=input_bytes, limit=_MAX_INPUT_BYTES)
         return html
 
     try:
         from lxml import etree
         from lxml import html as lxml_html
     except ImportError:
-        logger.warning("event=html_preprocess_lxml_unavailable")
+        logger.warning("html_preprocess_lxml_unavailable")
         return html
 
     try:
         doc = lxml_html.fromstring(html)
     except etree.ParserError:
-        logger.warning("event=html_preprocess_parse_error")
+        logger.warning("html_preprocess_parse_error")
         return html
 
     _remove_tags(doc, _TIER1_REMOVE)
@@ -73,7 +74,7 @@ def preprocess_html(html: str, tier: PreprocessTier = PreprocessTier.CANONICAL) 
     try:
         result = etree.tostring(body, encoding="unicode", method="html")
     except Exception:
-        logger.warning("event=html_preprocess_serialize_error")
+        logger.warning("html_preprocess_serialize_error")
         return html
 
     if not result or not result.strip():

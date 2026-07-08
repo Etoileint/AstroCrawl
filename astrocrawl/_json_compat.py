@@ -8,10 +8,11 @@
 from __future__ import annotations
 
 import json
-import logging
 from typing import Any
 
-logger = logging.getLogger("astrocrawl.json_compat")
+from astrocrawl.utils.logging import LogfmtLogger
+
+logger = LogfmtLogger("astrocrawl.json_compat")
 
 try:
     import orjson as _json_mod
@@ -20,7 +21,7 @@ try:
         return _json_mod.dumps(obj, option=_json_mod.OPT_APPEND_NEWLINE)  # type: ignore[no-any-return]
 
 except ImportError:
-    logger.debug("event=orjson_unavailable dumper=stdlib")
+    logger.debug("orjson_unavailable", dumper="stdlib")
 
     def _json_dumps(obj: Any) -> bytes:
         return (json.dumps(obj, ensure_ascii=False) + "\n").encode("utf-8")

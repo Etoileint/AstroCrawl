@@ -5,11 +5,10 @@
 
 from __future__ import annotations
 
-import logging
-
 import pytest
 
 from astrocrawl.browser._slot_pool import SlotCreateError, SlotPool, _safe_close_context
+from astrocrawl.utils.logging import LogfmtLogger
 from tests._fakes import FakeBrowser, FakeBrowserContext
 
 # ── 测试用最小配置 ───────────────────────────────────────────────────
@@ -27,7 +26,7 @@ class _TestSlotConfig:
     custom_headers: list = []
 
 
-_log = logging.getLogger("astrocrawl.test.slotpool")
+_log = LogfmtLogger("astrocrawl.test.slotpool")
 
 
 # ═══════════════════════════════════════════════════════════════════════

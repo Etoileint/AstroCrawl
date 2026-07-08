@@ -282,7 +282,7 @@ class CrawlStats:
 
     # ── 快照（供 ProgressReporter 读取） ──
 
-    async def get_snapshot(self) -> Dict[str, object]:
+    async def get_snapshot(self) -> dict[str, object]:
         """线程安全的统计快照。所有字段加锁读取，返回全时累计值。"""
         async with self._lock:
             # 合并初始（DB 恢复）+ 本轮 outcome 计数，保证所有消费者看到全时累计

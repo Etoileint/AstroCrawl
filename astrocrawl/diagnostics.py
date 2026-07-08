@@ -19,7 +19,6 @@ from __future__ import annotations
 import asyncio
 import io
 import json
-import logging
 import signal
 import sys
 import time
@@ -28,11 +27,12 @@ from typing import TYPE_CHECKING, Optional
 from astrocrawl._constants import HTTP_READ_LINE_TIMEOUT
 from astrocrawl.health import Health, health_to_report
 from astrocrawl.health_monitor import HealthMonitor
+from astrocrawl.utils.logging import LogfmtLogger
 
 if TYPE_CHECKING:
     from astrocrawl.health import HealthChecked
 
-_log = logging.getLogger("astrocrawl.diagnostics")
+_log = LogfmtLogger("astrocrawl.diagnostics")
 
 
 # ── Task Stack Dumper ───────────────────────────────────────────
@@ -120,7 +120,7 @@ class HealthHttpServer:
             "127.0.0.1",
             self._port,
         )
-        _log.info("event=health_endpoint_start port=%d", self._port)
+        _log.info("health_endpoint_start", port=self._port)
 
     async def stop(self) -> None:
         if self._server:
@@ -157,7 +157,7 @@ class HealthHttpServer:
             else:
                 await self._respond(writer, 404, json.dumps({"error": "not found"}))
         except Exception:
-            _log.warning("event=http_handler_error", exc_info=True)
+            _log.warning("http_handler_error", exc_info=True)
         finally:
             try:
                 writer.close()
@@ -212,9 +212,9 @@ class CrawlDiagnostics:
 
         try:
             self._loop.add_signal_handler(signal.SIGUSR1, _handler)
-            _log.debug("event=sigusr1_installed")
+            _log.debug("sigusr1_installed")
         except (NotImplementedError, ValueError, AttributeError, RuntimeError):
-            _log.debug("event=sigusr1_unavailable")
+            _log.debug("sigusr1_unavailable")
 
     def uninstall_signal_handler(self) -> None:
         try:
@@ -247,7 +247,7 @@ class CrawlDiagnostics:
         )
         sys.stderr.write(report_text)
         sys.stderr.flush()
-        _log.critical("致命条件触发诊断 dump: %s", reason)
+        _log.critical("fatal_diagnostics_dump", reason=reason)
         return report_text
 
     # ── 健康查询 ──────────────────────────────────────────────

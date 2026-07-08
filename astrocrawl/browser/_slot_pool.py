@@ -16,9 +16,9 @@ from astrocrawl._constants import CONTEXT_CREATE_TIMEOUT, PAGE_CLOSE_TIMEOUT, SL
 from astrocrawl.browser.page_pool import PagePool
 
 if TYPE_CHECKING:
-    import logging
-
     from playwright.async_api import Browser, BrowserContext
+
+    from astrocrawl.utils.logging import LogfmtLogger
 
 
 class BrowserSlotContextConfig(Protocol):
@@ -51,16 +51,16 @@ class BrowserSlotConfig(BrowserSlotContextConfig, BrowserSlotAuthConfig, Browser
     pass
 
 
-async def _safe_close_context(ctx: Optional[BrowserContext], log: logging.Logger) -> None:
+async def _safe_close_context(ctx: Optional[BrowserContext], log: LogfmtLogger) -> None:
     """安全关闭浏览器上下文，带超时保护。"""
     if ctx is None:
         return
     try:
         await asyncio.wait_for(ctx.close(), timeout=PAGE_CLOSE_TIMEOUT)
     except asyncio.TimeoutError:
-        log.warning("event=context_close_timeout timeout=%ds", PAGE_CLOSE_TIMEOUT)
+        log.warning("context_close_timeout", timeout=PAGE_CLOSE_TIMEOUT)
     except Exception as e:
-        log.debug("event=context_close_error error=%s", e)
+        log.debug("context_close_error", error=e)
 
 
 class SlotCreateError(RuntimeError):
@@ -79,7 +79,7 @@ class SlotPool:
         browser: Browser,
         max_slots: int,
         cfg: BrowserSlotConfig,
-        log: logging.Logger,
+        log: LogfmtLogger,
     ) -> None:
         self._browser = browser
         self._max_slots = max_slots
@@ -105,14 +105,12 @@ class SlotPool:
                 self._proxy_map[idx] = proxy_url
                 return True
             except Exception as e:
-                self._log.warning(
-                    "event=slot_create_failed idx=%d attempt=%d/%d error=%s", idx, attempt, max_attempts, e
-                )
+                self._log.warning("slot_create_failed", idx=idx, attempt=attempt, max_attempts=max_attempts, error=e)
                 if attempt < max_attempts:
                     await asyncio.sleep(
                         SLOT_CREATE_BACKOFF / 2 + random.uniform(0, SLOT_CREATE_BACKOFF / 2),
                     )
-        self._log.error("event=slot_create_exhausted idx=%d attempts=%d", idx, max_attempts)
+        self._log.error("slot_create_exhausted", idx=idx, attempts=max_attempts)
         return False
 
     async def replace(self, idx: int, proxy_url: Optional[str], max_attempts: int = 3) -> None:
@@ -139,16 +137,16 @@ class SlotPool:
                     try:
                         await old_pool.close_all()
                     except Exception as e:
-                        self._log.debug("event=old_page_pool_close_error error=%s", e)
+                        self._log.debug("old_page_pool_close_error", error=e)
                 if old_ctx:
                     try:
                         await _safe_close_context(old_ctx, self._log)
                     except Exception as e:
-                        self._log.debug("event=old_context_close_error error=%s", e)
+                        self._log.debug("old_context_close_error", error=e)
                 return
             except Exception as e:
                 last_exc = e
-                self._log.warning("event=context_create_failed attempt=%d/%d error=%s", attempt, max_attempts, e)
+                self._log.warning("context_create_failed", attempt=attempt, max_attempts=max_attempts, error=e)
                 if attempt < max_attempts:
                     await asyncio.sleep(
                         SLOT_CREATE_BACKOFF / 2 + random.uniform(0, SLOT_CREATE_BACKOFF / 2),
@@ -166,12 +164,12 @@ class SlotPool:
             try:
                 await old_pool.close_all()
             except Exception as e:
-                self._log.debug("event=page_pool_close_error error=%s", e)
+                self._log.debug("page_pool_close_error", error=e)
         if old_ctx:
             try:
                 await _safe_close_context(old_ctx, self._log)
             except Exception as e:
-                self._log.debug("event=context_close_error error=%s", e)
+                self._log.debug("context_close_error", error=e)
 
     def stop_accepting(self) -> None:
         """标记槽位池为关闭中——阻止新 context 创建，已有操作可继续。
@@ -258,7 +256,7 @@ class SlotPool:
     async def _load_cookies(self, ctx: BrowserContext) -> None:
         cookies_path = Path(self._cfg.cookies_file).resolve()
         if not cookies_path.is_file() or cookies_path.suffix.lower() != ".json":
-            self._log.warning("event=cookie_file_invalid path=%s", cookies_path)
+            self._log.warning("cookie_file_invalid", path=cookies_path)
             return
         try:
             raw = json.loads(cookies_path.read_text(encoding="utf-8"))
@@ -271,11 +269,11 @@ class SlotPool:
                 else:
                     invalid.append(item)
             if invalid:
-                self._log.warning("event=cookie_entries_dropped count=%d", len(invalid))
+                self._log.warning("cookie_entries_dropped", count=len(invalid))
             if valid:
                 await asyncio.wait_for(
                     ctx.add_cookies(valid),  # type: ignore[arg-type]
                     timeout=CONTEXT_CREATE_TIMEOUT,
                 )
         except Exception as e:
-            self._log.warning("event=cookie_load_failed error=%s", e)
+            self._log.warning("cookie_load_failed", error=e)

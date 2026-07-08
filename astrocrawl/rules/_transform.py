@@ -6,14 +6,14 @@
 
 from __future__ import annotations
 
-import logging
 from typing import Any, Dict
 
 import re2
 
 from astrocrawl._constants import CURRENCY_SYMBOLS, TRANSFORM_MEMORY_MULTIPLIER
+from astrocrawl.utils.logging import LogfmtLogger
 
-logger = logging.getLogger("astrocrawl.rules.transform")
+logger = LogfmtLogger("astrocrawl.rules.transform")
 
 
 def apply_transforms(
@@ -77,7 +77,7 @@ def _regex_transform(value: str, pattern: str):
     try:
         m = re2.search(pattern, value)
     except re2.error as exc:
-        logger.warning("event=transform_regex_error pattern=%s error=%s", pattern, exc)
+        logger.warning("transform_regex_error", pattern=pattern, error=exc)
         return value
     if m:
         groups = m.groups()
@@ -97,14 +97,12 @@ def _replace_transform(value: str, config: Dict[str, str], max_text_length: int)
 
     # S27: 绝对值天花板
     if result_bytes > max_text_length:
-        logger.warning(
-            "event=transform_replace_oversize from=%r result_bytes=%d max=%d", fr, result_bytes, max_text_length
-        )
+        logger.warning("transform_replace_oversize", from_str=fr, result_bytes=result_bytes, max=max_text_length)
         return value
 
     # N104: 比例天花板（防放大攻击）
     if result_bytes > input_bytes * TRANSFORM_MEMORY_MULTIPLIER:
-        logger.warning("event=transform_replace_amplified from=%r input=%d result=%d", fr, input_bytes, result_bytes)
+        logger.warning("transform_replace_amplified", from_str=fr, input=input_bytes, result=result_bytes)
         return value
 
     return result
@@ -116,7 +114,7 @@ def _join_transform(value: Any, separator: str, max_text_length: int = 500000) -
         joined = separator.join(str(v) for v in value)
         raw = joined.encode("utf-8", errors="ignore")
         if len(raw) > max_text_length:
-            logger.warning("event=transform_join_truncated length=%d max=%d", len(joined), max_text_length)
+            logger.warning("transform_join_truncated", length=len(joined), max=max_text_length)
             return raw[:max_text_length].decode("utf-8", errors="ignore")
         return joined
     return value

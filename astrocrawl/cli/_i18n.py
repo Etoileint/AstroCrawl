@@ -6,10 +6,11 @@
 
 from __future__ import annotations
 
-import logging
 from pathlib import Path
 
-_LOG = logging.getLogger("astrocrawl.cli.i18n")
+from astrocrawl.utils.logging import LogfmtLogger
+
+_LOG = LogfmtLogger("astrocrawl.cli.i18n")
 
 _TRANSLATIONS: dict[str, str] = {}
 _LOADED = False
@@ -24,7 +25,7 @@ def _load() -> None:
 
     ts_path = Path(__file__).resolve().parent.parent / "gui" / "translations" / "astrocrawl_gui_zh_CN.ts"
     if not ts_path.exists():
-        _LOG.debug("event=gui_ts_missing path=%s", ts_path)
+        _LOG.debug("gui_ts_missing", path=str(ts_path))
         return
 
     import xml.etree.ElementTree as ET
@@ -37,7 +38,7 @@ def _load() -> None:
             if src is not None and trs is not None and src.text and trs.text:
                 _TRANSLATIONS.setdefault(src.text, trs.text)
     except Exception:
-        _LOG.warning("event=gui_ts_parse_failed", exc_info=True)
+        _LOG.warning("gui_ts_parse_failed", exc_info=True)
 
 
 def tr(text: str) -> str:

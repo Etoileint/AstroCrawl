@@ -9,15 +9,15 @@
 
 from __future__ import annotations
 
-import logging
 from typing import List, Tuple
 from urllib.parse import urlparse
 
 from astrocrawl._constants import SOURCE_PRIORITY
 from astrocrawl._types import DEFAULT_EXTRACTION_TYPE, RuleSnapshot
 from astrocrawl.rules._schema import MatchScope, RuleSchema
+from astrocrawl.utils.logging import LogfmtLogger
 
-logger = logging.getLogger("astrocrawl.rules.matcher")
+logger = LogfmtLogger("astrocrawl.rules.matcher")
 
 
 def match_url(url: str, snapshot: RuleSnapshot) -> str:
@@ -43,7 +43,7 @@ def _do_match(url: str, snapshot: RuleSnapshot) -> Tuple[str, List[str]]:
     domain = parsed.hostname or ""
 
     if not domain:
-        logger.debug("event=match_no_hostname url=%s", url)
+        logger.debug("match_no_hostname", url=url)
 
     # 缓存命中 — 直接返回
     cached = snapshot._match_cache.get(domain)
@@ -114,7 +114,7 @@ def _do_match(url: str, snapshot: RuleSnapshot) -> Tuple[str, List[str]]:
     candidate_names = [c[0].name for c in candidates]
 
     if len(candidates) > 1:
-        logger.debug("event=rule_conflict url_domain=%s rules=%s winner=%s", domain, candidate_names, rule_name)
+        logger.debug("rule_conflict", url_domain=domain, rules=candidate_names, winner=rule_name)
 
     # 仅缓存无路径限制的 scope (DOMAIN_ALL / ANY) — 有 pattern 的同域不同路径可能匹配不同规则
     if best.match.scope in (MatchScope.DOMAIN_ALL, MatchScope.ANY):
@@ -153,5 +153,5 @@ def _match_url_pattern(path_query: str, pattern: str) -> bool:
     try:
         return bool(re2.search(pattern, path_query))
     except Exception:
-        logger.warning("event=url_pattern_match_error pattern=%s", pattern)
+        logger.warning("url_pattern_match_error", pattern=pattern)
         return False

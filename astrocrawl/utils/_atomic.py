@@ -7,15 +7,16 @@
 from __future__ import annotations
 
 import json
-import logging
 import os
 import tempfile
 from typing import TYPE_CHECKING, Any
 
+from astrocrawl.utils.logging import LogfmtLogger
+
 if TYPE_CHECKING:
     from pathlib import Path
 
-logger = logging.getLogger("astrocrawl.utils.atomic")
+logger = LogfmtLogger("astrocrawl.utils.atomic")
 
 
 def atomic_write_json(
@@ -60,4 +61,4 @@ def atomic_write_json(
         try:
             os.chmod(path, chmod_mask)
         except OSError:
-            logger.debug("event=atomic_write_chmod_failed path=%s", path)
+            logger.debug("atomic_write_chmod_failed", path=path)

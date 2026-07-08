@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import asyncio
 import gc
-import logging
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
@@ -10,7 +9,9 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-logger = logging.getLogger("astrocrawl.browser.preview")
+from astrocrawl.utils.logging import LogfmtLogger
+
+logger = LogfmtLogger("astrocrawl.browser.preview")
 
 _PREVIEW_CHROMIUM_ARGS = (
     "--disable-blink-features=AutomationControlled",
@@ -113,7 +114,7 @@ class PreviewBrowser:
         try:
             self._script = _load_inject_script()
         except Exception:
-            logger.warning("event=inject_script_load_failed", exc_info=True)
+            logger.warning("inject_script_load_failed", exc_info=True)
             self._script = ""
 
         from playwright.async_api import async_playwright
@@ -135,7 +136,7 @@ class PreviewBrowser:
             self._context = await self._browser.new_context(**context_kwargs)
             self._ready = True
             gc.enable()
-            logger.info("event=preview_browser_ready")
+            logger.info("preview_browser_ready")
             await self._stop_event.wait()
         finally:
             gc.enable()
@@ -166,7 +167,7 @@ class PreviewBrowser:
                 await self._playwright.stop()
         except Exception:
             pass
-        logger.info("event=preview_browser_stopped")
+        logger.info("preview_browser_stopped")
 
     def request_stop(self) -> None:
         self._stop_event.set()
@@ -189,7 +190,7 @@ class PreviewBrowser:
             self._pages.pop(page_id, None)
             self._page_urls.pop(page_id, None)
             self._page_rules.pop(page_id, None)
-            logger.info("event=preview_page_closed_browser page_id=%d", page_id)
+            logger.info("preview_page_closed_browser", page_id=page_id)
             if self._on_page_closed_callback:
                 self._on_page_closed_callback(page_id)
 
@@ -215,16 +216,16 @@ class PreviewBrowser:
             )
             handle = PreviewPageHandle(page_id=page_id, url=url, rule_name=rule_name)
             logger.info(
-                "event=preview_page_opened page_id=%d url=%s rule=%s matched=%d/%d",
-                page_id,
-                url,
-                rule_name,
-                result.matched,
-                result.total,
+                "preview_page_opened",
+                page_id=page_id,
+                url=url,
+                rule=rule_name,
+                matched=result.matched,
+                total=result.total,
             )
             return handle, result
         except Exception:
-            logger.warning("event=preview_page_open_failed page_id=%d url=%s", page_id, url)
+            logger.warning("preview_page_open_failed", page_id=page_id, url=url)
             self._pages.pop(page_id, None)
             self._page_urls.pop(page_id, None)
             self._page_rules.pop(page_id, None)
@@ -251,7 +252,7 @@ class PreviewBrowser:
             await page.close()
         except Exception:
             pass
-        logger.info("event=preview_page_closed page_id=%d", page_id)
+        logger.info("preview_page_closed", page_id=page_id)
 
     async def activate_page(self, handle: PreviewPageHandle) -> None:
         page = self._pages.get(handle.page_id)

@@ -78,16 +78,16 @@ pytest tests/test_db.py                    # 指定文件
 | `tests/test_throttling.py` | DomainRateLimiter + DomainConcurrencyLimiter ISTQB 边界值 (18 用例) | <!-- @stats tests.modules.test_throttling.lines -->358<!-- /@stats --> |
 | `tests/test_sitemap.py` | Sitemap 发现、解析、代理回退 | <!-- @stats tests.modules.test_sitemap.lines -->558<!-- /@stats --> |
 | `tests/test_sitemap_discovery.py` | SitemapDiscovery 全部方法 (45 用例) | <!-- @stats tests.modules.test_sitemap_discovery.lines -->599<!-- /@stats --> |
-| `tests/test_fetch.py` | Aiohttp 重试引擎 — _classify_aiohttp_error / classify_from_category / aiohttp_retry_fetch (39 用例) | <!-- @stats tests.modules.test_fetch.lines -->515<!-- /@stats --> |
+| `tests/test_fetch.py` | Aiohttp 重试引擎 — _classify_aiohttp_error / classify_from_category / aiohttp_retry_fetch (39 用例) | <!-- @stats tests.modules.test_fetch.lines -->494<!-- /@stats --> |
 | `tests/test_liveness.py` | LivenessTracker — 心跳/存活/停滞/边界值 (20 用例) | <!-- @stats tests.modules.test_liveness.lines -->151<!-- /@stats --> |
 | `tests/test_supervisors.py` | Supervisor + WorkerSupervisor — OTP one_for_one/Fuse 边界 (23 用例) | <!-- @stats tests.modules.test_supervisors.lines -->420<!-- /@stats --> |
 | `tests/test_progress.py` | ProgressReporter — CLI/GUI 双模/信号 payload/摘要 (26 用例) | <!-- @stats tests.modules.test_progress.lines -->595<!-- /@stats --> |
 | `tests/test_engine.py` | AsyncCrawler — Pipeline/_worker 异常路径/Processor 边界/恢复路径 + _run_worker_loop (77 用例) | <!-- @stats tests.modules.test_engine.lines -->1,704<!-- /@stats --> |
 | `tests/test_url_gate.py` | UrlGate AdmitResult 全路径 + 深度边界 (8 用例) | <!-- @stats tests.modules.test_url_gate.lines -->86<!-- /@stats --> |
 | `tests/test_browser_navigation.py` | safe_goto 双层超时包装 (6 用例) | <!-- @stats tests.modules.test_browser_navigation.lines -->73<!-- /@stats --> |
-| `tests/test_browser_page_pool.py` | PagePool 创建/销毁/关闭/重试成功/goto 容错/幂等 (14 用例) | <!-- @stats tests.modules.test_browser_page_pool.lines -->175<!-- /@stats --> |
-| `tests/test_browser_slot_pool.py` | SlotPool 创建/替换/销毁/查询/Cookie (30 用例) | <!-- @stats tests.modules.test_browser_slot_pool.lines -->401<!-- /@stats --> |
-| `tests/test_browser_context_pool.py` | ContextPool init/proxy/scoped_path (15 用例) | <!-- @stats tests.modules.test_browser_context_pool.lines -->418<!-- /@stats --> |
+| `tests/test_browser_page_pool.py` | PagePool 创建/销毁/关闭/重试成功/goto 容错/幂等 (14 用例) | <!-- @stats tests.modules.test_browser_page_pool.lines -->174<!-- /@stats --> |
+| `tests/test_browser_slot_pool.py` | SlotPool 创建/替换/销毁/查询/Cookie (30 用例) | <!-- @stats tests.modules.test_browser_slot_pool.lines -->400<!-- /@stats --> |
+| `tests/test_browser_context_pool.py` | ContextPool init/proxy/scoped_path (15 用例) | <!-- @stats tests.modules.test_browser_context_pool.lines -->417<!-- /@stats --> |
 | `tests/test_browser_domain_memory.py` | DomainPathMemory TTL 双缓存 (27 用例) | <!-- @stats tests.modules.test_browser_domain_memory.lines -->222<!-- /@stats --> |
 | `tests/test_browser_pool.py` | BrowserPool 消息模式、四种代理模式、重试策略 | <!-- @stats tests.modules.test_browser_pool.lines -->854<!-- /@stats --> |
 | `tests/test_device_caps.py` | 设备 GPU 能力检测 (11 用例) | <!-- @stats tests.modules.test_device_caps.lines -->100<!-- /@stats --> |
@@ -597,7 +597,7 @@ astrocrawl/
 ├── _types.py (<!-- @stats modules.ai.by_name._types.lines -->121<!-- /@stats --> 行)        ← 共享内核：枚举、错误分类（15 种）、PathSwitch、AsyncCloseable、FetchErrorCategory SSOT
 ├── _retry_strategy.py (<!-- @stats modules.kernel.by_name._retry_strategy.lines -->64<!-- /@stats --> 行)← 重试策略分类（classify_http/classify_from_category）
 ├── _path_strategy.py (<!-- @stats modules.kernel.by_name._path_strategy.lines -->148<!-- /@stats --> 行)← PathSwitch — 4 模式代理路由（for_mode/should_fallback）
-├── _json_compat.py (<!-- @stats modules.kernel.by_name._json_compat.lines -->26<!-- /@stats --> 行)   ← JSON 序列化兼容（orjson 回退 stdlib）
+├── _json_compat.py (<!-- @stats modules.kernel.by_name._json_compat.lines -->27<!-- /@stats --> 行)   ← JSON 序列化兼容（orjson 回退 stdlib）
 ├── _startup.py (<!-- @stats modules.kernel.by_name._startup.lines -->99<!-- /@stats --> 行)       ← 启动时依赖检测 + Chromium 浏览器验证
 ├── _packaged.py (<!-- @stats modules.kernel.by_name._packaged.lines -->54<!-- /@stats --> 行)      ← 打包模式检测与浏览器路径适配
 ├── config.py (<!-- @stats modules.kernel.by_name.config.lines -->348<!-- /@stats --> 行)        ← CrawlerConfig 冻结数据类（50 字段）+ ConfigError + GlobalSettings
@@ -610,7 +610,7 @@ astrocrawl/
 │   └── main.py (<!-- @stats modules.cli.by_name.main.lines -->1,771<!-- /@stats --> 行)     ← argparse 定义 + 配置合并 + rules/source 子命令
 │
 ├── crawler/                  ← 爬虫引擎核心
-│   ├── engine.py (<!-- @stats modules.crawler.by_name.engine.lines -->2,143<!-- /@stats --> 行)   ← AsyncCrawler + Pipeline (8 Processors) + PipelineDeps
+│   ├── engine.py (<!-- @stats modules.crawler.by_name.engine.lines -->2,139<!-- /@stats --> 行)   ← AsyncCrawler + Pipeline (8 Processors) + PipelineDeps
 │   ├── outcomes.py (<!-- @stats modules.crawler.by_name.outcomes.lines -->381<!-- /@stats --> 行)  ← UrlOutcome / FetchErrorCategory / CrawlStats
 │   ├── progress.py (<!-- @stats modules.crawler.by_name.progress.lines -->204<!-- /@stats --> 行)  ← ProgressReporter — CLI/GUI 进度发射与摘要
 │   ├── supervisors.py (<!-- @stats modules.crawler.by_name.supervisors.lines -->114<!-- /@stats --> 行) ← WorkerSupervisor — one_for_one 监督器
@@ -621,19 +621,19 @@ astrocrawl/
 ├── browser/                  ← 浏览器管理
 │   ├── browser_pool.py (<!-- @stats modules.browser.by_name.browser_pool.lines -->848<!-- /@stats --> 行) ← BrowserPool — Actor 消息模式，三阶段抓取，内部重试
 │   ├── context_pool.py (<!-- @stats modules.browser.by_name.context_pool.lines -->179<!-- /@stats --> 行) ← ContextPool — 槽位生命周期管理 + ConfigError 启动门控
-│   ├── _slot_pool.py (<!-- @stats modules.browser.by_name._slot_pool.lines -->281<!-- /@stats --> 行)   ← SlotPool — 槽位分配、代理绑定、路径切换
-│   ├── page_pool.py (<!-- @stats modules.browser.by_name.page_pool.lines -->80<!-- /@stats --> 行)     ← PagePool — 页面生命周期管理
+│   ├── _slot_pool.py (<!-- @stats modules.browser.by_name._slot_pool.lines -->279<!-- /@stats --> 行)   ← SlotPool — 槽位分配、代理绑定、路径切换
+│   ├── page_pool.py (<!-- @stats modules.browser.by_name.page_pool.lines -->78<!-- /@stats --> 行)     ← PagePool — 页面生命周期管理
 │   ├── _retry.py (<!-- @stats modules.browser.by_name._retry.lines -->41<!-- /@stats --> 行)        ← ProxyFailureClassifier + RetryStrategy SSOT
 │   ├── _domain_memory.py (<!-- @stats modules.browser.by_name._domain_memory.lines -->54<!-- /@stats --> 行)← DomainPathMemory — 双缓存域名路径记忆（TTL 过期）
 │   ├── _device_caps.py (<!-- @stats modules.browser.by_name._device_caps.lines -->23<!-- /@stats --> 行)  ← 设备 GPU 能力检测，SwiftShader fallback
-│   ├── _preview.py (<!-- @stats modules.browser.by_name._preview.lines -->301<!-- /@stats --> 行)     ← PreviewBrowser — 纯 async headed Chromium 预览
+│   ├── _preview.py (<!-- @stats modules.browser.by_name._preview.lines -->302<!-- /@stats --> 行)     ← PreviewBrowser — 纯 async headed Chromium 预览
 │   └── navigation.py (<!-- @stats modules.browser.by_name.navigation.lines -->38<!-- /@stats --> 行)    ← safe_goto — 带超时保护的页面导航
 │
 ├── network/                  ← 网络层
-│   ├── _fetch.py (<!-- @stats modules.network.by_name._fetch.lines -->153<!-- /@stats --> 行)       ← aiohttp_retry_fetch — 与 BrowserPool 策略等价的 aiohttp 重试引擎
-│   ├── robots.py (<!-- @stats modules.network.by_name.robots.lines -->319<!-- /@stats --> 行)       ← AsyncRobotsParser + RobotsCache（RFC 9309）
-│   ├── sitemap.py (<!-- @stats modules.network.by_name.sitemap.lines -->554<!-- /@stats --> 行)      ← SitemapParser + SitemapDiscovery
-│   └── throttling.py (<!-- @stats modules.network.by_name.throttling.lines -->206<!-- /@stats --> 行)   ← DomainRateLimiter + DomainConcurrencyLimiter
+│   ├── _fetch.py (<!-- @stats modules.network.by_name._fetch.lines -->150<!-- /@stats --> 行)       ← aiohttp_retry_fetch — 与 BrowserPool 策略等价的 aiohttp 重试引擎
+│   ├── robots.py (<!-- @stats modules.network.by_name.robots.lines -->320<!-- /@stats --> 行)       ← AsyncRobotsParser + RobotsCache（RFC 9309）
+│   ├── sitemap.py (<!-- @stats modules.network.by_name.sitemap.lines -->552<!-- /@stats --> 行)      ← SitemapParser + SitemapDiscovery
+│   └── throttling.py (<!-- @stats modules.network.by_name.throttling.lines -->207<!-- /@stats --> 行)   ← DomainRateLimiter + DomainConcurrencyLimiter
 │
 ├── rules/                    ← 提取规则引擎
 │   ├── _schema.py               ← RuleSchema + FieldRule + MatchConfig 数据模型
@@ -682,7 +682,7 @@ astrocrawl/
 │   ├── db.py (<!-- @stats modules.storage.by_name.db.lines -->730<!-- /@stats --> 行)           ← CrawlState — SQLite 队列/去重/状态/恢复
 │   └── writer.py (<!-- @stats modules.storage.by_name.writer.lines -->119<!-- /@stats --> 行)       ← AsyncJsonlWriter — 缓冲 JSONL 写入器（含 GZip）
 │
-├── gui/                      ← 图形界面（<!-- @stats stats.modules.gui.files -->25<!-- /@stats --> 文件，<!-- @stats stats.modules.gui.lines -->9,659<!-- /@stats --> 行）
+├── gui/                      ← 图形界面（<!-- @stats stats.modules.gui.files -->25<!-- /@stats --> 文件，<!-- @stats stats.modules.gui.lines -->9,674<!-- /@stats --> 行）
 │   ├── main_window.py (<!-- @stats modules.gui.by_name.main_window.lines -->1,024<!-- /@stats --> 行)    ← MainWindow — Qt 主窗口
 │   ├── advanced_dialog.py (<!-- @stats modules.gui.by_name.advanced_dialog.lines -->618<!-- /@stats --> 行)← AdvancedSettingsDialog — 高级设置（5 Tab：常规/全局/AI/代理/路由）
 │   ├── rules_dialog.py (<!-- @stats modules.gui.by_name.rules_dialog.lines -->2,971<!-- /@stats --> 行)  ← RulesDialog — 规则管理（3 Tab）+ RuleEditDialog + _SourceEditDialog + Workers
@@ -710,8 +710,8 @@ astrocrawl/
 └── utils/                    ← 工具函数
     ├── url.py (<!-- @stats modules.utils.by_name.url.lines -->118<!-- /@stats --> 行)            ← URL 规范化、脱敏、PSL 域名提取、验证
     ├── html.py (<!-- @stats modules.utils.by_name.html.lines -->228<!-- /@stats --> 行)          ← HTML 解析、链接提取、内容哈希
-    ├── logging.py (<!-- @stats modules.utils.by_name.logging.lines -->42<!-- /@stats --> 行)        ← 日志设置 + Qt 日志桥接 + logfmt 格式
-    ├── _atomic.py (<!-- @stats modules.utils.by_name._atomic.lines -->63<!-- /@stats --> 行)        ← atomic_write_json POSIX 原子写入原语
+    ├── logging.py (<!-- @stats modules.utils.by_name.logging.lines -->260<!-- /@stats --> 行)        ← 日志设置 + Qt 日志桥接 + logfmt 格式
+    ├── _atomic.py (<!-- @stats modules.utils.by_name._atomic.lines -->64<!-- /@stats --> 行)        ← atomic_write_json POSIX 原子写入原语
     └── preferences.py (<!-- @stats modules.utils.by_name.preferences.lines -->579<!-- /@stats --> 行)   ← Preferences — 用户偏好持久化（路径记忆 + 主题 + LLM 配置）
 ```
 

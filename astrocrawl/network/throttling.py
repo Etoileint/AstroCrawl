@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 import asyncio
-import logging
 import random
 import time
 from dataclasses import dataclass, field
 from typing import Dict, Optional, Protocol
 
 from astrocrawl._constants import DOMAIN_CLEANUP_AGE, DOMAIN_CONCURRENCY_ACQUIRE_TIMEOUT
+from astrocrawl.utils.logging import LogfmtLogger
 
 
 class RateLimitConfig(Protocol):
@@ -40,7 +40,7 @@ class DomainTracker:
         self._stale_ttl = stale_ttl if stale_ttl is not None else float(DOMAIN_CLEANUP_AGE)
         self._evict_ttl = 600.0
         self._max_concurrency = max_concurrency
-        self._log = logging.getLogger("astrocrawl.domain_tracker")
+        self._log = LogfmtLogger("astrocrawl.domain_tracker")
 
     async def touch(self, domain: str) -> _DomainState:
         async with self._lock:
@@ -56,9 +56,9 @@ class DomainTracker:
     async def set_crawl_delay(self, domain: str, delay: float) -> None:
         if not (0.0 < delay <= 3600.0):
             self._log.warning(
-                "event=crawl_delay_out_of_bounds delay=%.2f domain=%s",
-                delay,
-                domain,
+                "crawl_delay_out_of_bounds",
+                delay=delay,
+                domain=domain,
             )
             return
         async with self._lock:
@@ -94,10 +94,11 @@ class DomainTracker:
                     del self._states[domain]
                 if len(self._states) > self._max_domains:
                     self._log.warning(
-                        "event=domain_tracker_overflow domain_count=%d max_domains=%d evicted=%d action=best_effort",
-                        len(self._states),
-                        self._max_domains,
-                        len(to_evict),
+                        "domain_tracker_overflow",
+                        domain_count=len(self._states),
+                        max_domains=self._max_domains,
+                        evicted=len(to_evict),
+                        action="best_effort",
                     )
 
 

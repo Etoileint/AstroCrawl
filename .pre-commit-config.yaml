@@ -51,3 +51,9 @@ repos:
         language: system
         files: ^astrocrawl/gui/translations/
         pass_filenames: false
+      - id: logfmt-check
+        name: logfmt-check
+        entry: python scripts/check_logfmt.py
+        language: system
+        types: [python]
+        files: ^astrocrawl/

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import asyncio
-import logging
 import os
 import time
 from contextlib import asynccontextmanager
@@ -10,6 +9,7 @@ from typing import TYPE_CHECKING, Dict, List, Optional, Tuple
 import aiosqlite
 
 from astrocrawl._types import EnqueueResult
+from astrocrawl.utils.logging import LogfmtLogger
 from astrocrawl.utils.url import parse_domain, safe_log_url
 
 if TYPE_CHECKING:
@@ -25,7 +25,7 @@ class CrawlState:
         self.db_path = db_path
         self.cfg = cfg
         self._conn: Optional[aiosqlite.Connection] = None
-        self._log = logging.getLogger("astrocrawl.state")
+        self._log = LogfmtLogger("astrocrawl.state")
         self._write_lock = asyncio.Lock()
         self._queue_not_empty = asyncio.Event()
 
@@ -97,7 +97,7 @@ class CrawlState:
             row = await cur.fetchone()
             empty_count = row[0] if row else 0
         if empty_count > 0:
-            self._log.info("event=db_backfill_domain count=%d", empty_count)
+            self._log.info("db_backfill_domain", count=empty_count)
             async with self._db.execute("SELECT id, url FROM queue WHERE domain = ''") as cur:
                 rows = list(await cur.fetchall())
             for batch_start in range(0, len(rows), 500):
@@ -190,7 +190,7 @@ class CrawlState:
             completed_count = (await cur.fetchone())[0]  # type: ignore[index]
         if visited_count == 0 and completed_count == 0:
             return
-        self._log.info("event=db_migrate_legacy visited=%d completed=%d", visited_count, completed_count)
+        self._log.info("db_migrate_legacy", visited=visited_count, completed=completed_count)
         await self._db.executescript("""
             INSERT OR IGNORE INTO urls(url, depth, status, added_time)
             SELECT url, depth, 'visited', added_time FROM visited_urls;
@@ -223,10 +223,10 @@ class CrawlState:
                         recovered += 1
             await self._db.execute("DELETE FROM in_flight")
         if recovered > 0:
-            self._log.warning("event=crash_recovery_requeue count=%d", recovered)
+            self._log.warning("crash_recovery_requeue", count=recovered)
             self._queue_not_empty.set()
         if skipped > 0:
-            self._log.info("event=crash_recovery_skip count=%d", skipped)
+            self._log.info("crash_recovery_skip", count=skipped)
 
     async def flush(self) -> None:
         """Best-effort 提交——确保 WAL 中所有已提交事务对后续连接可见。"""
@@ -241,7 +241,7 @@ class CrawlState:
             try:
                 await self._db.close()
             except Exception as e:
-                self._log.warning("event=db_close_error error=%s", e)
+                self._log.warning("db_close_error", error=e)
 
     async def mark_completed(self, url: str, depth: int = 0, original_url: str = "", outcome: str = "") -> bool:
         now = time.time()
@@ -419,7 +419,7 @@ class CrawlState:
                 )
             await self._db.execute("DELETE FROM in_flight")
         if total:
-            self._log.warning("event=in_flight_purge count=%d", total)
+            self._log.warning("in_flight_purge", count=total)
         return total
 
     # ── 完成查询 ────────────────────────────────────────────
@@ -438,7 +438,7 @@ class CrawlState:
                 async with self._db.execute("SELECT COUNT(*) FROM queue") as cur:
                     row = await cur.fetchone()
                     if (row[0] if row else 0) >= self.cfg.queue_hard_maxsize:
-                        self._log.warning("event=retry_queue_full url=%s", safe_log_url(url))
+                        self._log.warning("retry_queue_full", url=safe_log_url(url))
                         raise _Rollback()
                 async with self._db.execute("SELECT 1 FROM urls WHERE url=? AND status='completed'", (url,)) as cur:
                     if await cur.fetchone() is not None:
@@ -451,7 +451,7 @@ class CrawlState:
                     row = await cur.fetchone()
                     current = row[0] if row else 0
                 if current >= self.cfg.max_requeue:
-                    self._log.info("event=retry_exhausted url=%s", safe_log_url(url))
+                    self._log.info("retry_exhausted", url=safe_log_url(url))
                     raise _Rollback()
                 domain = parse_domain(url)
                 await self._db.execute(
@@ -593,7 +593,7 @@ class CrawlState:
             async with self._db.execute("DELETE FROM queue WHERE domain = ''"):
                 pass
         if count:
-            self._log.warning("event=orphan_purge count=%d", count)
+            self._log.warning("orphan_purge", count=count)
         async with self._db.execute("SELECT 1 FROM queue LIMIT 1") as cur:
             if await cur.fetchone() is None:
                 self._queue_not_empty.clear()
@@ -627,7 +627,7 @@ class CrawlState:
                 if cur.rowcount > 0:
                     saved += 1
         if saved > 0:
-            self._log.debug("event=boundary_links_saved count=%d parent_depth=%d", saved, parent_depth)
+            self._log.debug("boundary_links_saved", count=saved, parent_depth=parent_depth)
         return saved
 
     async def promote_boundary_links(
@@ -649,7 +649,7 @@ class CrawlState:
                 async with self._db.execute("DELETE FROM boundary_links WHERE parent_depth + 1 < ?", (new_depth,)):
                     pass
             result = [(row[0], row[1]) for row in rows]
-            self._log.info("event=boundary_links_promoted count=%d new_depth=%d", len(result), new_depth)
+            self._log.info("boundary_links_promoted", count=len(result), new_depth=new_depth)
             return result
         except _Rollback:
             return []
@@ -704,7 +704,7 @@ class CrawlState:
             async with self._db.execute("DELETE FROM failures WHERE depth >= ?", (max_depth,)) as cur:
                 removed: int = cur.rowcount
         if removed > 0:
-            self._log.info("event=depth_purge_failures removed=%d new_max_depth=%d", removed, max_depth)
+            self._log.info("depth_purge_failures", removed=removed, new_max_depth=max_depth)
         return removed
 
     async def purge_queue_depth_ge(self, max_depth: int) -> int:
@@ -724,7 +724,7 @@ class CrawlState:
                         )
                 await self._db.execute("DELETE FROM queue WHERE depth >= ?", (max_depth,))
             removed = len(rows)
-            self._log.info("event=depth_purge_queue removed=%d new_max_depth=%d", removed, max_depth)
+            self._log.info("depth_purge_queue", removed=removed, new_max_depth=max_depth)
             return removed
         except _Rollback:
             return 0

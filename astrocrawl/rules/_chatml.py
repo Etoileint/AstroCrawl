@@ -6,13 +6,14 @@ tiktoken 为可选依赖（对标 orjson 优雅降级模式）——导入失败
 
 from __future__ import annotations
 
-import logging
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from astrocrawl.ai._types import ChatMessage
 
-logger = logging.getLogger("astrocrawl.rules.chatml")
+from astrocrawl.utils.logging import LogfmtLogger
+
+logger = LogfmtLogger("astrocrawl.rules.chatml")
 
 
 def serialize_chatml(messages: list[ChatMessage]) -> str:
@@ -34,7 +35,7 @@ def count_tokens(text: str, model: str = "gpt-4o-mini") -> int:
     try:
         import tiktoken
     except ImportError:
-        logger.warning("event=tiktoken_unavailable — Token 统计显示 N/A")
+        logger.warning("tiktoken_unavailable")
         return 0
 
     try:
@@ -45,5 +46,5 @@ def count_tokens(text: str, model: str = "gpt-4o-mini") -> int:
     try:
         return len(enc.encode(text))
     except Exception:
-        logger.warning("event=token_count_error model=%s", model)
+        logger.warning("token_count_error", model=model)
         return 0

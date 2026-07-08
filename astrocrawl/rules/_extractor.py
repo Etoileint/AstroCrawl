@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import asyncio
 import concurrent.futures
-import logging
 from typing import TYPE_CHECKING, Any, Dict, Optional
 
 import cssselect
@@ -21,7 +20,9 @@ from astrocrawl._constants import MAX_FALLBACK_DEPTH, MULTIPLE_MAX_ITEMS, SELECT
 if TYPE_CHECKING:
     from astrocrawl.rules._schema import FieldRule
 
-logger = logging.getLogger("astrocrawl.rules.extractor")
+from astrocrawl.utils.logging import LogfmtLogger
+
+logger = LogfmtLogger("astrocrawl.rules.extractor")
 
 # H6: 独立线程池隔离提取超时/僵尸线程故障域
 _EXTRACTION_EXECUTOR = concurrent.futures.ThreadPoolExecutor(max_workers=4, thread_name_prefix="rule-extract")
@@ -66,7 +67,7 @@ async def extract_fields_from_soup(
         if queued > 0:
             ratio = queued / (queued + 4)
             if ratio > _EXTRACTION_POOL_PRESSURE_THRESHOLD:
-                logger.warning("event=extraction_pool_pressure queued=%d ratio=%.2f", queued, ratio)
+                logger.warning("extraction_pool_pressure", queued=queued, ratio=ratio)
 
     loop = asyncio.get_running_loop()
     try:
@@ -75,7 +76,7 @@ async def extract_fields_from_soup(
             timeout=SELECTOR_TIMEOUT_PER_RULE,
         )
     except asyncio.TimeoutError:
-        logger.warning("event=rule_extract_timeout rule=%s", rule_name)
+        logger.warning("rule_extract_timeout", rule=rule_name)
         return {}
 
 
@@ -90,7 +91,7 @@ def _extract_all_fields(
         try:
             result[field_name] = _extract_single_field(soup, field_name, field_cfg, max_text_length)
         except Exception as exc:
-            logger.warning("event=field_extract_error field=%s error=%s", field_name, exc)
+            logger.warning("field_extract_error", field=field_name, error=exc)
             result[field_name] = None
     return result
 
@@ -149,10 +150,10 @@ def _warn_unsupported_pseudo(selector: str, field_name: str) -> None:
         pe = getattr(sel, "pseudo_element", None)
         if pe and pe in _UNSUPPORTED_PSEUDO_ELEMENTS:
             logger.warning(
-                "event=unsupported_css_pseudo selector=%s field=%s pseudo=::%s",
-                selector,
-                field_name,
-                pe,
+                "unsupported_css_pseudo",
+                selector=selector,
+                field=field_name,
+                pseudo=f"::{pe}",
             )
             return
 
@@ -160,10 +161,10 @@ def _warn_unsupported_pseudo(selector: str, field_name: str) -> None:
         for node in _walk_pseudo_nodes(sel.parsed_tree):
             if node.ident in _UNSUPPORTED_PSEUDO_CLASSES:
                 logger.warning(
-                    "event=unsupported_css_pseudo selector=%s field=%s pseudo=:%s",
-                    selector,
-                    field_name,
-                    node.ident,
+                    "unsupported_css_pseudo",
+                    selector=selector,
+                    field=field_name,
+                    pseudo=f":{node.ident}",
                 )
                 return
 
@@ -214,7 +215,7 @@ def _try_select(
                 return None
             return _extract_value(el, extract_type, attr_name, max_text_length)
     except Exception:
-        logger.warning("event=selector_error selector=%s", selector)
+        logger.warning("selector_error", selector=selector)
         return None
 
 
@@ -241,7 +242,7 @@ def _extract_value(
         stripped = val.strip() if val else ""
         if not stripped:
             # M15: void 元素 html 提取静默为空
-            logger.debug("event=extract_html_void tag=%s", element.name)
+            logger.debug("extract_html_void", tag=element.name)
             return None
         return _truncate_if_needed(stripped, max_text_length)
     else:  # "text"
@@ -260,7 +261,7 @@ def _truncate_if_needed(val: str, max_text_length: int) -> str:
     if isinstance(val, str):
         raw = val.encode("utf-8", errors="ignore")
         if len(raw) > max_text_length:
-            logger.warning("event=field_text_truncated length=%d max=%d", len(val), max_text_length)
+            logger.warning("field_text_truncated", length=len(val), max=max_text_length)
             return raw[:max_text_length].decode("utf-8", errors="ignore")
     return val
 

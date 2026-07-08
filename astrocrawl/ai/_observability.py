@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
-import logging
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
+
+from astrocrawl.utils.logging import LogfmtLogger
 
 if TYPE_CHECKING:
     from astrocrawl.ai._types import CallContext, ChatResponse
 
-logger = logging.getLogger("astrocrawl.ai")
+logger = LogfmtLogger("astrocrawl.ai")
 
 
 @runtime_checkable
@@ -39,32 +40,26 @@ class LoggingHook:
     """默认日志钩子 — 使用 logfmt 风格 event 命名（OTel GenAI 语义约定对齐）。"""
 
     def on_request(self, ctx: CallContext) -> None:
-        logger.debug("event=gen_ai.%s.request model=%s messages=%d", ctx.operation, ctx.model, ctx.messages_count)
+        logger.debug(f"gen_ai.{ctx.operation}.request", model=ctx.model, messages=ctx.messages_count)
 
     def on_response(self, ctx: CallContext, response: ChatResponse) -> None:
-        tokens = ""
-        if response.usage:
-            tokens = f" tokens_in={response.usage.prompt_tokens} tokens_out={response.usage.completion_tokens}"
         logger.debug(
-            "event=gen_ai.%s.response model=%s duration_ms=%.1f finish=%s%s",
-            ctx.operation,
-            response.model,
-            ctx.duration_ms,
-            response.finish_reason,
-            tokens,
+            f"gen_ai.{ctx.operation}.response",
+            model=response.model,
+            duration_ms=ctx.duration_ms,
+            finish=response.finish_reason,
+            tokens_in=response.usage.prompt_tokens if response.usage else None,
+            tokens_out=response.usage.completion_tokens if response.usage else None,
         )
 
     def on_error(self, ctx: CallContext, error: Exception) -> None:
-        logger.warning(
-            "event=gen_ai.%s.error model=%s duration_ms=%.1f error=%s", ctx.operation, ctx.model, ctx.duration_ms, error
-        )
+        logger.warning(f"gen_ai.{ctx.operation}.error", model=ctx.model, duration_ms=ctx.duration_ms, error=error)
 
     def on_retry(self, ctx: CallContext, error: Exception, attempt: int, delay: float) -> None:
         logger.info(
-            "event=gen_ai.%s.retry_exhausted model=%s attempt=%d delay=%.1fs error=%s",
-            ctx.operation,
-            ctx.model,
-            attempt,
-            delay,
-            error,
+            f"gen_ai.{ctx.operation}.retry_exhausted",
+            model=ctx.model,
+            attempt=attempt,
+            delay=delay,
+            error=error,
         )

@@ -23,8 +23,6 @@ from astrocrawl._retry_strategy import RetryStrategy, classify_from_category, cl
 from astrocrawl._types import FetchErrorCategory
 
 if TYPE_CHECKING:
-    import logging
-
     from astrocrawl._path_strategy import PathSwitch
     from astrocrawl.proxy import ProxySession
 
@@ -70,7 +68,6 @@ async def aiohttp_retry_fetch(
     retry_backoff_base: float,
     headers: Optional[dict[str, str]] = None,
     max_bytes: Optional[int] = None,
-    log: logging.Logger,
 ) -> AiohttpFetchResult:
     retries_remaining = max(1, max_retries)
     proxy_url: Optional[str] = None

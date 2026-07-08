@@ -6,15 +6,15 @@
 from __future__ import annotations
 
 import json
-import logging
 from pathlib import Path
 from typing import Any, Dict, Optional, cast
 
 from astrocrawl.ai._profile import AIProfile
 from astrocrawl.proxy._config import ParsedProxy, ProxyAuth, ProxyProfile, ProxyType, endpoint_key
 from astrocrawl.utils._atomic import atomic_write_json
+from astrocrawl.utils.logging import LogfmtLogger
 
-_log = logging.getLogger("astrocrawl.preferences")
+_log = LogfmtLogger("astrocrawl.preferences")
 
 # ── storage layout ──────────────────────────────────────────────────────────
 PREFERENCES_DIR = Path.home() / ".astrocrawl"
@@ -456,7 +456,7 @@ class Preferences:
                 return
             size = PREFERENCES_FILE.stat().st_size
             if size > MAX_FILE_BYTES:
-                _log.warning("event=preferences_oversize size=%d", size)
+                _log.warning("preferences_oversize", size=size)
                 PREFERENCES_FILE.unlink(missing_ok=True)
                 return
             raw = PREFERENCES_FILE.read_text(encoding="utf-8")
@@ -520,7 +520,7 @@ class Preferences:
             if changed:
                 self._save()
         except (json.JSONDecodeError, UnicodeDecodeError, ValueError, OSError) as exc:
-            _log.warning("event=preferences_corrupt error=%s", exc)
+            _log.warning("preferences_corrupt", error=exc)
             PREFERENCES_FILE.unlink(missing_ok=True)
 
     def _migrate_old_file(self) -> None:
@@ -541,9 +541,9 @@ class Preferences:
                             self._data["path_memory"][key] = valid[:MAX_ENTRIES_PER_KEY]
             self._save()
             OLD_PATH_MEMORY_FILE.unlink(missing_ok=True)
-            _log.info("event=preferences_migrated")
+            _log.info("preferences_migrated")
         except (json.JSONDecodeError, UnicodeDecodeError, ValueError, OSError) as exc:
-            _log.warning("event=old_path_memory_corrupt error=%s", exc)
+            _log.warning("old_path_memory_corrupt", error=exc)
             OLD_PATH_MEMORY_FILE.unlink(missing_ok=True)
 
     def _save(self) -> None:

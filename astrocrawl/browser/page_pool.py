@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import asyncio
-import logging
 import random
 from typing import TYPE_CHECKING, Optional
 
@@ -12,21 +11,22 @@ from astrocrawl._constants import (
     PAGE_CREATE_RETRIES,
     PAGE_CREATE_TIMEOUT,
 )
+from astrocrawl.utils.logging import LogfmtLogger
 
 if TYPE_CHECKING:
     from playwright.async_api import BrowserContext, Page
 
 
-async def safe_close_page(page: Optional[Page], log: logging.Logger) -> None:
+async def safe_close_page(page: Optional[Page], log: LogfmtLogger) -> None:
     """安全关闭页面，带超时保护。"""
     if page is None or page.is_closed():
         return
     try:
         await asyncio.wait_for(page.close(), timeout=PAGE_CLOSE_TIMEOUT)
     except asyncio.TimeoutError:
-        log.warning("event=page_close_timeout timeout=%ds", PAGE_CLOSE_TIMEOUT)
+        log.warning("page_close_timeout", timeout=PAGE_CLOSE_TIMEOUT)
     except Exception as e:
-        log.debug("event=page_close_error error=%s", e)
+        log.debug("page_close_error", error=e)
 
 
 class PagePool:
@@ -40,7 +40,7 @@ class PagePool:
     def __init__(self, context: BrowserContext) -> None:
         self.context = context
         self._closed = False
-        self._log = logging.getLogger("astrocrawl.pagepool")
+        self._log = LogfmtLogger("astrocrawl.pagepool")
 
     async def acquire(self) -> Page:
         """创建新页面（带重试）。"""
@@ -53,14 +53,12 @@ class PagePool:
                 return page
             except Exception as e:
                 last_error = e
-                self._log.warning(
-                    "event=page_create_failed attempt=%d/%d error=%s", attempt + 1, PAGE_CREATE_RETRIES, e
-                )
+                self._log.warning("page_create_failed", attempt=attempt + 1, max_attempts=PAGE_CREATE_RETRIES, error=e)
                 if attempt < PAGE_CREATE_RETRIES - 1:
                     await asyncio.sleep(
                         random.uniform(0, PAGE_CREATE_BACKOFF * (attempt + 1)),
                     )
-        self._log.error("event=page_create_exhausted attempts=%d error=%s", PAGE_CREATE_RETRIES, last_error)
+        self._log.error("page_create_exhausted", attempts=PAGE_CREATE_RETRIES, error=last_error)
         raise last_error or RuntimeError("创建页面失败")
 
     async def remove_broken(self, page: Page) -> None:

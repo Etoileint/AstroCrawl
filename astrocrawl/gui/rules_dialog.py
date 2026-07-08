@@ -8,7 +8,6 @@ Tab 3: 远程源 — 源列表 + 开关
 from __future__ import annotations
 
 import json
-import logging
 import threading
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Optional, Protocol
@@ -79,12 +78,13 @@ from astrocrawl.rules import (
     validate_source_url,
 )
 from astrocrawl.rules import clean_markdown_wrapper as _clean_markdown_wrapper
+from astrocrawl.utils.logging import LogfmtLogger
 from astrocrawl.utils.preferences import clear_qt_file_dialog_history, get_preferences
 
 if TYPE_CHECKING:
     import asyncio
 
-logger = logging.getLogger("astrocrawl.gui.rules_dialog")
+logger = LogfmtLogger("astrocrawl.gui.rules_dialog")
 
 
 class SnapshotProvider(Protocol):
@@ -1733,7 +1733,7 @@ class _CustomPage(QWidget):
 
         empty_fields = [n for n, f in rule.fields.items() if not f.selector]
         if empty_fields:
-            logger.info("event=ai_generate_empty_selectors fields=%s", empty_fields)
+            logger.info("ai_generate_empty_selectors", fields=empty_fields)
 
         name = result.get("name", "ai_generated")
         field_count = len(rule.fields)

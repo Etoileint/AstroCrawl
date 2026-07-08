@@ -24,8 +24,6 @@ from astrocrawl.network._fetch import aiohttp_retry_fetch
 from astrocrawl.utils.url import is_valid_http_url, normalize_url
 
 if TYPE_CHECKING:
-    import logging
-
     import aiohttp
     from bs4 import BeautifulSoup
 
@@ -33,6 +31,7 @@ if TYPE_CHECKING:
     from astrocrawl.crawler.outcomes import CrawlStats
     from astrocrawl.network.robots import RobotsCache
     from astrocrawl.proxy import ProxySession
+    from astrocrawl.utils.logging import LogfmtLogger
 
 
 class SitemapConfig(_Protocol):
@@ -266,7 +265,7 @@ class SitemapDiscovery:
         enqueue_callback: Callable[[str, int], Awaitable[bool]],
         stop_event: asyncio.Event,
         config: "SitemapConfig",
-        log: logging.Logger,
+        log: LogfmtLogger,
         proxy_session: Optional["ProxySession"] = None,
         path_switch: Optional["PathSwitch"] = None,
     ):
@@ -418,13 +417,13 @@ class SitemapDiscovery:
                 counter[0],
             )
             self._log.debug(
-                "event=sitemap_origin_done origin=%s robots=%s urls=%d",
-                origin,
-                robots_status,
-                counter[0],
+                "sitemap_origin_done",
+                origin=origin,
+                robots=robots_status,
+                urls=counter[0],
             )
         except Exception:
-            self._log.warning("event=sitemap_per_origin_stats_failed origin=%s", origin, exc_info=True)
+            self._log.warning("sitemap_per_origin_stats_failed", origin=origin, exc_info=True)
 
     async def _fetch_and_process_sitemap(
         self,
@@ -449,7 +448,7 @@ class SitemapDiscovery:
         try:
             doc_type, entries = SitemapParser._parse_sitemap(content)
         except Exception:
-            self._log.warning("event=sitemap_parse_failed url=%s", url)
+            self._log.warning("sitemap_parse_failed", url=url)
             return
 
         if doc_type == "index":
@@ -502,7 +501,6 @@ class SitemapDiscovery:
                 retry_backoff_base=self._retry_backoff_base,
                 headers=self._build_headers(),
                 max_bytes=SITEMAP_MAX_CONTENT_SIZE,
-                log=self._log,
             )
             if result.content is not None:
                 await self._stats.record_sitemap_fetch(True)
@@ -513,19 +511,19 @@ class SitemapDiscovery:
 
     async def _get_robots_sitemaps(self, origin: str) -> List[str]:
         if self._robots_cache is None:
-            self._log.debug("event=sitemap_robots_cache_missing origin=%s", origin)
+            self._log.debug("sitemap_robots_cache_missing", origin=origin)
             return []
         try:
             return await self._robots_cache.get_sitemaps(origin)
         except Exception:
-            self._log.debug("event=sitemap_robots_error origin=%s", origin, exc_info=True)
+            self._log.debug("sitemap_robots_error", origin=origin, exc_info=True)
             return []
 
     async def _gather_logged(self, tasks: List[asyncio.Task], label: str) -> None:
         results = await asyncio.gather(*tasks, return_exceptions=True)
         for r in results:
             if isinstance(r, BaseException):
-                self._log.warning("event=sitemap_task_error label=%s error=%s", label, r)
+                self._log.warning("sitemap_task_error", label=label, error=r)
 
     async def _decrement_pending(self) -> None:
         # asyncio.shield 防止已在传播中的 CancelledError (从

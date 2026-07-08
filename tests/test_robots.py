@@ -657,7 +657,7 @@ class TestFromUrlOversized:
 
         parser = await AsyncRobotsParser.from_url("https://x.com/robots.txt", "Bot", mock_session, timeout=10)
         assert parser.fetch_status == "ok"
-        assert "truncating" in caplog.text
+        assert "robots_txt_oversize" in caplog.text
 
 
 # ═══════════════════════════════════════════════════════════════════════

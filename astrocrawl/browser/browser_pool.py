@@ -12,7 +12,6 @@ Worker 通过 send(FetchRequest) 交互，不接触 Playwright 对象。
 from __future__ import annotations
 
 import asyncio
-import logging
 import math
 import random as _random
 import time
@@ -44,9 +43,10 @@ from astrocrawl.browser.navigation import safe_goto
 from astrocrawl.browser.page_pool import PagePool, safe_close_page
 from astrocrawl.config import CrawlerConfig, GlobalSettings
 from astrocrawl.health import Health
+from astrocrawl.utils.logging import LogfmtLogger
 from astrocrawl.utils.url import parse_domain
 
-_log = logging.getLogger("astrocrawl.browserpool")
+_log = LogfmtLogger("astrocrawl.browserpool")
 
 
 def _safe_set_result(future: asyncio.Future, result) -> bool:
@@ -186,7 +186,7 @@ class BrowserInstance:
 
     async def restart(self, playwright) -> None:
         """杀进程 → 重启 → 重建 ContextPool。"""
-        _log.warning("event=browser_restart id=%d", self.idx)
+        _log.warning("browser_restart", id=self.idx)
         self._healthy = False
         try:
             if self._ctx_pool:
@@ -205,7 +205,7 @@ class BrowserInstance:
         except Exception:
             pass
         await self.start(playwright)
-        _log.info("event=browser_restart_done id=%d", self.idx)
+        _log.info("browser_restart_done", id=self.idx)
 
     def stop_accepting(self) -> None:
         """标记浏览器实例为关闭中——阻止新 context 创建，级联到下层。"""
@@ -718,7 +718,7 @@ class BrowserPool:
                 await self._global_slots.put((bi, slot_idx))
         self._actor_task = asyncio.create_task(self.run(), name="BrowserPool.Actor")
         self._health_task = asyncio.create_task(self._health_check_loop(), name="BrowserPool.Health")
-        _log.info("event=browserpool_start browsers=%d slots_per=%d", self._K, self._slots_per_browser)
+        _log.info("browserpool_start", browsers=self._K, slots_per=self._slots_per_browser)
 
     def stop_accepting(self) -> None:
         """标记 BrowserPool 为关闭中——阻止新 context 创建，级联到所有 BrowserInstance。
@@ -778,7 +778,7 @@ class BrowserPool:
             except asyncio.QueueEmpty:
                 break
         if drained:
-            _log.debug("event=browserpool_drain count=%d", drained)
+            _log.debug("browserpool_drain", count=drained)
 
     def get_health(self) -> Health:
         alive = sum(1 for bi in self._browsers.values() if not bi._closed)
@@ -819,10 +819,10 @@ class BrowserPool:
             backoff = min(1.0 * (2**bi._restart_failures), 60.0)
             bi._restart_backoff_until = time.monotonic() + backoff
             _log.error(
-                "event=browser_restart_failed id=%d failures=%d next_retry=%.0fs",
-                idx,
-                bi._restart_failures,
-                backoff,
+                "browser_restart_failed",
+                id=idx,
+                failures=bi._restart_failures,
+                next_retry=backoff,
             )
 
     async def _health_check_loop(self) -> None:
@@ -839,10 +839,10 @@ class BrowserPool:
                 if not bi.is_healthy:
                     if time.monotonic() < bi._restart_backoff_until:
                         continue
-                    _log.info("event=browser_retry_restart id=%d", i)
+                    _log.info("browser_retry_restart", id=i)
                     await self._restart_browser_with_backoff(bi, i)
                     continue
                 healthy = await bi.health_ping()
                 if not healthy:
-                    _log.warning("event=browser_unhealthy_restart id=%d", i)
+                    _log.warning("browser_unhealthy_restart", id=i)
                     await self._restart_browser_with_backoff(bi, i)

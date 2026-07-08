@@ -7,7 +7,6 @@
 from __future__ import annotations
 
 import json
-import logging
 import time
 from typing import TYPE_CHECKING, Any
 
@@ -15,11 +14,12 @@ from astrocrawl._constants import MAX_RULE_FILE_SIZE, MAX_RULES_CACHE_SIZE, RULE
 from astrocrawl.rules._markdown import clean_markdown_wrapper
 from astrocrawl.rules._schema import RuleSchema, validate_rule
 from astrocrawl.utils._atomic import atomic_write_json
+from astrocrawl.utils.logging import LogfmtLogger
 
 if TYPE_CHECKING:
     from pathlib import Path
 
-logger = logging.getLogger("astrocrawl.rules.io")
+logger = LogfmtLogger("astrocrawl.rules.io")
 
 
 # ═══════════════════════════════════════════════════════════════════
@@ -121,7 +121,7 @@ def export_all_rules(rules: list[RuleSchema], output_dir: Path) -> int:
             export_rule_to_file(rule, output_path)
             count += 1
         except Exception as exc:
-            logger.warning("event=rule_export_error rule=%s error=%s", name, exc)
+            logger.warning("rule_export_error", rule=name, error=exc)
     return count
 
 
@@ -196,11 +196,11 @@ def cleanup_tmp_files(directory: Path) -> int:
             if entry.stat().st_mtime < threshold:
                 entry.unlink()
                 count += 1
-                logger.debug("event=tmp_cleanup path=%s", entry)
+                logger.debug("tmp_cleanup", path=entry)
         except OSError:
             pass
     if count:
-        logger.info("event=tmp_cleanup_done count=%d dir=%s", count, directory)
+        logger.info("tmp_cleanup_done", count=count, dir=directory)
     return count
 
 
@@ -219,9 +219,9 @@ def check_cache_size(directory: Path, max_bytes: int = MAX_RULES_CACHE_SIZE) -> 
             pass
     if total > max_bytes:
         logger.warning(
-            "event=rules_cache_size_exceeded total=%d max=%d",
-            total,
-            max_bytes,
+            "rules_cache_size_exceeded",
+            total=total,
+            max=max_bytes,
         )
     return total
 

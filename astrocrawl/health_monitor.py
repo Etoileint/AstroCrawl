@@ -11,15 +11,15 @@
 from __future__ import annotations
 
 import asyncio
-import logging
 import time
 from dataclasses import dataclass
 from enum import Enum
 from typing import Awaitable, Callable, Optional
 
 from astrocrawl.health import Health, HealthChecked, health_to_report
+from astrocrawl.utils.logging import LogfmtLogger
 
-_log = logging.getLogger("astrocrawl.health")
+_log = LogfmtLogger("astrocrawl.health")
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -119,13 +119,13 @@ class HealthMonitor:
             return
 
         if spec.on_unhealthy == CheckOnUnhealthy.RESTART and spec.repair:
-            _log.warning("event=health_repair name=%s status=%s", name, result.status)
+            _log.warning("health_repair", name=name, status=result.status)
             try:
                 await spec.repair()
             except Exception as e:
-                _log.error("event=health_repair_failed name=%s error=%s", name, e)
+                _log.error("health_repair_failed", name=name, error=e)
         elif spec.on_unhealthy == CheckOnUnhealthy.ALERT:
-            _log.warning("event=health_alert name=%s status=%s message=%s", name, result.status, result.message)
+            _log.warning("health_alert", name=name, status=result.status, message=result.message)
 
     async def get_health(self) -> Health:
         """异步聚合所有主动检查 + 被动指示器的健康状态。

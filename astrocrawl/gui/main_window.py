@@ -43,7 +43,7 @@ from astrocrawl.gui.proxy_health_bar import ProxyHealthBar
 from astrocrawl.gui.rules_dialog import RulesDialog
 from astrocrawl.proxy import ProxyConfig, ProxyProfile, ProxySession
 from astrocrawl.utils._atomic import atomic_write_json
-from astrocrawl.utils.logging import setup_root_logger
+from astrocrawl.utils.logging import LogfmtLogger, setup_root_logger
 from astrocrawl.utils.preferences import clear_qt_file_dialog_history, get_preferences
 from astrocrawl.utils.url import is_valid_http_url
 
@@ -151,7 +151,7 @@ class MainWindow(QWidget):
         self._paused = False
         self._closing = False
         self._advanced_cfg = CrawlerConfig()
-        self._log = logging.getLogger("astrocrawl.gui")
+        self._log = LogfmtLogger("astrocrawl.gui")
         self._close_watchdog: Optional[QTimer] = None
         self._proxy_health_bar: Optional[ProxyHealthBar] = None
         self._setup_ui()
@@ -1017,7 +1017,7 @@ class MainWindow(QWidget):
 
     def _force_close_crawler(self) -> None:
         if self._session and self._session.is_running():
-            self._log.warning("event=crawler_watchdog_timeout timeout=10s")
+            self._log.warning("crawler_watchdog_timeout", timeout="10s")
         if self._session:
             self._session.dispose()
         self._cleanup_session()

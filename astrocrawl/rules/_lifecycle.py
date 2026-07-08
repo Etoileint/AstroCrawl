@@ -6,18 +6,18 @@ get_snapshot() 获取当前快照的引用。
 
 from __future__ import annotations
 
-import logging
 import time
 from pathlib import Path
 from typing import TYPE_CHECKING, Dict, Optional
 
 from astrocrawl._types import RuleSnapshot
 from astrocrawl.rules._loader import build_rule_snapshot
+from astrocrawl.utils.logging import LogfmtLogger
 
 if TYPE_CHECKING:
     from astrocrawl.config import CrawlerConfig
 
-logger = logging.getLogger("astrocrawl.rules.lifecycle")
+logger = LogfmtLogger("astrocrawl.rules.lifecycle")
 
 
 class RuleLifecycle:
@@ -80,14 +80,14 @@ class RuleLifecycle:
             self._loaded_at = time.time()
             enabled = len(self._snapshot.rules)
             total = len(self._snapshot.by_name) - 1
-            logger.info("event=rules_loaded enabled=%d total=%d disabled=%d", enabled, total, total - enabled)
+            logger.info("rules_loaded", enabled=enabled, total=total, disabled=total - enabled)
         except Exception as exc:
-            logger.warning("event=rule_load_failed error=%s — 降级为 default", exc)
+            logger.warning("rule_load_failed", error=f"{exc} -- 降级为 default")
             self._snapshot = RuleSnapshot.default_only()
             self._last_load_ok = False
             self._load_error = str(exc)
             self._loaded_at = time.time()
-            logger.info("event=rules_loaded enabled=0 total=0 disabled=0 reason=fallback_default")
+            logger.info("rules_loaded", enabled=0, total=0, disabled=0, reason="fallback_default")
         return self._snapshot
 
     def reload(self) -> RuleSnapshot:
@@ -106,7 +106,7 @@ class RuleLifecycle:
                 rules_dirs_enabled=self._rules_dirs_enabled,
             )
         except Exception as exc:
-            logger.warning("event=rule_reload_failed error=%s — 保留旧快照", exc)
+            logger.warning("rule_reload_failed", error=f"{exc} -- 保留旧快照")
             self._last_load_ok = False
             self._load_error = str(exc)
             if self._snapshot is None:
@@ -123,11 +123,11 @@ class RuleLifecycle:
         new_enabled = len(new_snapshot.rules)
         new_total = len(new_snapshot.by_name) - 1
         logger.info(
-            "event=rules_reloaded old_count=%d enabled=%d total=%d disabled=%d",
-            old_enabled,
-            new_enabled,
-            new_total,
-            new_total - new_enabled,
+            "rules_reloaded",
+            old_count=old_enabled,
+            enabled=new_enabled,
+            total=new_total,
+            disabled=new_total - new_enabled,
         )
         return new_snapshot
 

@@ -5,12 +5,11 @@
 
 from __future__ import annotations
 
-import logging
-
 import pytest
 
 from astrocrawl.browser.context_pool import ContextPool
 from astrocrawl.config import ConfigError
+from astrocrawl.utils.logging import LogfmtLogger
 from tests._fakes import FakeBrowser, FakeProxyManager
 
 # ── 测试用最小配置 ───────────────────────────────────────────────────
@@ -37,7 +36,7 @@ class _TestContextPoolConfig:
         return _PS()
 
 
-_log = logging.getLogger("astrocrawl.test.contextpool")
+_log = LogfmtLogger("astrocrawl.test.contextpool")
 
 
 # ═══════════════════════════════════════════════════════════════════════

@@ -3,7 +3,6 @@ from __future__ import annotations
 import asyncio
 import enum
 import json
-import logging
 import os
 import re
 import time
@@ -87,6 +86,7 @@ from astrocrawl.utils.html import (
     extract_title,
     remove_noise_tags,
 )
+from astrocrawl.utils.logging import LogfmtLogger
 from astrocrawl.utils.url import normalize_url, parse_domain, safe_log_url
 
 if TYPE_CHECKING:
@@ -157,7 +157,7 @@ class PipelineDeps:
     allowed_domains: Set[str] = field(default_factory=set)
     same_domain_only: bool = False
     exclude_res: List[re.Pattern] = field(default_factory=list)
-    log: logging.Logger = None  # type: ignore[assignment]
+    log: LogfmtLogger = None  # type: ignore[assignment]
     # Helpers (engine methods exposed as callables)
     fetch_url: Callable[[str, float], Awaitable[FetchAttempt]] | None = None
     increment_progress_plan: Callable[[int], Awaitable[None]] | None = None
@@ -181,7 +181,7 @@ class Pipeline:
             try:
                 ctx = await p(ctx, deps)
             except Exception as e:
-                deps.log.exception("event=processor_error processor=%s", p.__name__)
+                deps.log.exception("processor_error", processor=p.__name__)
                 ctx.is_terminal = True
                 ctx.outcome = UrlOutcome.INTERNAL_ERROR
                 ctx.error_message = str(e)
@@ -404,7 +404,7 @@ async def _parse_processor(ctx: ProcessingContext, deps: PipelineDeps) -> Proces
 
         # 检查所有字段是否全 null (N27, N48)
         if extracted_fields and all(v is None for v in extracted_fields.values()):
-            deps.log.warning("event=rule_all_fields_null rule=%s url=%s", rule_name, result_url)
+            deps.log.warning("rule_all_fields_null", rule=rule_name, url=result_url)
             rule_name = DEFAULT_EXTRACTION_TYPE
             is_default = True
             fields_filled = 0
@@ -422,12 +422,11 @@ async def _parse_processor(ctx: ProcessingContext, deps: PipelineDeps) -> Proces
         # N70: >1s 慢规则 WARNING
         if elapsed_ms > 1000:
             deps.log.warning(
-                "event=rule_slow rule=%s elapsed_ms=%.0f fields=%d/%d url=%s",
-                rule_name,
-                elapsed_ms,
-                fields_filled,
-                fields_total,
-                result_url,
+                "rule_slow",
+                rule=rule_name,
+                elapsed_ms=round(elapsed_ms),
+                fields=f"{fields_filled}/{fields_total}",
+                url=result_url,
             )
 
     # S8: trace 信息 (N38)
@@ -702,7 +701,7 @@ class AsyncCrawler:
             for u in start_urls:
                 self.allowed_domains.add(parse_domain(normalize_url(u, cfg)))  # type: ignore[arg-type]
 
-        self._log = logging.getLogger("astrocrawl.crawler")
+        self._log = LogfmtLogger("astrocrawl.crawler")
         self._log.setLevel(self._global_settings.log_level)
 
         self._connector: Optional[TCPConnector] = None
@@ -745,7 +744,7 @@ class AsyncCrawler:
             try:
                 self._exclude_res.append(re.compile(pat))
             except re.error as e:
-                self._log.warning("event=config_warn invalid_regex=%s error=%s", pat, e)
+                self._log.warning("config_warn", invalid_regex=pat, error=e)
 
     @property
     def _st(self) -> CrawlStateProtocol:
@@ -844,7 +843,7 @@ class AsyncCrawler:
             if ok:
                 enqueued += 1
         if enqueued:
-            self._log.info("event=url_requeue gap_depth=%d parents=%d recovered=%d", gap_depth, len(lost), enqueued)
+            self._log.info("url_requeue", gap_depth=gap_depth, parents=len(lost), recovered=enqueued)
         return enqueued
 
     async def _pop_domain_aware(
@@ -1002,9 +1001,9 @@ class AsyncCrawler:
             except asyncio.TimeoutError:
                 if url is not None and not settle_entered:
                     self._log.warning(
-                        "event=url_permanent_fail url=%s timeout=%ds",
-                        safe_log_url(url),
-                        PROCESS_URL_TIMEOUT,
+                        "url_permanent_fail",
+                        url=safe_log_url(url),
+                        timeout=PROCESS_URL_TIMEOUT,
                     )
                     disp = await _scheduled_requeue_or_fail(url, depth, deps)
                     await self._settle_url(
@@ -1021,7 +1020,7 @@ class AsyncCrawler:
                     self.signals.worker_state.emit(idx, "idle")
             except Exception as exc:
                 if url is not None and not settle_entered:
-                    self._log.warning("event=worker_crash url=%s error=%s", safe_log_url(url), exc)
+                    self._log.warning("worker_crash", url=safe_log_url(url), error=exc)
                     disp = await _scheduled_requeue_or_fail(url, depth, deps)
                     await self._settle_url(
                         url,
@@ -1034,7 +1033,7 @@ class AsyncCrawler:
                         state=self._state,
                     )
                 elif url is not None:
-                    self._log.error("event=worker_crash phase=finalize url=%s error=%s", safe_log_url(url), exc)
+                    self._log.error("worker_crash", phase="finalize", url=safe_log_url(url), error=exc)
                 if self.signals:
                     self.signals.worker_state.emit(idx, "idle")
         # while 循环正常退出（stop_event 触发）
@@ -1055,7 +1054,7 @@ class AsyncCrawler:
                 recovered += 1
                 await self._crawl_stats.record_outcome(UrlOutcome.FETCH_ERROR)
             if recovered:
-                self._log.debug("event=url_requeue count=%d", recovered)
+                self._log.debug("url_requeue", count=recovered)
             return Health("UP", f"recovered={recovered}")
         except Exception as e:
             return Health("DEGRADED", str(e))
@@ -1095,7 +1094,7 @@ class AsyncCrawler:
                     parts.append(f"处理中={iflight}")
             parts.append(f"已完成={self._crawl_stats.completed_urls}")
             if parts:
-                self._log.info("event=resource_snapshot %s", " ".join(parts))
+                self._log.info("resource_snapshot", details=" ".join(parts))
             if self._state:
                 try:
                     snapshot = await self._crawl_stats.to_snapshot()
@@ -1155,24 +1154,23 @@ class AsyncCrawler:
         max_budget = PROCESS_URL_TIMEOUT - FETCH_PROCESSOR_OVERHEAD
         if fetch_budget > max_budget:
             self._log.info(
-                "event=timeout_budget page_timeout=%dms max_retries=%d "
-                "fetch_budget=%.1fs max_budget=%.1fs capped=%.1fs",
-                self.cfg.page_timeout,
-                self.cfg.max_retries,
-                fetch_budget,
-                max_budget,
-                max_budget,
+                "timeout_budget",
+                page_timeout=f"{self.cfg.page_timeout}ms",
+                max_retries=self.cfg.max_retries,
+                fetch_budget=f"{fetch_budget:.1f}s",
+                max_budget=f"{max_budget:.1f}s",
+                capped=f"{max_budget:.1f}s",
             )
 
-        self._log.info("event=crawl_start concurrency=%d depth=%d", self.concurrency, self.depth)
+        self._log.info("crawl_start", concurrency=self.concurrency, depth=self.depth)
 
         stuck_in_flight_since: Optional[float] = None
         while not self._stop_event.is_set():
             if self.cfg.max_runtime_seconds > 0 and (time.time() - self._start_time) > self.cfg.max_runtime_seconds:
-                self._log.info("event=crawl_stop reason=runtime_exceeded")
+                self._log.info("crawl_stop", reason="runtime_exceeded")
                 break
             if self.cfg.max_total_pages > 0 and self._crawl_stats.completed_urls >= self.cfg.max_total_pages:
-                self._log.info("event=crawl_stop reason=max_pages_reached")
+                self._log.info("crawl_stop", reason="max_pages_reached")
                 break
             qsize = await self._st.queue_size()
             if qsize == 0:
@@ -1198,9 +1196,9 @@ class AsyncCrawler:
                             stuck_in_flight_since = time.time()
                         elif time.time() - stuck_in_flight_since > STUCK_IN_FLIGHT_TIMEOUT:
                             self._log.error(
-                                "event=worker_stuck timeout=%ds in_flight=%d",
-                                STUCK_IN_FLIGHT_TIMEOUT,
-                                await self._st.in_flight_count(),
+                                "worker_stuck",
+                                timeout=STUCK_IN_FLIGHT_TIMEOUT,
+                                in_flight=await self._st.in_flight_count(),
                             )
                             break
             else:
@@ -1210,7 +1208,7 @@ class AsyncCrawler:
                 if not await self._st.get_active_domains():
                     orphans = await self._st.purge_orphaned_queue_entries()
                     if orphans:
-                        self._log.warning("event=orphan_purge count=%d", orphans)
+                        self._log.warning("orphan_purge", count=orphans)
                         await asyncio.sleep(WORKER_IDLE_SLEEP)
                         continue
                 # 暂停期间 worker 合法阻塞在 _pause_event.wait()，
@@ -1219,10 +1217,10 @@ class AsyncCrawler:
                     if self._tracker and self._tracker.stale_count > 0:
                         if self._tracker.all_stale:
                             self._log.error(
-                                "event=worker_stuck timeout=%ds in_flight=%d queue=%d",
-                                WORKER_STUCK_TIMEOUT,
-                                await self._st.in_flight_count(),
-                                await self._st.queue_size(),
+                                "worker_stuck",
+                                timeout=WORKER_STUCK_TIMEOUT,
+                                in_flight=await self._st.in_flight_count(),
+                                queue=await self._st.queue_size(),
                             )
                             if self._diagnostics:
                                 await self._diagnostics.on_fatal("卡死检测: 所有 Worker 停滞")
@@ -1250,7 +1248,7 @@ class AsyncCrawler:
                 timeout=60.0,
             )
         except asyncio.TimeoutError:
-            self._log.error("event=worker_stuck timeout=60s")
+            self._log.error("worker_stuck", timeout="60s")
         # 等待 BrowserPool 中所有 _handle 任务完成（对标 awaitTermination）
         if self._browser_pool:
             await self._browser_pool.drain()
@@ -1264,18 +1262,19 @@ class AsyncCrawler:
                 await asyncio.sleep(0.5)
             if self._tracker.alive_count > 0:
                 self._log.error(
-                    "event=worker_stuck alive=%d phase=shutdown",
-                    self._tracker.alive_count,
+                    "worker_stuck",
+                    alive=self._tracker.alive_count,
+                    phase="shutdown",
                 )
         _remaining = await self._st.in_flight_count()
         if _remaining > 0:
-            self._log.debug("event=url_requeue in_flight_residual=%d", _remaining)
+            self._log.debug("url_requeue", in_flight_residual=_remaining)
         stuck_count = await self._st.force_fail_all_in_flight(self.cfg.max_requeue)
         if stuck_count:
             for _ in range(stuck_count):
                 await self._crawl_stats.record_outcome(UrlOutcome.FETCH_ERROR)
                 await self._crawl_stats.record_fetch_error(FetchErrorCategory.GENERIC)
-            self._log.warning("event=url_permanent_fail count=%d", stuck_count)
+            self._log.warning("url_permanent_fail", count=stuck_count)
 
     async def _fetch_url(self, url: str, timeout: float) -> FetchAttempt:  # type: ignore[return]
         """统一抓取入口 — BrowserPool Actor 消息模式（含完整重试）。
@@ -1345,11 +1344,11 @@ class AsyncCrawler:
                 self.cfg.webhook_url, data=payload, headers=webhook_headers, timeout=aiohttp.ClientTimeout(total=15)
             ) as resp:
                 if resp.status < 400:
-                    self._log.info("event=webhook_sent status=%d", resp.status)
+                    self._log.info("webhook_sent", status=resp.status)
                 else:
-                    self._log.warning("event=webhook_error status=%d", resp.status)
+                    self._log.warning("webhook_error", status=resp.status)
         except Exception as e:
-            self._log.warning("event=webhook_error error=%s", e)
+            self._log.warning("webhook_error", error=e)
 
     async def run(self) -> None:
         self._start_time = time.time()
@@ -1417,7 +1416,7 @@ class AsyncCrawler:
             self._hash_v2 = True  # 新爬取 → v2，reset_all 后写入
         else:
             self._hash_v2 = False  # 旧爬虫续爬
-            self._log.info("event=hash_compat version=v1 reason=legacy_resume")
+            self._log.info("hash_compat", version="v1", reason="legacy_resume")
 
         # ── 深度减小清理 ─────────────────────────────────────
         # 旧任务可能遗留 depth >= 当前 depth 的队列项和失败记录。
@@ -1431,10 +1430,10 @@ class AsyncCrawler:
         writer_resume = False
 
         if resume and not visited_empty:
-            self._log.info("event=crawl_resume completed=%d", self._crawl_stats.initial_completed)
+            self._log.info("crawl_resume", completed=self._crawl_stats.initial_completed)
             writer_resume = True
         else:
-            self._log.info("event=crawl_start phase=fresh")
+            self._log.info("crawl_start", phase="fresh")
             await self._st.reset_all()
             await self._st.set_meta("hash_version", "2")
             await self._st.set_meta("progress_layers", "")  # 清除旧任务的进度层存量
@@ -1464,7 +1463,7 @@ class AsyncCrawler:
             # 提升边界链接：旧深度边界处暂存的子链接，若当前 depth 已增大则自动入队
             boundary = await self._st.promote_boundary_links(self.depth)
             if boundary:
-                self._log.info("event=crawl_resume boundary_links=%d", len(boundary))
+                self._log.info("crawl_resume", boundary_links=len(boundary))
                 for child_url, target_depth in boundary:
                     if self._stop_event.is_set():
                         break
@@ -1575,7 +1574,7 @@ class AsyncCrawler:
                         title=src.get("title", ""),
                     )
                 except Exception as exc:
-                    self._log.warning("event=source_add_failed source=%s error=%s", src.get("name", ""), exc)
+                    self._log.warning("source_add_failed", source=src.get("name", ""), error=exc)
 
             # 后台更新所有源 (N84: 离线静默跳过)
             async def _background_source_update():
@@ -1584,11 +1583,11 @@ class AsyncCrawler:
                     if result.get("sources_updated"):
                         self._rule_lifecycle.reload()
                         self._log.info(
-                            "event=rules_reloaded_after_source_update sources=%s",
-                            result["sources_updated"],
+                            "rules_reloaded_after_source_update",
+                            sources=result["sources_updated"],
                         )
                 except Exception as exc:
-                    self._log.debug("event=source_update_background_error error=%s", exc)
+                    self._log.debug("source_update_background_error", error=exc)
 
             _bt.append(asyncio.create_task(_background_source_update()))
 
@@ -1607,29 +1606,30 @@ class AsyncCrawler:
 
             async def _sitemap_wrapper():
                 try:
-                    self._log.info("event=sitemap_start origins=%d", len(origins))
+                    self._log.info("sitemap_start", origins=len(origins))
                     await self._sitemap_discovery.start_discovery(origins, enqueue_depth=1)
                 except Exception as e:
-                    self._log.warning("event=sitemap_parse_error error=%s", e)
+                    self._log.warning("sitemap_parse_error", error=e)
                 finally:
                     snap = await self._crawl_stats.get_snapshot()
                     urls = snap["sitemap_discovered"]
                     if urls == 0:
                         self._log.warning(
-                            "event=sitemap_done_empty robots_ok=%d robots_fail=%d sitemap_ok=%d sitemap_fail=%d urls=0",
-                            snap["robots_fetch_ok"],
-                            snap["robots_fetch_fail"],
-                            snap["sitemap_fetch_ok"],
-                            snap["sitemap_fetch_fail"],
+                            "sitemap_done_empty",
+                            robots_ok=snap["robots_fetch_ok"],
+                            robots_fail=snap["robots_fetch_fail"],
+                            sitemap_ok=snap["sitemap_fetch_ok"],
+                            sitemap_fail=snap["sitemap_fetch_fail"],
+                            urls=0,
                         )
                     else:
                         self._log.info(
-                            "event=sitemap_done robots_ok=%d robots_fail=%d sitemap_ok=%d sitemap_fail=%d urls=%d",
-                            snap["robots_fetch_ok"],
-                            snap["robots_fetch_fail"],
-                            snap["sitemap_fetch_ok"],
-                            snap["sitemap_fetch_fail"],
-                            urls,
+                            "sitemap_done",
+                            robots_ok=snap["robots_fetch_ok"],
+                            robots_fail=snap["robots_fetch_fail"],
+                            sitemap_ok=snap["sitemap_fetch_ok"],
+                            sitemap_fail=snap["sitemap_fetch_fail"],
+                            urls=urls,
                         )
 
             _bt.append(asyncio.create_task(_sitemap_wrapper()))
@@ -1665,7 +1665,7 @@ class AsyncCrawler:
         try:
             await self._diagnostics.start_http()
         except OSError as e:
-            self._log.warning("event=diag_port_unavailable error=%s", e)
+            self._log.warning("diag_port_unavailable", error=e)
 
         # ── 注册 DB 可重试 URL 回收监视器 ──
         self._health_monitor.register(
@@ -1756,7 +1756,7 @@ class AsyncCrawler:
                         pre = await proxy_session.probe_all()
                         dead = sum(1 for r in pre.values() if not r.reachable)
                         if dead:
-                            self._log.warning("event=proxy_dead dead=%d total=%d", dead, len(pre))
+                            self._log.warning("proxy_dead", dead=dead, total=len(pre))
                     await self._browser_pool.start(pw)
                     if self._diagnostics:
                         self._diagnostics.register(
@@ -1768,7 +1768,7 @@ class AsyncCrawler:
 
                     await self._run_worker_loop(domain_limiter, domain_concurrency, robots_cache)
         except Exception as exc:
-            self._log.exception("event=crawl_error error=%s", exc)
+            self._log.exception("crawl_error", error=exc)
             crawl_error = str(exc)
 
         # ── Phase B: 报告生成（总是执行，即使爬虫异常也尽力生成部分报告） ──
@@ -1782,18 +1782,18 @@ class AsyncCrawler:
 
         try:
             snap = await self._crawl_stats.get_snapshot()
-            outcomes = snap["outcomes"]
-            failed = sum(c for k, c in outcomes.items() if _safe_is_failure(k))  # type: ignore[attr-defined]
+            outcomes: dict[str, int] = snap["outcomes"]  # type: ignore[assignment]
+            failed = sum(c for k, c in outcomes.items() if _safe_is_failure(k))
             dropped = sum(snap["drops"].values())  # type: ignore[attr-defined]
             self._log.info(
-                "event=crawl_done output=%s ok=%d denied=%d noindex=%d dupe=%d failed=%d dropped=%d",
-                self.output_path,
-                outcomes.get(UrlOutcome.OK.value, 0),  # type: ignore[attr-defined]
-                outcomes.get(UrlOutcome.ROBOTS_DENIED.value, 0),  # type: ignore[attr-defined]
-                outcomes.get(UrlOutcome.NOINDEX.value, 0),  # type: ignore[attr-defined]
-                outcomes.get(UrlOutcome.DUPLICATE.value, 0),  # type: ignore[attr-defined]
-                failed,
-                dropped,
+                "crawl_done",
+                output=self.output_path,
+                ok=outcomes.get(UrlOutcome.OK.value, 0),
+                denied=outcomes.get(UrlOutcome.ROBOTS_DENIED.value, 0),
+                noindex=outcomes.get(UrlOutcome.NOINDEX.value, 0),
+                dupe=outcomes.get(UrlOutcome.DUPLICATE.value, 0),
+                failed=failed,
+                dropped=dropped,
             )
             report = await self.generate_report(str(self.output_path))
             self._last_report = report
@@ -1802,13 +1802,13 @@ class AsyncCrawler:
                 try:
                     await self._send_webhook(report)
                 except Exception:
-                    self._log.warning("event=webhook_error", exc_info=True)
+                    self._log.warning("webhook_error", exc_info=True)
             if self.signals:
                 if crawl_error:
                     self.signals.error.emit(crawl_error)
                 self.signals.finished.emit(str(self.output_path), report)
         except Exception as exc:
-            self._log.exception("event=report_error error=%s", exc)
+            self._log.exception("report_error", error=exc)
             if self.signals:
                 self.signals.error.emit(crawl_error or str(exc))
 
@@ -1823,7 +1823,7 @@ class AsyncCrawler:
                         try:
                             await asyncio.wait_for(self._browser_pool.shutdown(), timeout=15)
                         except asyncio.TimeoutError:
-                            self._log.warning("event=cleanup_timeout resource=browser_pool timeout=15s")
+                            self._log.warning("cleanup_timeout", resource="browser_pool", timeout="15s")
 
                 all_tasks = getattr(self, "_background_tasks", [])
                 cancelled = [t for t in all_tasks if t and not t.done()]
@@ -1839,7 +1839,7 @@ class AsyncCrawler:
                                 timeout=10.0,
                             )
                         except asyncio.TimeoutError:
-                            self._log.warning("event=cleanup_timeout resource=background_tasks timeout=10s")
+                            self._log.warning("cleanup_timeout", resource="background_tasks", timeout="10s")
 
                 # Phase 0: 优雅停止 ProxySession（注册在 blanket cancel 之后 → LIFO 先执行）
                 # 遵循 Graceful-first, force-later 模式
@@ -1912,7 +1912,7 @@ class AsyncCrawler:
                                 json.dumps({str(d): [proc, plan] for d, (proc, plan) in self._progress_layers.items()}),
                             )
                         except Exception:
-                            self._log.warning("event=db_error phase=set_meta_progress", exc_info=True)
+                            self._log.warning("db_error", phase="set_meta_progress", exc_info=True)
 
                     @cleanup.push_async_callback
                     async def _():
@@ -1920,7 +1920,7 @@ class AsyncCrawler:
                             snapshot = await self._crawl_stats.to_snapshot()
                             await self._st.set_meta("stats_snapshot", json.dumps(snapshot))
                         except Exception:
-                            self._log.warning("event=db_error phase=set_meta_stats", exc_info=True)
+                            self._log.warning("db_error", phase="set_meta_stats", exc_info=True)
 
                 if self._state:  # type: ignore[misc]
 
@@ -1929,7 +1929,7 @@ class AsyncCrawler:
                         try:
                             await self._st.flush()
                         except Exception:
-                            self._log.warning("event=db_error phase=flush", exc_info=True)
+                            self._log.warning("db_error", phase="flush", exc_info=True)
 
                 if self._diagnostics:  # type: ignore[misc]
 
@@ -2073,9 +2073,9 @@ class AsyncCrawler:
                 os.chmod(report_path, 0o600)
             except Exception:
                 pass
-            self._log.info("event=report_saved path=%s", report_path)
+            self._log.info("report_saved", path=report_path)
         except Exception as e:
-            self._log.warning("event=report_error error=%s", e)
+            self._log.warning("report_error", error=e)
         return report
 
     async def _settle_url(
@@ -2096,10 +2096,10 @@ class AsyncCrawler:
         # FAILED: 此路径仅记录日志，统计和进度由下方兜底处理
         if disposition == UrlDisposition.FAILED:
             self._log.warning(
-                "event=url_permanent_fail url=%s depth=%d error=%s",
-                safe_log_url(url),
-                depth,
-                error,
+                "url_permanent_fail",
+                url=safe_log_url(url),
+                depth=depth,
+                error=error,
             )
             if state is not None:
                 await state.log_failure(url, depth, error, permanent=True)
@@ -2113,23 +2113,19 @@ class AsyncCrawler:
         display_url = safe_log_url(url)
         status = "✓" if outcome.is_success else "✗"
         if outcome.is_success:
-            self._log.debug(
-                "event=url_complete status=%s url=%s depth=%d outcome=%s", status, display_url, depth, outcome.value
-            )
+            self._log.debug("url_complete", status=status, url=display_url, depth=depth, outcome=outcome.value)
         else:
-            self._log.warning(
-                "event=url_complete status=%s url=%s depth=%d outcome=%s", status, display_url, depth, outcome.value
-            )
+            self._log.warning("url_complete", status=status, url=display_url, depth=depth, outcome=outcome.value)
 
     def request_pause(self) -> None:
         self._pause_event.clear()
-        self._log.info("event=crawl_pause completed=%d", self._crawl_stats.completed_urls)
+        self._log.info("crawl_pause", completed=self._crawl_stats.completed_urls)
         if self.signals:
             self.signals.pause_state.emit(True)
 
     def request_resume(self) -> None:
         self._pause_event.set()
-        self._log.info("event=crawl_resume completed=%d", self._crawl_stats.completed_urls)
+        self._log.info("crawl_resume", completed=self._crawl_stats.completed_urls)
         if self.signals:
             self.signals.pause_state.emit(False)
 

@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import logging
 from typing import Any, Optional
 
 from PySide6.QtCore import Qt
@@ -25,8 +24,9 @@ from astrocrawl.gui._preview_session import PreviewSession
 from astrocrawl.gui._tokens import SPACE_MD, SPACE_SM, SPACE_XS
 from astrocrawl.gui.theme import get_theme_manager
 from astrocrawl.rules._schema import FieldRule
+from astrocrawl.utils.logging import LogfmtLogger
 
-logger = logging.getLogger("astrocrawl.gui.preview")
+logger = LogfmtLogger("astrocrawl.gui.preview")
 
 
 class PreviewPanel(QDialog):
@@ -42,7 +42,7 @@ class PreviewPanel(QDialog):
         test_url: Optional[str] = None,
     ) -> PreviewPanel:
         if cls._instance is not None and cls._instance.isVisible():
-            logger.info("event=preview_panel_reuse")
+            logger.info("preview_panel_reuse")
             if snapshot is not None:
                 cls._instance._snapshot = snapshot
                 cls._instance._populate_rules()
@@ -52,11 +52,11 @@ class PreviewPanel(QDialog):
                 cls._instance.set_rule(rule_name, test_url)
             return cls._instance
         if cls._instance is not None:
-            logger.info("event=preview_panel_replace_orphan")
+            logger.info("preview_panel_replace_orphan")
             old = cls._instance
             cls._instance = None
             old.reject()  # 完整释放 PreviewSession + PreviewThread 资源
-        logger.info("event=preview_panel_create")
+        logger.info("preview_panel_create")
         panel = cls(snapshot)
         cls._instance = panel
         if rule_name:
@@ -361,14 +361,14 @@ class PreviewPanel(QDialog):
         self._refresh_page_row_backgrounds()
 
     def _on_error(self, msg: str) -> None:
-        logger.warning("event=preview_error error=%s", msg)
+        logger.warning("preview_error", error=msg)
         self._psb.stop_pulse()
         self._psb.show_status(msg, "error")
         self._loading = False
         self._go_btn.setEnabled(True)
 
     def _on_session_disposed(self) -> None:
-        logger.warning("event=preview_session_disposed")
+        logger.warning("preview_session_disposed")
         self._page_rows.clear()
         self._page_list.clear()
         self._psb.show_status(self.tr("Preview session ended"), "warning")
@@ -441,7 +441,7 @@ class PreviewPanel(QDialog):
         self.activateWindow()
 
     def reject(self) -> None:
-        logger.info("event=preview_panel_close")
+        logger.info("preview_panel_close")
         self._psb.dispose()
         self._page_rows.clear()
         if self._session:

@@ -3,6 +3,8 @@ from __future__ import annotations
 import logging
 import weakref
 
+from astrocrawl.utils.logging import LogfmtFormatter
+
 _HAS_PYSIDE6: bool | None = None
 
 
@@ -39,7 +41,16 @@ class _QtLogHandler(logging.Handler):
             self.handleError(record)
 
 
-def attach_qt_handler(logger: logging.Logger, signal) -> None:
+def attach_qt_handler(
+    logger: logging.Logger,
+    signal,
+    format_style: str = "logfmt",
+) -> None:
+    """将 Qt 信号桥接到指定 logger。
+
+    format_style 应与 setup_root_logger() 保持一致。
+    通常无需手动指定，默认 "logfmt" 即可。
+    """
     if not _is_qt_available():
         return
     for handler in logger.handlers[:]:
@@ -49,7 +60,10 @@ def attach_qt_handler(logger: logging.Logger, signal) -> None:
             except Exception:
                 pass
     qh = _QtLogHandler(signal, logger)
-    qh.setFormatter(logging.Formatter("%(asctime)s [%(levelname)s] %(name)s: %(message)s", datefmt="%H:%M:%S"))
+    if format_style == "classic":
+        qh.setFormatter(logging.Formatter("%(asctime)s [%(levelname)s] %(name)s: %(message)s", datefmt="%H:%M:%S"))
+    else:
+        qh.setFormatter(LogfmtFormatter(datefmt="%H:%M:%S"))
     logger.addHandler(qh)
 
 

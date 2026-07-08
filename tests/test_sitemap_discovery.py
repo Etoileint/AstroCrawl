@@ -8,12 +8,12 @@ ADR-0003/0004: SitemapDiscovery 管理种子 + 动态源站的 sitemap 发现。
 from __future__ import annotations
 
 import asyncio
-import logging
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
 from astrocrawl.network.sitemap import SitemapDiscovery
+from astrocrawl.utils.logging import LogfmtLogger
 
 # ═══════════════════════════════════════════════════════════════════════
 # Helpers
@@ -55,7 +55,7 @@ def _make_discovery(**overrides):
         "enqueue_callback": AsyncMock(return_value=True),
         "stop_event": asyncio.Event(),
         "config": _FakeConfig(),
-        "log": logging.getLogger("test"),
+        "log": LogfmtLogger("test"),
     }
     kwargs.update(overrides)
     return SitemapDiscovery(**kwargs)

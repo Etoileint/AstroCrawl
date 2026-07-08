@@ -8,10 +8,10 @@
 from __future__ import annotations
 
 import asyncio
-import logging
 from typing import TYPE_CHECKING, Any, Awaitable, Callable, List, Optional, Tuple
 
 from astrocrawl.resilience import Fuse
+from astrocrawl.utils.logging import LogfmtLogger
 
 if TYPE_CHECKING:
     from astrocrawl.health import Health
@@ -34,7 +34,7 @@ class Supervisor:
         on_fatal: Optional[Callable[[str], Awaitable[None]]] = None,
     ):
         self.name = name
-        self._log = logging.getLogger(f"astrocrawl.supervisor.{name}")
+        self._log = LogfmtLogger(f"astrocrawl.supervisor.{name}")
         self._fuse = Fuse(
             name,
             max_restarts,
@@ -104,7 +104,7 @@ class WorkerSupervisor(Supervisor):
                 exc = task.exception()
                 if exc is None:
                     continue  # 正常退出
-                self._log.warning("event=worker_death idx=%d error=%s", idx, exc)
+                self._log.warning("worker_death", idx=idx, error=exc)
                 if await self._fuse.record_failure():
                     raise RuntimeError(
                         f"WorkerSupervisor 熔断: {self._fuse.max_failures} 次/{self._fuse.within_seconds}s"

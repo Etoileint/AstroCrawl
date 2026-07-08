@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import logging
 import uuid
 from typing import TYPE_CHECKING, Any, AsyncIterator, Iterator
 
@@ -17,12 +16,13 @@ from astrocrawl.ai._types import (
     TokenUsage,
     ToolCall,
 )
+from astrocrawl.utils.logging import LogfmtLogger
 
 if TYPE_CHECKING:
     from astrocrawl.ai._config import AIConfig, _ResolvedParams
     from astrocrawl.ai._provider import _ChatProvider
 
-logger = logging.getLogger("astrocrawl.ai.google")
+logger = LogfmtLogger("astrocrawl.ai.google")
 
 # ADR-0008: Google native json_object (response_mime_type) and json_schema (response_schema).
 _STRUCTURED_OUTPUT_MODES = frozenset({"json_object", "json_schema"})

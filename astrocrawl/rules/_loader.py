@@ -6,7 +6,6 @@
 
 from __future__ import annotations
 
-import logging
 import os
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Dict, List, Sequence, Tuple
@@ -17,11 +16,12 @@ from astrocrawl.config import ConfigValidationError, CrawlerConfig
 from astrocrawl.rules._io import safe_read_rule_file
 from astrocrawl.rules._schema import MatchScope, RuleSchema, validate_rule
 from astrocrawl.rules._state import get_disabled_rules
+from astrocrawl.utils.logging import LogfmtLogger
 
 if TYPE_CHECKING:
     import threading
 
-logger = logging.getLogger("astrocrawl.rules.loader")
+logger = LogfmtLogger("astrocrawl.rules.loader")
 
 
 class RuleConflictError(ConfigValidationError):
@@ -74,9 +74,9 @@ def build_rule_snapshot(
             if p.is_dir():
                 dirs.append(("user", p))
             elif p.exists():
-                logger.warning("event=rules_dir_not_directory path=%s", p)
+                logger.warning("rules_dir_not_directory", path=p)
             else:
-                logger.debug("event=rules_dir_not_found path=%s", p)
+                logger.debug("rules_dir_not_found", path=p)
 
     all_rules: List[Tuple[RuleSchema, Path, str]] = []  # (rule, path, source)
 
@@ -85,7 +85,7 @@ def build_rule_snapshot(
             loaded = _load_from_dir(directory, source)
             all_rules.extend(loaded)
         except Exception as exc:
-            logger.warning("event=rule_load_dir_failed dir=%s source=%s error=%s", directory, source, exc)
+            logger.warning("rule_load_dir_failed", dir=directory, source=source, error=exc)
 
     # 去重：同名规则按源优先级 > version 决出唯一
     deduped = _deduplicate_rules(all_rules)
@@ -107,20 +107,18 @@ def build_rule_snapshot(
     # 数量限制
     if len(deduped_rules) > MAX_RULES_TOTAL:
         logger.warning(
-            "event=rule_limit_exceeded total=%d max=%d — 仅加载前 %d 条",
-            len(deduped_rules),
-            MAX_RULES_TOTAL,
-            MAX_RULES_TOTAL,
+            "rule_limit_exceeded",
+            total=len(deduped_rules),
+            max=MAX_RULES_TOTAL,
         )
         deduped_rules = deduped_rules[:MAX_RULES_TOTAL]
 
     generic_count = sum(1 for r in deduped_rules if r.is_generic)
     if generic_count > cfg.rules_max_generic:
         logger.warning(
-            "event=generic_rule_limit_exceeded total=%d max=%d — 仅保留前 %d 条",
-            generic_count,
-            cfg.rules_max_generic,
-            cfg.rules_max_generic,
+            "generic_rule_limit_exceeded",
+            total=generic_count,
+            max=cfg.rules_max_generic,
         )
         kept = 0
         filtered: List[RuleSchema] = []
@@ -162,7 +160,7 @@ def build_rule_snapshot(
     conflicts = _detect_ambiguous_rules(final_rules)
     if conflicts:
         for group in conflicts:
-            logger.warning("event=rule_conflict rules=%s", ", ".join(group))
+            logger.warning("rule_conflict", rules=", ".join(group))
 
     # 过滤路径/来源索引：仅保留通过截断进入 by_name 的规则，保持与 by_name 一致
     _path_map = {name: p for name, p in _path_map.items() if name in by_name}
@@ -193,7 +191,7 @@ def _load_from_dir(directory: Path, source: str) -> List[Tuple[RuleSchema, Path,
     rules: List[Tuple[RuleSchema, Path, str]] = []
 
     def _on_walk_error(err: OSError) -> None:
-        logger.warning("event=rule_dir_unreadable path=%s error=%s", err.filename, err)
+        logger.warning("rule_dir_unreadable", path=err.filename, error=err)
 
     try:
         json_files: List[Path] = []
@@ -206,7 +204,7 @@ def _load_from_dir(directory: Path, source: str) -> List[Tuple[RuleSchema, Path,
             if rule is not None:
                 rules.append((rule, entry, source))
     except PermissionError:
-        logger.warning("event=rule_dir_permission_denied dir=%s", directory)
+        logger.warning("rule_dir_permission_denied", dir=directory)
     return rules
 
 
@@ -216,7 +214,7 @@ def load_rule_file(path: Path, source: str) -> RuleSchema | None:
         # S14: 文件大小门控
         size = path.stat().st_size
         if size > MAX_RULE_FILE_SIZE:
-            logger.warning("event=rule_file_too_large path=%s size=%d max=%d", path, size, MAX_RULE_FILE_SIZE)
+            logger.warning("rule_file_too_large", path=path, size=size, max=MAX_RULE_FILE_SIZE)
             return None
         if size == 0:
             return None
@@ -226,7 +224,7 @@ def load_rule_file(path: Path, source: str) -> RuleSchema | None:
 
         # S24: JSON 深度限制
         if not _check_json_depth(data, MAX_JSON_DEPTH):
-            logger.warning("event=rule_json_depth_exceeded path=%s max=%d", path, MAX_JSON_DEPTH)
+            logger.warning("rule_json_depth_exceeded", path=path, max=MAX_JSON_DEPTH)
             return None
 
         # 跳过 _prompt_template.txt 等非规则文件 (可能在递归中被误匹配)
@@ -237,10 +235,10 @@ def load_rule_file(path: Path, source: str) -> RuleSchema | None:
         return rule
     except ValueError as e:
         # JSON 解析错误 (含 S25 重复 key) + Schema 校验错误
-        logger.warning("event=rule_load_invalid path=%s error=%s", path, e)
+        logger.warning("rule_load_invalid", path=path, error=e)
         return None
     except Exception as e:
-        logger.warning("event=rule_load_error path=%s error=%s", path, e)
+        logger.warning("rule_load_error", path=path, error=e)
         return None
 
 

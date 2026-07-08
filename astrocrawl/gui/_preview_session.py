@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import asyncio
-import logging
 import warnings
 from typing import Any, Optional
 
@@ -9,8 +8,9 @@ from PySide6.QtCore import QObject, QThread, Signal
 
 from astrocrawl._constants import SHUTDOWN_ASYNCGEN_TIMEOUT, SHUTDOWN_EXECUTOR_TIMEOUT, SHUTDOWN_PENDING_TIMEOUT
 from astrocrawl.browser._preview import PreviewBrowser, PreviewPageHandle, PreviewParams
+from astrocrawl.utils.logging import LogfmtLogger
 
-logger = logging.getLogger("astrocrawl.gui.preview")
+logger = LogfmtLogger("astrocrawl.gui.preview")
 
 _SESSION_SIGNALS = (
     "page_opened",
@@ -42,7 +42,7 @@ class PreviewThread(QThread):
         except asyncio.CancelledError:
             pass
         except Exception as exc:
-            logger.error("event=preview_browser_crashed error=%s", exc)
+            logger.error("preview_browser_crashed", error=exc)
         finally:
             try:
                 current = asyncio.current_task(loop)
@@ -141,7 +141,7 @@ class PreviewSession(QObject):
         try:
             handle, result = future.result(timeout=30)
         except Exception as exc:
-            logger.warning("event=preview_open_failed url=%s rule=%s error=%s", url, rule_name, exc)
+            logger.warning("preview_open_failed", url=url, rule=rule_name, error=exc)
             self.error_occurred.emit(self.tr("Failed to open page: {0}").format(exc))
             return
         self.page_opened.emit(handle)

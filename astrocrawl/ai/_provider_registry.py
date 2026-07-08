@@ -8,16 +8,16 @@ list_models 通过 module-level getattr 约定发现（ADR-0007 决策 3）。
 from __future__ import annotations
 
 import importlib
-import logging
 from typing import TYPE_CHECKING, Any, Callable
 
 from astrocrawl.ai._errors import AIProviderUnavailableError
+from astrocrawl.utils.logging import LogfmtLogger
 
 if TYPE_CHECKING:
     from astrocrawl.ai._config import AIConfig
     from astrocrawl.ai._provider import _ChatProvider
 
-logger = logging.getLogger("astrocrawl.ai")
+logger = LogfmtLogger("astrocrawl.ai")
 
 
 def _get_entry_points(group: str):

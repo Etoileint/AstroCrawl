@@ -7,7 +7,6 @@ H5: 五层提示注入防御（OWASP LLM01）。输出验证 (#158) 是唯一不
 from __future__ import annotations
 
 import json
-import logging
 import unicodedata
 from typing import TYPE_CHECKING, Any
 from urllib.parse import urlparse, urlunparse
@@ -23,11 +22,12 @@ from astrocrawl.rules._html_preprocess import PreprocessTier, preprocess_html
 from astrocrawl.rules._markdown import clean_markdown_wrapper
 from astrocrawl.rules._schema import RuleSchema, validate_rule
 from astrocrawl.rules._template import get_prompt_template
+from astrocrawl.utils.logging import LogfmtLogger
 
 if TYPE_CHECKING:
     import threading
 
-logger = logging.getLogger("astrocrawl.rules.ai")
+logger = LogfmtLogger("astrocrawl.rules.ai")
 
 
 class GenerationCancelled(Exception):
@@ -268,7 +268,7 @@ class RuleGenerator:
             try:
                 data = json.loads(cleaned)
             except json.JSONDecodeError:
-                logger.warning("event=ai_response_parse_failed content_preview=%s", response.content[:200])
+                logger.warning("ai_response_parse_failed", content_preview=response.content[:200])
                 raise
         rule = validate_rule(data)
         if source_html:
@@ -281,7 +281,7 @@ def _validate_extraction(rule: RuleSchema, html: str) -> None:
     try:
         soup = BeautifulSoup(html, "lxml")
     except Exception:
-        logger.warning("event=validation_parse_error — 跳过提取验证")
+        logger.warning("validation_parse_error")
         return
 
     extracted = _extract_all_fields(soup, rule.fields)

@@ -9,7 +9,6 @@ ProxyHealthTracker — 每个代理独立的 Circuit Breaker 状态机 + 后台 
 from __future__ import annotations
 
 import asyncio
-import logging
 import threading
 import time
 from collections import deque
@@ -30,6 +29,7 @@ from astrocrawl._constants import (
     PROXY_SCORE_WINDOW,
 )
 from astrocrawl.proxy._probe import probe_one
+from astrocrawl.utils.logging import LogfmtLogger
 
 if TYPE_CHECKING:
     from astrocrawl.proxy._config import ParsedProxy
@@ -51,7 +51,7 @@ class ProxyManager:
         self._proxies = list(proxies)
         self._index = 0
         self._lock = threading.Lock()
-        self._log = logging.getLogger("astrocrawl.proxy")
+        self._log = LogfmtLogger("astrocrawl.proxy")
         # SWRR state
         self._cw: Dict[str, int] = {}
         self._swrr_initialized = False
@@ -245,7 +245,7 @@ class ProxyHealthTracker:
         self._stats: Dict[str, ProxyStats] = {}
         self._lock = threading.Lock()
         self._snapshot: Dict[str, ProxyStats] = {}
-        self._log = logging.getLogger("astrocrawl.proxy.health")
+        self._log = LogfmtLogger("astrocrawl.proxy.health")
         self._probe_ok: Dict[str, int] = {}
         self._probe_task: Optional[asyncio.Task] = None
         self._probe_stop = asyncio.Event()
