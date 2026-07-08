@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import sys
 from types import SimpleNamespace
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 from astrocrawl.ai._config import AIConfig, _ResolvedParams
 from astrocrawl.ai._errors import AIAuthError, AIError, AIInvalidRequestError, AIRateLimitError, AIServerError
@@ -400,7 +400,7 @@ class TestGoogleClientAclose:
         client = GoogleClient(api_key="k")
         mock_async = MagicMock()
         mock_async.aio = MagicMock()
-        mock_async.aio.close = MagicMock()
+        mock_async.aio.close = AsyncMock()
         client._async_client = mock_async
         await client.aclose()
         assert client._async_client is None
@@ -409,10 +409,55 @@ class TestGoogleClientAclose:
         client = GoogleClient(api_key="k")
         mock_async = MagicMock()
         mock_async.aio = MagicMock()
-        mock_async.aio.close = MagicMock(side_effect=Exception("close failed"))
+        mock_async.aio.close = AsyncMock(side_effect=Exception("close failed"))
         client._async_client = mock_async
         await client.aclose()
         assert client._async_client is None
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# close
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestGoogleClientClose:
+    """GoogleClient.close() — 同步清理 sync client（直接置 None，不调用 close()）。"""
+
+    def test_close_no_client(self):
+        client = GoogleClient(api_key="k")
+        client.close()
+        assert client._sync_client is None
+
+    def test_close_with_sync_client(self):
+        client = GoogleClient(api_key="k")
+        mock_sync = MagicMock()
+        client._sync_client = mock_sync
+        client.close()
+        assert client._sync_client is None
+
+    def test_close_idempotent(self):
+        client = GoogleClient(api_key="k")
+        client._sync_client = MagicMock()
+        client.close()
+        client.close()
+        assert client._sync_client is None
+
+    def test_close_does_not_call_close_on_client(self):
+        """Google close() 直接置 None，不调 client.close()——与其他 provider 不同。"""
+        client = GoogleClient(api_key="k")
+        mock_sync = MagicMock()
+        client._sync_client = mock_sync
+        client.close()
+        mock_sync.close.assert_not_called()
+
+    def test_close_only_sync_not_async(self):
+        client = GoogleClient(api_key="k")
+        mock_async = MagicMock()
+        client._async_client = mock_async
+        client._sync_client = MagicMock()
+        client.close()
+        assert client._sync_client is None
+        assert client._async_client is mock_async
 
 
 class TestListModels:

@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import sys
 from types import SimpleNamespace
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 from astrocrawl.ai._config import AIConfig, _ResolvedParams
 from astrocrawl.ai._errors import AIAuthError, AIError, AIInvalidRequestError, AIRateLimitError, AIServerError
@@ -448,7 +448,7 @@ class TestAnthropicClientAclose:
     async def test_aclose_with_async_client(self):
         client = AnthropicClient(api_key="k")
         mock_async = MagicMock()
-        mock_async.close = MagicMock()
+        mock_async.close = AsyncMock()
         client._async_client = mock_async
         await client.aclose()
         assert client._async_client is None
@@ -456,7 +456,7 @@ class TestAnthropicClientAclose:
     async def test_aclose_handles_close_exception(self):
         client = AnthropicClient(api_key="k")
         mock_async = MagicMock()
-        mock_async.close = MagicMock(side_effect=Exception("close failed"))
+        mock_async.close = AsyncMock(side_effect=Exception("close failed"))
         client._async_client = mock_async
         await client.aclose()
         assert client._async_client is None
@@ -467,6 +467,64 @@ class TestAnthropicClientAclose:
         client._sync_client = mock_sync
         await client.aclose()
         assert client._sync_client is None
+
+    async def test_aclose_handles_sync_close_exception(self):
+        client = AnthropicClient(api_key="k")
+        mock_sync = MagicMock()
+        mock_sync.close = MagicMock(side_effect=OSError("fd leak"))
+        client._sync_client = mock_sync
+        await client.aclose()
+        assert client._sync_client is None
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# close
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestAnthropicClientClose:
+    """AnthropicClient.close() — 同步清理 sync HTTP client。"""
+
+    def test_close_no_client(self):
+        client = AnthropicClient(api_key="k")
+        client.close()
+        assert client._sync_client is None
+
+    def test_close_with_sync_client(self):
+        client = AnthropicClient(api_key="k")
+        mock_sync = MagicMock()
+        client._sync_client = mock_sync
+        client.close()
+        assert client._sync_client is None
+        mock_sync.close.assert_called_once()
+
+    def test_close_handles_exception(self):
+        client = AnthropicClient(api_key="k")
+        mock_sync = MagicMock()
+        mock_sync.close = MagicMock(side_effect=OSError("fd leak"))
+        client._sync_client = mock_sync
+        client.close()
+        assert client._sync_client is None
+
+    def test_close_idempotent(self):
+        client = AnthropicClient(api_key="k")
+        mock_sync = MagicMock()
+        client._sync_client = mock_sync
+        client.close()
+        client.close()
+        mock_sync.close.assert_called_once()
+
+    def test_close_only_sync_not_async(self):
+        """close() 只清理 sync client，不动 async client。"""
+        client = AnthropicClient(api_key="k")
+        mock_async = MagicMock()
+        mock_sync = MagicMock()
+        client._async_client = mock_async
+        client._sync_client = mock_sync
+        client.close()
+        assert client._sync_client is None
+        assert client._async_client is mock_async
+        mock_async.close.assert_not_called()
 
 
 # ═══════════════════════════════════════════════════════════════════════

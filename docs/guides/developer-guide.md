@@ -103,13 +103,13 @@ pytest tests/test_db.py                    # 指定文件
 | `tests/test_ai_constraint.py` | OutputConstraint 结构化输出 + 能力降级 + Provider 能力 (49 用例, ADR-0008) | <!-- @stats tests.modules.test_ai_constraint.lines -->491<!-- /@stats --> |
 | `tests/test_ai_provider.py` | _ChatProvider / _SupportsEmbedding Protocol + entry point 发现 (27 用例) | <!-- @stats tests.modules.test_ai_provider.lines -->278<!-- /@stats --> |
 | `tests/test_ai_rate_limiter.py` | TokenBucket + BoundedSemaphore + UsageTracker (35 用例, 100% cov) | <!-- @stats tests.modules.test_ai_rate_limiter.lines -->497<!-- /@stats --> |
-| `tests/ai_openai/test_client.py` | _map_error + OpenAIClient 单元测试 | <!-- @stats tests.modules.ai_openai.test_client.lines -->300<!-- /@stats --> |
+| `tests/ai_openai/test_client.py` | _map_error + OpenAIClient 单元测试 | <!-- @stats tests.modules.ai_openai.test_client.lines -->407<!-- /@stats --> |
 | `tests/test_ai_generation.py` | RuleGenerator AI 规则生成端到端 (6 用例) | <!-- @stats tests.modules.test_ai_generation.lines -->79<!-- /@stats --> |
 | `tests/test_ai_rules.py` | AI 生成规则验证与导入 (27 用例) | <!-- @stats tests.modules.test_ai_rules.lines -->754<!-- /@stats --> |
 | `tests/test_ai_template.py` | AI Prompt 模板加载/回退 + Schema 契约测试 (19 用例) | <!-- @stats tests.modules.test_ai_template.lines -->232<!-- /@stats --> |
 | `tests/test_ai_profile.py` | AIProfile 多 Profile 管理 (25 用例, 100% cov) | <!-- @stats tests.modules.test_ai_profile.lines -->243<!-- /@stats --> |
-| `tests/ai_anthropic/test_client.py` | AnthropicClient + _map_error + 辅助函数 (55 用例) | <!-- @stats tests.modules.ai_anthropic.test_client.lines -->522<!-- /@stats --> |
-| `tests/ai_google/test_client.py` | GoogleClient + _map_error + 辅助函数 (47 用例) | <!-- @stats tests.modules.ai_google.test_client.lines -->483<!-- /@stats --> |
+| `tests/ai_anthropic/test_client.py` | AnthropicClient + _map_error + 辅助函数 (55 用例) | <!-- @stats tests.modules.ai_anthropic.test_client.lines -->580<!-- /@stats --> |
+| `tests/ai_google/test_client.py` | GoogleClient + _map_error + 辅助函数 (47 用例) | <!-- @stats tests.modules.ai_google.test_client.lines -->528<!-- /@stats --> |
 | `tests/test_rules_state.py` | fcntl 锁状态机 + 损坏恢复 + 优雅降级 (23 用例) | <!-- @stats tests.modules.test_rules_state.lines -->415<!-- /@stats --> |
 | `tests/test_rules_engine.py` | 规则引擎核心 — 加载/匹配/提取/Transform | <!-- @stats tests.modules.test_rules_engine.lines -->1,817<!-- /@stats --> |
 | `tests/test_rules_lifecycle.py` | 规则生命周期 — 启用/禁用/删除/校验 | <!-- @stats tests.modules.test_rules_lifecycle.lines -->613<!-- /@stats --> |

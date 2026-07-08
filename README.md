@@ -16,7 +16,7 @@
 
 # 中文文档
 
-AstroCrawl 是基于 **Playwright 无头 Chromium** 的全功能异步网页爬虫，约 <!-- @stats stats.source_lines -->29,327<!-- /@stats --> 行 Python，<!-- @stats stats.source_files -->115<!-- /@stats --> 源文件，内置 3 个 AI Provider，<!-- @stats stats.test_files -->106<!-- /@stats --> 测试文件 <!-- @stats stats.test_cases -->3,874<!-- /@stats --> 测试用例。支持 JavaScript 渲染、robots.txt 遵从（RFC 9309）、Sitemap 自动发现、代理轮换、内容去重、崩溃恢复，以及声明式 CSS 选择器提取规则引擎和多 Provider AI 基础设施。提供 PySide6 GUI 图形界面和功能完整的 CLI 命令行两种使用方式。
+AstroCrawl 是基于 **Playwright 无头 Chromium** 的全功能异步网页爬虫，约 <!-- @stats stats.source_lines -->29,327<!-- /@stats --> 行 Python，<!-- @stats stats.source_files -->115<!-- /@stats --> 源文件，内置 3 个 AI Provider，<!-- @stats stats.test_files -->106<!-- /@stats --> 测试文件 <!-- @stats stats.test_cases -->3,896<!-- /@stats --> 测试用例。支持 JavaScript 渲染、robots.txt 遵从（RFC 9309）、Sitemap 自动发现、代理轮换、内容去重、崩溃恢复，以及声明式 CSS 选择器提取规则引擎和多 Provider AI 基础设施。提供 PySide6 GUI 图形界面和功能完整的 CLI 命令行两种使用方式。
 
 ## 快速开始
 
@@ -670,7 +670,7 @@ Apache 2.0 © Etoileint
 
 # English Documentation
 
-AstroCrawl is a full-featured async web crawler built on **Playwright headless Chromium** — <!-- @stats stats.source_lines -->29,327<!-- /@stats --> lines of Python across <!-- @stats stats.source_files -->115<!-- /@stats --> source files, 3 built-in AI providers, <!-- @stats stats.test_files -->106<!-- /@stats --> test files with <!-- @stats stats.test_cases -->3,874<!-- /@stats --> tests. It supports JavaScript rendering, robots.txt compliance (RFC 9309), automatic sitemap discovery, proxy rotation, content deduplication, crash recovery, a declarative CSS-selector extraction rules engine, and a multi-provider AI infrastructure. Available as both a PySide6 GUI desktop app and a feature-complete CLI tool.
+AstroCrawl is a full-featured async web crawler built on **Playwright headless Chromium** — <!-- @stats stats.source_lines -->29,327<!-- /@stats --> lines of Python across <!-- @stats stats.source_files -->115<!-- /@stats --> source files, 3 built-in AI providers, <!-- @stats stats.test_files -->106<!-- /@stats --> test files with <!-- @stats stats.test_cases -->3,896<!-- /@stats --> tests. It supports JavaScript rendering, robots.txt compliance (RFC 9309), automatic sitemap discovery, proxy rotation, content deduplication, crash recovery, a declarative CSS-selector extraction rules engine, and a multi-provider AI infrastructure. Available as both a PySide6 GUI desktop app and a feature-complete CLI tool.
 
 ## Quick Start
 

@@ -6,7 +6,7 @@ ADR-0006 #2: 从 tests/test_ai_client.py TestErrorMapping 迁移。
 from __future__ import annotations
 
 from types import SimpleNamespace
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 from astrocrawl.ai._config import AIConfig
 from astrocrawl.ai._errors import (
@@ -298,3 +298,110 @@ class TestBuildRequestKwargsOutput:
         params = self._params()
         kwargs = self._client()._build_request_kwargs([], None, params)
         assert "response_format" not in kwargs
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# OpenAIClient — aclose / close
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestOpenAIClientAclose:
+    """OpenAIClient.aclose() — 异步清理 HTTP clients。"""
+
+    async def test_aclose_no_clients(self):
+        client = OpenAIClient(api_key="k")
+        await client.aclose()
+        assert client._async_client is None
+        assert client._sync_client is None
+
+    async def test_aclose_with_async_client(self):
+        client = OpenAIClient(api_key="k")
+        mock_async = MagicMock()
+        mock_async.close = AsyncMock()
+        client._async_client = mock_async
+        await client.aclose()
+        assert client._async_client is None
+        mock_async.close.assert_called_once()
+
+    async def test_aclose_handles_async_close_exception(self):
+        client = OpenAIClient(api_key="k")
+        mock_async = MagicMock()
+        mock_async.close = AsyncMock(side_effect=OSError("connection lost"))
+        client._async_client = mock_async
+        await client.aclose()
+        assert client._async_client is None
+
+    async def test_aclose_with_both_clients(self):
+        client = OpenAIClient(api_key="k")
+        mock_async = MagicMock()
+        mock_async.close = AsyncMock()
+        mock_sync = MagicMock()
+        client._async_client = mock_async
+        client._sync_client = mock_sync
+        await client.aclose()
+        assert client._async_client is None
+        assert client._sync_client is None
+        mock_async.close.assert_called_once()
+        mock_sync.close.assert_called_once()
+
+    async def test_aclose_handles_sync_close_exception(self):
+        client = OpenAIClient(api_key="k")
+        mock_sync = MagicMock()
+        mock_sync.close = MagicMock(side_effect=OSError("fd leak"))
+        client._sync_client = mock_sync
+        await client.aclose()
+        assert client._sync_client is None
+
+    async def test_aclose_idempotent(self):
+        client = OpenAIClient(api_key="k")
+        mock_async = MagicMock()
+        mock_async.close = AsyncMock()
+        client._async_client = mock_async
+        await client.aclose()
+        await client.aclose()
+        mock_async.close.assert_called_once()
+
+
+class TestOpenAIClientClose:
+    """OpenAIClient.close() — 同步清理 sync HTTP client。"""
+
+    def test_close_no_client(self):
+        client = OpenAIClient(api_key="k")
+        client.close()
+        assert client._sync_client is None
+
+    def test_close_with_sync_client(self):
+        client = OpenAIClient(api_key="k")
+        mock_sync = MagicMock()
+        client._sync_client = mock_sync
+        client.close()
+        assert client._sync_client is None
+        mock_sync.close.assert_called_once()
+
+    def test_close_handles_exception(self):
+        client = OpenAIClient(api_key="k")
+        mock_sync = MagicMock()
+        mock_sync.close = MagicMock(side_effect=OSError("fd leak"))
+        client._sync_client = mock_sync
+        client.close()
+        assert client._sync_client is None
+
+    def test_close_idempotent(self):
+        client = OpenAIClient(api_key="k")
+        mock_sync = MagicMock()
+        client._sync_client = mock_sync
+        client.close()
+        client.close()
+        mock_sync.close.assert_called_once()
+
+    def test_close_only_sync_not_async(self):
+        """close() 只清理 sync client，不动 async client。"""
+        client = OpenAIClient(api_key="k")
+        mock_async = MagicMock()
+        mock_sync = MagicMock()
+        client._async_client = mock_async
+        client._sync_client = mock_sync
+        client.close()
+        assert client._sync_client is None
+        assert client._async_client is mock_async
+        mock_async.close.assert_not_called()
