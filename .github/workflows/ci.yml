@@ -38,16 +38,16 @@ jobs:
           pip install codespell && codespell --ignore-words-list=finshed
 
       - name: mypy
-        run: mypy astrocrawl/astrocrawl/ astrobase/astrobase/ astroframe/astroframe/ astroflow/astroflow/
+        run: mypy astrocrawl/astrocrawl/ astrobasis/astrobasis/ astroframe/astroframe/ astroflow/astroflow/
 
       - name: Build check (astroproject)
         run: |
           cd astroproject && python -m build
           twine check dist/*
 
-      - name: Build check (astrobase)
+      - name: Build check (astrobasis)
         run: |
-          cd astrobase && python -m build
+          cd astrobasis && python -m build
           twine check dist/*
 
       - name: Build check (astroflow)
@@ -213,7 +213,7 @@ jobs:
       - run: sudo apt-get install -y libxcb-cursor0 libegl1
 
       - run: |
-          pip install --config-settings editable_mode=compat -e astrobase/
+          pip install --config-settings editable_mode=compat -e astrobasis/
           pip install --config-settings editable_mode=compat -e astroflow/
           pip install --config-settings editable_mode=compat -e astroframe/
           pip install --config-settings editable_mode=compat -e "astrocrawl/[dev,gui,full,yaml,fast,monitor]"
@@ -231,8 +231,8 @@ jobs:
       - name: Non-GUI tests (astroproject)
         run: pytest astroproject/tests/ --cov -q || [ $? -eq 5 ]
 
-      - name: Non-GUI tests (astrobase)
-        run: pytest astrobase/tests/ --cov -q
+      - name: Non-GUI tests (astrobasis)
+        run: pytest astrobasis/tests/ --cov -q
 
       - name: Non-GUI tests (astroframe)
         run: pytest astroframe/tests/ --cov-append -q
@@ -285,7 +285,7 @@ jobs:
           PKG="${TAG%%/*}"
           VERSION="${TAG#*/}"
           VERSION="${VERSION#v}"
-          KNOWN="astroproject astrobase astroframe astrocrawl astroflow"
+          KNOWN="astroproject astrobasis astroframe astrocrawl astroflow"
           if ! echo "$KNOWN" | grep -qw "$PKG"; then
             echo "::error::Unknown package in tag: $TAG (expected one of: $KNOWN)"
             exit 1

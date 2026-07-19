@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from astrobase import AsyncCloseable
+from astrobasis import AsyncCloseable
 
 
 class TestAsyncCloseableProtocol:

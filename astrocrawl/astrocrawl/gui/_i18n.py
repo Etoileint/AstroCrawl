@@ -10,7 +10,7 @@ from pathlib import Path
 
 from PySide6.QtCore import QCoreApplication, QLibraryInfo, QLocale, QTranslator
 
-from astrobase import LogfmtLogger
+from astrobasis import LogfmtLogger
 
 _LOG = LogfmtLogger("astrocrawl.gui.i18n")
 

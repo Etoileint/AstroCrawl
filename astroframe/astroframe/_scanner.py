@@ -34,7 +34,7 @@ from importlib.metadata import distribution
 from importlib.util import find_spec as _find_spec
 from pathlib import Path
 
-from astrobase import LogfmtLogger
+from astrobasis import LogfmtLogger
 
 log = LogfmtLogger("astroframe.scanner")
 

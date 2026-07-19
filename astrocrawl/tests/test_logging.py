@@ -1,6 +1,6 @@
 """Qt log bridge integration tests — attach_qt_handler / detach_qt_handler.
 
-setup_root_logger unit tests moved to astrobase/tests/test_logging.py.
+setup_root_logger unit tests moved to astrobasis/tests/test_logging.py.
 """
 
 from __future__ import annotations

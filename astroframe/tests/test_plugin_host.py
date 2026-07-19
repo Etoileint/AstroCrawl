@@ -110,17 +110,17 @@ def _make_test_plugin(tmp_path: Path) -> tuple[str, str]:
 
 
 def _build_config_json(factory_module: str, factory_attr: str, tmp_path_str: str) -> str:
-    """构建 host config_json——包含 bootstrap_paths 以确保 host 能导入 astroframe + astrobase。"""
+    """构建 host config_json——包含 bootstrap_paths 以确保 host 能导入 astroframe + astrobasis。"""
     import site
 
-    import astrobase
+    import astrobasis
     import astroframe
 
     engine_parent = str(Path(astroframe.__file__).parent.parent)
-    astrobase_parent = str(Path(astrobase.__file__).parent.parent)
+    astrobasis_parent = str(Path(astrobasis.__file__).parent.parent)
 
     # bootstrap_paths: -I 隐含 -E，路径通过 config JSON 传递
-    bootstrap_paths = [engine_parent, astrobase_parent, tmp_path_str]
+    bootstrap_paths = [engine_parent, astrobasis_parent, tmp_path_str]
     try:
         site_packages = site.getsitepackages()
         bootstrap_paths.extend(site_packages)
@@ -128,7 +128,7 @@ def _build_config_json(factory_module: str, factory_attr: str, tmp_path_str: str
         pass
 
     # sys_path_entries（完整 sys.path 构建用）
-    sys_path_entries = [tmp_path_str, engine_parent, astrobase_parent]
+    sys_path_entries = [tmp_path_str, engine_parent, astrobasis_parent]
     try:
         sys_path_entries.extend(site.getsitepackages())
     except Exception:

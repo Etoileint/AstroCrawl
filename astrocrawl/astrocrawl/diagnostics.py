@@ -24,7 +24,7 @@ import sys
 import time
 from typing import TYPE_CHECKING, Optional
 
-from astrobase import LogfmtLogger
+from astrobasis import LogfmtLogger
 from astrocrawl._constants import HTTP_READ_LINE_TIMEOUT
 from astrocrawl.health import Health, health_to_report
 from astrocrawl.health_monitor import HealthMonitor

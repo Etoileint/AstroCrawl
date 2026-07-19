@@ -9,7 +9,7 @@ from __future__ import annotations
 from collections import defaultdict
 from typing import Any
 
-from astrobase import LogfmtLogger
+from astrobasis import LogfmtLogger
 from astroframe._errors import CapabilityConflictError
 from astroframe._types import CapabilityRef, PluginRef, PluginStatus
 

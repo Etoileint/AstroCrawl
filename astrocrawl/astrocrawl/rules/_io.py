@@ -10,7 +10,7 @@ import json
 import time
 from typing import TYPE_CHECKING, Any
 
-from astrobase import LogfmtLogger, atomic_write_json
+from astrobasis import LogfmtLogger, atomic_write_json
 from astrocrawl._constants import MAX_RULE_FILE_SIZE, MAX_RULES_CACHE_SIZE, RULES_TMP_MAX_AGE_HOURS
 from astrocrawl.rules._markdown import clean_markdown_wrapper
 from astrocrawl.rules._schema import RuleSchema, validate_rule

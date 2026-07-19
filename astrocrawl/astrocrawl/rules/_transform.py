@@ -10,7 +10,7 @@ from typing import Any, Dict
 
 import re2
 
-from astrobase import LogfmtLogger
+from astrobasis import LogfmtLogger
 from astrocrawl._constants import CURRENCY_SYMBOLS, TRANSFORM_MEMORY_MULTIPLIER
 
 logger = LogfmtLogger("astrocrawl.rules.transform")

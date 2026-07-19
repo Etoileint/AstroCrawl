@@ -18,7 +18,7 @@ import sys
 from dataclasses import dataclass
 from typing import Any, Protocol, runtime_checkable
 
-from astrobase import LogfmtLogger
+from astrobasis import LogfmtLogger
 
 log = LogfmtLogger("astroframe.sandbox")
 

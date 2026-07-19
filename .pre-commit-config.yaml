@@ -44,7 +44,7 @@ repos:
         entry: python scripts/check_logfmt.py
         language: system
         types: [python]
-        files: ^(astrocrawl/astrocrawl/|astrobase/astrobase/|astroframe/astroframe/|astroflow/astroflow/)
+        files: ^(astrocrawl/astrocrawl/|astrobasis/astrobasis/|astroframe/astroframe/|astroflow/astroflow/)
       - id: i18n-ts-dicts
         name: i18n-ts-dicts
         entry: python scripts/check_ts_dicts.py astrocrawl/astrocrawl/gui/translations/astrocrawl_gui_zh_CN.ts

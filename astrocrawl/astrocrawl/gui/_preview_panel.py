@@ -18,7 +18,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from astrobase import LogfmtLogger
+from astrobasis import LogfmtLogger
 from astrocrawl.browser._preview import PreviewFieldParams, PreviewParams, assign_field_colors
 from astrocrawl.gui._animated_bar import _ProgressStatusBar
 from astrocrawl.gui._preview_session import PreviewSession

@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 import weakref
 
-from astrobase import LogfmtFormatter
+from astrobasis import LogfmtFormatter
 
 _HAS_PYSIDE6: bool | None = None
 

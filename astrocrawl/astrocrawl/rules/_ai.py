@@ -14,7 +14,7 @@ from urllib.parse import urlparse, urlunparse
 from bs4 import BeautifulSoup
 from pydantic import ValidationError
 
-from astrobase import LogfmtLogger
+from astrobasis import LogfmtLogger
 from astrocrawl.ai import AIClient, GenerationParams, OutputConstraint
 from astrocrawl.ai._types import ChatMessage, ChatResponse, Role
 from astrocrawl.rules._chatml import count_tokens, serialize_chatml

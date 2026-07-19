@@ -10,7 +10,7 @@ import sys
 from pathlib import Path
 from typing import Any, List, Optional
 
-from astrobase import setup_root_logger
+from astrobasis import setup_root_logger
 from astrocrawl._version import __version__
 from astrocrawl.cli._i18n import tr
 from astrocrawl.config import DEFAULT_CONFIG, CrawlerConfig

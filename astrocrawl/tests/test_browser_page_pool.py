@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import pytest
 
-from astrobase import LogfmtLogger
+from astrobasis import LogfmtLogger
 from astrocrawl.browser.page_pool import PagePool, safe_close_page
 from tests._fakes import FakeBrowserContext, FakePage
 

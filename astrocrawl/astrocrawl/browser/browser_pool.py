@@ -22,7 +22,7 @@ from playwright.async_api import Error as PlaywrightError
 from playwright.async_api import Page
 from playwright.async_api import TimeoutError as PlaywrightTimeoutError
 
-from astrobase import LogfmtLogger
+from astrobasis import LogfmtLogger
 from astrocrawl._constants import (
     BLOCKED_RESOURCE_TYPES,
     BROWSER_GOTO_BUFFER_S,

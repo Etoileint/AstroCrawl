@@ -32,7 +32,7 @@ classifiers = [
 ]
 requires-python = ">=3.12"
 dependencies = [
-    "astrobase>=0.1",
+    "astrobasis>=0.1",
 ]
 
 [project.urls]

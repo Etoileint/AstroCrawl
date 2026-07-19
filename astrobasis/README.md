@@ -1,17 +1,17 @@
-# astrobase <em>天枢</em>
+# astrobasis <em>天枢</em>
 
 Pure mechanism layer for the Astro ecosystem. Zero hard dependencies beyond Python 3.12 stdlib.
 
 ## Install
 
 ```bash
-pip install astrobase
+pip install astrobasis
 ```
 
 For JSON performance acceleration:
 
 ```bash
-pip install astrobase[fast]
+pip install astrobasis[fast]
 ```
 
 Or from source:
@@ -34,7 +34,7 @@ pip install -e .
 ### Structured logging
 
 ```python
-from astrobase import LogfmtLogger
+from astrobasis import LogfmtLogger
 
 logger = LogfmtLogger("my_module")
 logger.info("request_complete", url="https://example.com", status=200)
@@ -44,7 +44,7 @@ logger.info("request_complete", url="https://example.com", status=200)
 ### Atomic file writes
 
 ```python
-from astrobase import atomic_write_json
+from astrobasis import atomic_write_json
 
 data = {"key": "value", "nested": [1, 2, 3]}
 atomic_write_json("/path/to/config.json", data)
@@ -54,17 +54,17 @@ atomic_write_json("/path/to/config.json", data)
 ### JSON compatibility
 
 ```python
-from astrobase import _json_dumps
+from astrobasis import _json_dumps
 
 data = {"items": ["a", "b", "c"]}
 result = _json_dumps(data)
-# Uses orjson if installed (`pip install astrobase[fast]`), stdlib json otherwise.
+# Uses orjson if installed (`pip install astrobasis[fast]`), stdlib json otherwise.
 ```
 
 ### Async resource protocol
 
 ```python
-from astrobase import AsyncCloseable
+from astrobasis import AsyncCloseable
 
 class MyResource(AsyncCloseable):
     async def aclose(self) -> None:

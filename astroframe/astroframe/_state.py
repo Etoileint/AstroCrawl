@@ -15,7 +15,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from astrobase import LogfmtLogger, atomic_write_json
+from astrobasis import LogfmtLogger, atomic_write_json
 
 log = LogfmtLogger("astroframe.state")
 

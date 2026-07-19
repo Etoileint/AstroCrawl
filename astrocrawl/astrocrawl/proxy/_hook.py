@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from typing import Protocol, runtime_checkable
 
-from astrobase import LogfmtLogger
+from astrobasis import LogfmtLogger
 from astrocrawl.utils.url import redact_proxy_url
 
 

@@ -17,7 +17,7 @@ from importlib.resources import files
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-from astrobase import LogfmtLogger
+from astrobasis import LogfmtLogger
 from astroframe._errors import ManifestValidationError
 from astroframe._types import (
     _ALL_KNOWN_PERMISSIONS,

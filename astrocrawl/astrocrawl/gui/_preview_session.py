@@ -6,7 +6,7 @@ from typing import Any, Optional
 
 from PySide6.QtCore import QObject, QThread, Signal
 
-from astrobase import LogfmtLogger
+from astrobasis import LogfmtLogger
 from astrocrawl._constants import SHUTDOWN_ASYNCGEN_TIMEOUT, SHUTDOWN_EXECUTOR_TIMEOUT, SHUTDOWN_PENDING_TIMEOUT
 from astrocrawl.browser._preview import PreviewBrowser, PreviewPageHandle, PreviewParams
 

@@ -9,7 +9,7 @@ import tempfile
 
 import pytest
 
-from astrobase import atomic_write_json
+from astrobasis import atomic_write_json
 
 
 class TestAtomicWriteJsonBasic:

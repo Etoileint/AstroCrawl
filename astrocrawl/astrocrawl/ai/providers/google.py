@@ -5,7 +5,7 @@ from __future__ import annotations
 import uuid
 from typing import TYPE_CHECKING, Any, AsyncIterator, Iterator
 
-from astrobase import LogfmtLogger
+from astrobasis import LogfmtLogger
 from astrocrawl.ai._errors import AIAuthError, AIError, AIInvalidRequestError, AIRateLimitError, AIServerError
 from astrocrawl.ai._types import (
     ChatMessage,

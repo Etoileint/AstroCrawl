@@ -16,7 +16,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import TYPE_CHECKING, Deque, Dict, List, Optional
 
-from astrobase import LogfmtLogger
+from astrobasis import LogfmtLogger
 from astrocrawl._constants import (
     PROXY_COOLDOWN,
     PROXY_COOLDOWN_MAX,

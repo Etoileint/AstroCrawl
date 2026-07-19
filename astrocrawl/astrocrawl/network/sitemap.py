@@ -27,7 +27,7 @@ if TYPE_CHECKING:
     import aiohttp
     from bs4 import BeautifulSoup
 
-    from astrobase import LogfmtLogger
+    from astrobasis import LogfmtLogger
     from astrocrawl._path_strategy import PathSwitch
     from astrocrawl.crawler.outcomes import CrawlStats
     from astrocrawl.network.robots import RobotsCache

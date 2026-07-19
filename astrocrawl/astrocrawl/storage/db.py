@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Dict, List, Optional, Tuple
 
 import aiosqlite
 
-from astrobase import LogfmtLogger
+from astrobasis import LogfmtLogger
 from astrocrawl._types import EnqueueResult
 from astrocrawl.utils.url import parse_domain, safe_log_url
 

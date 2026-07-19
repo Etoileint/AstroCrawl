@@ -24,7 +24,7 @@ else:
 
 import aiohttp
 
-from astrobase import LogfmtLogger, atomic_write_json
+from astrobasis import LogfmtLogger, atomic_write_json
 from astrocrawl._constants import (
     DOWNLOAD_CONCURRENCY_GLOBAL,
     DOWNLOAD_CONCURRENCY_PER_SOURCE,

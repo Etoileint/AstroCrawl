@@ -42,7 +42,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from astrobase import LogfmtLogger
+from astrobasis import LogfmtLogger
 from astrocrawl._constants import QLINEEDIT_MAX
 from astrocrawl._types import DEFAULT_EXTRACTION_TYPE
 from astrocrawl.ai import AIClient, AIConfig, GenerationParams, OutputConstraint

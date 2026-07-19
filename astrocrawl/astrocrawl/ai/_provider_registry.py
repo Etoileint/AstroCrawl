@@ -10,7 +10,7 @@ from __future__ import annotations
 import sys
 from typing import TYPE_CHECKING, Any, Callable
 
-from astrobase import LogfmtLogger
+from astrobasis import LogfmtLogger
 from astrocrawl.ai._errors import AIProviderUnavailableError
 
 if TYPE_CHECKING:

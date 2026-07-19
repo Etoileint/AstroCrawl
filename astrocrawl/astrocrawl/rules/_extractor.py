@@ -20,7 +20,7 @@ from astrocrawl._constants import MAX_FALLBACK_DEPTH, MULTIPLE_MAX_ITEMS, SELECT
 if TYPE_CHECKING:
     from astrocrawl.rules._schema import FieldRule
 
-from astrobase import LogfmtLogger
+from astrobasis import LogfmtLogger
 
 logger = LogfmtLogger("astrocrawl.rules.extractor")
 

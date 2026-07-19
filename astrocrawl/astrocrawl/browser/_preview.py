@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-from astrobase import LogfmtLogger
+from astrobasis import LogfmtLogger
 
 logger = LogfmtLogger("astrocrawl.browser.preview")
 

@@ -4,7 +4,7 @@ import asyncio
 import random
 from typing import TYPE_CHECKING, Optional
 
-from astrobase import LogfmtLogger
+from astrobasis import LogfmtLogger
 from astrocrawl._constants import (
     ABOUT_BLANK_ASYNCIO_TIMEOUT,
     PAGE_CLOSE_TIMEOUT,

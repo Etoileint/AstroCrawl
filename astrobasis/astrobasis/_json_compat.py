@@ -11,9 +11,9 @@ from __future__ import annotations
 import json
 from typing import Any
 
-from astrobase._logging import LogfmtLogger
+from astrobasis._logging import LogfmtLogger
 
-logger = LogfmtLogger("astrobase.json_compat")
+logger = LogfmtLogger("astrobasis.json_compat")
 
 try:
     import orjson as _json_mod

@@ -10,7 +10,7 @@ import time
 from pathlib import Path
 from typing import TYPE_CHECKING, Dict, Optional
 
-from astrobase import LogfmtLogger
+from astrobasis import LogfmtLogger
 from astrocrawl._types import RuleSnapshot
 from astrocrawl.rules._loader import build_rule_snapshot
 

@@ -19,7 +19,7 @@ from aiohttp import TCPConnector
 from bs4 import BeautifulSoup
 from playwright.async_api import async_playwright
 
-from astrobase import LogfmtLogger
+from astrobasis import LogfmtLogger
 from astrocrawl._constants import (
     BROWSER_GOTO_BUFFER_S,
     CONCURRENT_LIMITER_CLEANUP_INTERVAL,

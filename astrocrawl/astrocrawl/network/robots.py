@@ -10,7 +10,7 @@ from urllib.parse import unquote, urlparse
 import aiohttp
 from aiohttp import ClientTimeout
 
-from astrobase import LogfmtLogger
+from astrobasis import LogfmtLogger
 from astrocrawl._constants import ROBOTS_FETCH_MAX_CONCURRENT, ROBOTS_FETCH_TIMEOUT, ROBOTS_MAX_SIZE
 from astrocrawl.network._fetch import aiohttp_retry_fetch
 from astrocrawl.utils.url import strip_www

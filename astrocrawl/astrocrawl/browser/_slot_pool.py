@@ -18,7 +18,7 @@ from astrocrawl.browser.page_pool import PagePool
 if TYPE_CHECKING:
     from playwright.async_api import Browser, BrowserContext
 
-    from astrobase import LogfmtLogger
+    from astrobasis import LogfmtLogger
 
 
 class BrowserSlotContextConfig(Protocol):

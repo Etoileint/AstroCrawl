@@ -29,7 +29,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from astrobase import LogfmtLogger, atomic_write_json, setup_root_logger
+from astrobasis import LogfmtLogger, atomic_write_json, setup_root_logger
 from astrocrawl._constants import MAX_LOG_ITEMS, QLINEEDIT_MAX, QSPINBOX_MAX
 from astrocrawl._startup import StartupError
 from astrocrawl._version import __version__

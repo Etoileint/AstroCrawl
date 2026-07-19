@@ -12,7 +12,7 @@ from __future__ import annotations
 from typing import List, Tuple
 from urllib.parse import urlparse
 
-from astrobase import LogfmtLogger
+from astrobasis import LogfmtLogger
 from astrocrawl._constants import SOURCE_PRIORITY
 from astrocrawl._types import DEFAULT_EXTRACTION_TYPE, RuleSnapshot
 from astrocrawl.rules._schema import MatchScope, RuleSchema

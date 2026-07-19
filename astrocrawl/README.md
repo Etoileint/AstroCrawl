@@ -43,7 +43,7 @@ source .venv/bin/activate      # Linux/macOS
 # .venv\Scripts\Activate.ps1   # Windows PowerShell
 
 # 3. 安装基础库 + 主包
-pip install -e astrobase/
+pip install -e astrobasis/
 pip install -e "astrocrawl/[fast,monitor,yaml]"
 
 # 4. 安装 AI Provider（可选）
@@ -124,11 +124,11 @@ source .venv/bin/activate
 .venv\Scripts\activate.bat
 ```
 
-**3. 安装 astrobase + astrocrawl**
+**3. 安装 astrobasis + astrocrawl**
 
 ```bash
 # 安装基础库
-pip install -e astrobase/
+pip install -e astrobasis/
 
 # 安装爬虫包（基础依赖）
 pip install -e astrocrawl/

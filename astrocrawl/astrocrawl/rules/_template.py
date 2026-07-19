@@ -14,7 +14,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from astrobase import LogfmtLogger
+from astrobasis import LogfmtLogger
 
 logger = LogfmtLogger("astrocrawl.rules.template")
 

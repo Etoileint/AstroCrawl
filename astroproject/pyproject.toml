@@ -14,7 +14,7 @@ authors = [
 ]
 requires-python = ">=3.12"
 dependencies = [
-    "astrobase[fast]>=0.1",
+    "astrobasis[fast]>=0.1",
     "astroframe>=0.1.0a1",
     "astrocrawl[full,gui,fast]>=0.1.5",
     "astroflow>=0.0.1",

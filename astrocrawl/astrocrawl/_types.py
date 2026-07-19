@@ -15,7 +15,7 @@ from enum import Enum
 from pathlib import Path
 from typing import TYPE_CHECKING, Dict, List, Optional, Tuple
 
-from astrobase._types import AsyncCloseable  # noqa: F401 — re-export for backward compat
+from astrobasis._types import AsyncCloseable  # noqa: F401 — re-export for backward compat
 
 if TYPE_CHECKING:
     from astrocrawl.rules._schema import RuleSchema
@@ -242,4 +242,4 @@ class RuleSnapshot:
 
 
 # ── 资源生命周期合约 ───────────────────────────────────────────
-# AsyncCloseable is now defined in astrobase._types, re-exported above.
+# AsyncCloseable is now defined in astrobasis._types, re-exported above.

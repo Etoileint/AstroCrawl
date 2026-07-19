@@ -1,4 +1,4 @@
-"""AstroBase 版本号 SSOT。"""
+"""AstroBasis 版本号 SSOT。"""
 
 from __future__ import annotations
 

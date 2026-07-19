@@ -6,7 +6,7 @@ import time
 from dataclasses import dataclass, field
 from typing import Dict, Optional, Protocol
 
-from astrobase import LogfmtLogger
+from astrobasis import LogfmtLogger
 from astrocrawl._constants import DOMAIN_CLEANUP_AGE, DOMAIN_CONCURRENCY_ACQUIRE_TIMEOUT
 
 

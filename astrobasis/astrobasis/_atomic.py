@@ -11,12 +11,12 @@ import os
 import tempfile
 from typing import TYPE_CHECKING, Any
 
-from astrobase._logging import LogfmtLogger
+from astrobasis._logging import LogfmtLogger
 
 if TYPE_CHECKING:
     from pathlib import Path
 
-logger = LogfmtLogger("astrobase.atomic")
+logger = LogfmtLogger("astrobasis.atomic")
 
 
 def atomic_write_json(

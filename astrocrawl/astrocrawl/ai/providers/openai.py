@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from typing import TYPE_CHECKING, Any, AsyncIterator, Dict, Iterator
 
-from astrobase import LogfmtLogger
+from astrobasis import LogfmtLogger
 from astrocrawl.ai._errors import (
     AIAuthError,
     AIConnectionError,

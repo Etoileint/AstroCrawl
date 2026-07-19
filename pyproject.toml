@@ -1,5 +1,5 @@
 [[tool.astroproject.members]]
-name = "astrobase"
+name = "astrobasis"
 description = "Pure mechanism layer — zero hard dependencies"
 
 [[tool.astroproject.members]]
@@ -56,8 +56,8 @@ extend-select = [
 "astrocrawl/astrocrawl/cli/**/*.py" = ["T201"]
 "astrocrawl/astrocrawl/**/*.py" = ["ERA", "PT", "B008"]
 "astrocrawl/tests/**/*.py" = ["ERA", "PT", "B017"]
-"astrobase/astrobase/_logging.py" = ["T201"]
-"astrobase/tests/**/*.py" = ["ERA", "PT"]
+"astrobasis/astrobasis/_logging.py" = ["T201"]
+"astrobasis/tests/**/*.py" = ["ERA", "PT"]
 "astroframe/astroframe/**/*.py" = ["ERA", "PT", "B008"]
 "astroframe/tests/**/*.py" = ["ERA", "PT", "B017"]
 "astroflow/astroflow/**/*.py" = ["ERA", "PT", "B008"]
@@ -69,12 +69,12 @@ extend-select = [
 "astrocrawl/tests/test_gui_mainwindow_behavior.py" = ["B015"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["astroproject", "astrocrawl", "astrobase", "astroframe", "astroflow"]
+known-first-party = ["astroproject", "astrocrawl", "astrobasis", "astroframe", "astroflow"]
 required-imports = ["from __future__ import annotations"]
 split-on-trailing-comma = false
 
 [tool.coverage.run]
-source = ["astrobase", "astrocrawl", "astroframe", "astroflow"]
+source = ["astrobasis", "astrocrawl", "astroframe", "astroflow"]
 omit = ["*/tests/*", "*/__pycache__/*"]
 
 [tool.coverage.report]

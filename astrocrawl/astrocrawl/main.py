@@ -11,7 +11,7 @@ if __name__ == "__main__" and __package__ is None:
     sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     __package__ = "astrocrawl"
 
-from astrobase import setup_root_logger
+from astrobasis import setup_root_logger
 from astrocrawl._startup import StartupError, check_dependencies, check_gui_dependencies
 from astrocrawl.config import ConfigValidationError
 

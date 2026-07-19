@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import logging
 
-from astrobase import JsonLogFormatter, LogfmtFormatter, LogfmtLogger, setup_root_logger
-from astrobase._logging import _format_exc_oneline, _format_logfmt_message, _logfmt_escape
+from astrobasis import JsonLogFormatter, LogfmtFormatter, LogfmtLogger, setup_root_logger
+from astrobasis._logging import _format_exc_oneline, _format_logfmt_message, _logfmt_escape
 
 
 class TestLogfmtEscape:
@@ -108,7 +108,7 @@ class TestFormatLogfmtMessage:
 class TestLogfmtFormatter:
     def _make_record(self, **extra):
         record = logging.LogRecord(
-            name="astrobase.test",
+            name="astrobasis.test",
             level=logging.INFO,
             pathname="test.py",
             lineno=1,
@@ -126,7 +126,7 @@ class TestLogfmtFormatter:
         output = fmt.format(record)
         assert "ts=" in output
         assert "level=info" in output
-        assert "logger=astrobase.test" in output
+        assert "logger=astrobasis.test" in output
         assert "event=hello key=val" in output
 
     def test_no_event_field_for_structured(self):
@@ -279,7 +279,7 @@ class TestLogfmtLogger:
         log._logger.setLevel(logging.NOTSET)
 
     def test_info_captures(self):
-        log = LogfmtLogger("astrobase.test_info_captures")
+        log = LogfmtLogger("astrobasis.test_info_captures")
         records, captor = self._capture(log)
         log.info("test_ev", key="val")
         assert len(records) == 1
@@ -289,7 +289,7 @@ class TestLogfmtLogger:
         self._cleanup(log, captor)
 
     def test_debug_disabled(self):
-        log = LogfmtLogger("astrobase.test_debug_disabled")
+        log = LogfmtLogger("astrobasis.test_debug_disabled")
         records, captor = self._capture(log)
         log._logger.setLevel(logging.WARNING)
         log.debug("should_not_appear")
@@ -297,7 +297,7 @@ class TestLogfmtLogger:
         self._cleanup(log, captor)
 
     def test_info_disabled(self):
-        log = LogfmtLogger("astrobase.test_info_disabled")
+        log = LogfmtLogger("astrobasis.test_info_disabled")
         records, captor = self._capture(log)
         log._logger.setLevel(logging.WARNING)
         log.info("should_not_appear")
@@ -305,7 +305,7 @@ class TestLogfmtLogger:
         self._cleanup(log, captor)
 
     def test_bind_independent(self):
-        log = LogfmtLogger("astrobase.test_bind_independent")
+        log = LogfmtLogger("astrobasis.test_bind_independent")
         a = log.bind(worker=1)
         b = log.bind(worker=2)
         assert a._bound_fields == {"worker": 1}
@@ -313,24 +313,24 @@ class TestLogfmtLogger:
         assert log._bound_fields == {}
 
     def test_bind_chained(self):
-        log = LogfmtLogger("astrobase.test_bind_chained")
+        log = LogfmtLogger("astrobasis.test_bind_chained")
         ctx = log.bind(a=1).bind(b=2)
         assert ctx._bound_fields == {"a": 1, "b": 2}
 
     def test_bind_does_not_modify_original(self):
-        log = LogfmtLogger("astrobase.test_bind_immutable", base="x")
+        log = LogfmtLogger("astrobasis.test_bind_immutable", base="x")
         log.bind(extra="y")
         assert log._bound_fields == {"base": "x"}
 
     def test_fields_override_bound(self):
-        log = LogfmtLogger("astrobase.test_fields_override", k="bound_val")
+        log = LogfmtLogger("astrobasis.test_fields_override", k="bound_val")
         records, captor = self._capture(log)
         log.info("ev", k="call_val")
         assert records[0]._logfmt_fields == {"k": "call_val"}  # type: ignore[attr-defined]
         self._cleanup(log, captor)
 
     def test_exception_method(self):
-        log = LogfmtLogger("astrobase.test_exception")
+        log = LogfmtLogger("astrobasis.test_exception")
         records, captor = self._capture(log)
         try:
             raise ValueError("bad")
@@ -342,18 +342,18 @@ class TestLogfmtLogger:
         self._cleanup(log, captor)
 
     def test_exc_info_keyword(self):
-        log = LogfmtLogger("astrobase.test_exc_info")
+        log = LogfmtLogger("astrobasis.test_exc_info")
         records, captor = self._capture(log)
         log.error("err_ev", exc_info=True)
         assert records[0].exc_info is not None
         self._cleanup(log, captor)
 
     def test_name_property(self):
-        log = LogfmtLogger("astrobase.test_name")
-        assert log.name == "astrobase.test_name"
+        log = LogfmtLogger("astrobasis.test_name")
+        assert log.name == "astrobasis.test_name"
 
     def test_isEnabledFor(self):
-        log = LogfmtLogger("astrobase.test_isenabled")
+        log = LogfmtLogger("astrobasis.test_isenabled")
         log._logger.setLevel(logging.WARNING)
         assert not log.isEnabledFor(logging.DEBUG)
         assert not log.isEnabledFor(logging.INFO)
@@ -362,7 +362,7 @@ class TestLogfmtLogger:
         log._logger.setLevel(logging.NOTSET)
 
     def test_all_six_methods(self):
-        log = LogfmtLogger("astrobase.test_all_six")
+        log = LogfmtLogger("astrobasis.test_all_six")
         log._logger.setLevel(logging.DEBUG)
         records, captor = self._capture(log)
         log.debug("d")
@@ -381,7 +381,7 @@ class TestLogfmtLogger:
         self._cleanup(log, captor)
 
     def test_msg_includes_event_and_fields(self):
-        log = LogfmtLogger("astrobase.test_msg_fields")
+        log = LogfmtLogger("astrobasis.test_msg_fields")
         records, captor = self._capture(log)
         log.info("test_ev", url="http://example.com", count=3)
         msg = records[0].getMessage()
@@ -398,7 +398,7 @@ class TestSetupRootLogger:
         try:
             setup_root_logger()
             for h in root.handlers:
-                if getattr(h, "_astrobase_handler", False):
+                if getattr(h, "_astrobasis_handler", False):
                     assert isinstance(h.formatter, LogfmtFormatter)
                     break
         finally:
@@ -411,7 +411,7 @@ class TestSetupRootLogger:
         try:
             setup_root_logger(format_style="classic")
             for h in root.handlers:
-                if getattr(h, "_astrobase_handler", False):
+                if getattr(h, "_astrobasis_handler", False):
                     assert isinstance(h.formatter, logging.Formatter)
                     assert not isinstance(h.formatter, LogfmtFormatter)
                     break
@@ -423,9 +423,9 @@ class TestSetupRootLogger:
         root = logging.getLogger()
         prev_level, prev_handlers = root.level, list(root.handlers)
         try:
-            setup_root_logger(logging.DEBUG, "/tmp/test_astrobase.log")
+            setup_root_logger(logging.DEBUG, "/tmp/test_astrobasis.log")
             for h in root.handlers:
-                if getattr(h, "_astrobase_handler", False):
+                if getattr(h, "_astrobasis_handler", False):
                     if hasattr(h, "baseFilename"):
                         h.close()
         finally:

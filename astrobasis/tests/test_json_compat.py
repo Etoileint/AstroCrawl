@@ -10,7 +10,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from astrobase import _json_compat
+from astrobasis import _json_compat
 
 _ORIGINAL_JSON_MOD = sys.modules.get("orjson")
 
@@ -80,7 +80,7 @@ class TestJsonCompatWithoutOrjson:
         assert loaded == [1, 2, 3]
 
     def test_stdlib_fallback_emits_debug_log(self, caplog):
-        caplog.set_level(logging.DEBUG, logger="astrobase.json_compat")
+        caplog.set_level(logging.DEBUG, logger="astrobasis.json_compat")
         _reload_without_orjson()
         assert "orjson_unavailable" in caplog.text
 

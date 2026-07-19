@@ -52,7 +52,7 @@ classifiers = [
 requires-python = ">=3.12"
 
 dependencies = [
-    "astrobase>=0.1",
+    "astrobasis>=0.1",
     "aiohttp>=3.9",
     "aiosqlite>=0.19",
     "beautifulsoup4>=4.12",

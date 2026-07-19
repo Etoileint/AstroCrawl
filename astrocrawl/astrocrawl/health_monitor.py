@@ -16,7 +16,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Awaitable, Callable, Optional
 
-from astrobase import LogfmtLogger
+from astrobasis import LogfmtLogger
 from astrocrawl.health import Health, HealthChecked, health_to_report
 
 _log = LogfmtLogger("astrocrawl.health")

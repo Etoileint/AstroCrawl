@@ -13,7 +13,7 @@ from urllib.parse import urlparse
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from astrobase import LogfmtLogger
+from astrobasis import LogfmtLogger
 from astrocrawl._constants import (
     ATTR_NAME_PATTERN,
     MAX_FALLBACK_DEPTH,

@@ -1,8 +1,8 @@
-# Security Policy — astrobase
+# Security Policy — astrobasis
 
 ## Scope
 
-astrobase is the pure mechanism layer — zero hard dependencies beyond Python 3.12 stdlib. It provides four modules used by all other packages in the monorepo.
+astrobasis is the pure mechanism layer — zero hard dependencies beyond Python 3.12 stdlib. It provides four modules used by all other packages in the monorepo.
 
 Security concerns are narrowly scoped:
 
@@ -13,7 +13,7 @@ Security concerns are narrowly scoped:
 
 ## Out of Scope
 
-astrobase has no network, no subprocess, no filesystem traversal, and no user-controlled code execution paths. The following are callers' responsibility:
+astrobasis has no network, no subprocess, no filesystem traversal, and no user-controlled code execution paths. The following are callers' responsibility:
 
-- **What gets logged**: astrobase provides the logging mechanism; callers decide what data to log.
-- **What gets written**: astrobase provides atomic file I/O; callers decide what data to persist.
+- **What gets logged**: astrobasis provides the logging mechanism; callers decide what data to log.
+- **What gets written**: astrobasis provides atomic file I/O; callers decide what data to persist.

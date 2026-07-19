@@ -670,4 +670,4 @@ class TestRuleSnapshotFullConstruction:
         assert snap.get_source("test_rule") == "user"
 
 
-# AsyncCloseable tests moved to astrobase/tests/test_types.py
+# AsyncCloseable tests moved to astrobasis/tests/test_types.py

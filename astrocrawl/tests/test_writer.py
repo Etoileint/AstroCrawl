@@ -11,7 +11,7 @@ import json
 import os
 from pathlib import Path
 
-from astrobase import json_dumps
+from astrobasis import json_dumps
 from astrocrawl.storage.writer import AsyncJsonlWriter
 
 # ═══════════════════════════════════════════════════════════════════════

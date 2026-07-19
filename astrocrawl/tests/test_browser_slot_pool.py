@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import pytest
 
-from astrobase import LogfmtLogger
+from astrobasis import LogfmtLogger
 from astrocrawl.browser._slot_pool import SlotCreateError, SlotPool, _safe_close_context
 from tests._fakes import FakeBrowser, FakeBrowserContext
 

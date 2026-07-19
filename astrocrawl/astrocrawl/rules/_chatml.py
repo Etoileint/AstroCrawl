@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from astrocrawl.ai._types import ChatMessage
 
-from astrobase import LogfmtLogger
+from astrobasis import LogfmtLogger
 
 logger = LogfmtLogger("astrocrawl.rules.chatml")
 

@@ -22,7 +22,7 @@ from importlib.metadata import distribution, entry_points
 from pathlib import Path
 from typing import Any
 
-from astrobase import LogfmtLogger
+from astrobasis import LogfmtLogger
 from astroframe._errors import ManifestValidationError, SignatureError
 from astroframe._types import PluginManifest, SignatureResult
 

@@ -18,7 +18,7 @@ from importlib.metadata import distribution
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-from astrobase import LogfmtLogger
+from astrobasis import LogfmtLogger
 from astroframe._errors import PluginLoadError, PluginSandboxError
 from astroframe._types import (
     GROUP_PROTOCOL,
@@ -394,12 +394,12 @@ class SubprocessPlugin:
         """启动子进程。"""
         # bootstrap_paths: -I 隐含 -E（忽略 PYTHONPATH），路径通过 config JSON 传递
         # host 在 sandbox import 之前将这些路径注入 sys.path
-        import astrobase
+        import astrobasis
         import astroframe
 
         bootstrap_paths = [
             str(Path(astroframe.__file__).parent.parent),
-            str(Path(astrobase.__file__).parent.parent),
+            str(Path(astrobasis.__file__).parent.parent),
         ]
 
         try:
@@ -735,11 +735,11 @@ def _build_sys_path_entries(package_name: str) -> list[str]:
     entries: list[str] = []
 
     # 引擎包父目录 + 依赖包父目录
-    import astrobase
+    import astrobasis
     import astroframe
 
     entries.append(str(Path(astroframe.__file__).parent.parent))
-    entries.append(str(Path(astrobase.__file__).parent.parent))
+    entries.append(str(Path(astrobasis.__file__).parent.parent))
 
     # 插件包目录
     try:

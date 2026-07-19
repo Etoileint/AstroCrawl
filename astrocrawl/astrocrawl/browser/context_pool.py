@@ -13,7 +13,7 @@ import asyncio
 from contextlib import asynccontextmanager
 from typing import TYPE_CHECKING, AsyncIterator, Optional
 
-from astrobase import LogfmtLogger
+from astrobasis import LogfmtLogger
 from astrocrawl._constants import SLOT_CREATE_RETRIES
 from astrocrawl.browser._slot_pool import SlotPool
 from astrocrawl.config import ConfigError, CrawlerConfig, GlobalSettings

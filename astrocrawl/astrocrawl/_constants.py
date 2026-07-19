@@ -130,7 +130,7 @@ CONNECTOR_LIMIT_PER_HOST = 10  # aiohttp 单主机连接数上限
 HTTP_READ_LINE_TIMEOUT = 10.0  # HTTP 健康端点 readline() 超时 (秒)
 
 # ── 日志 ─────────────────────────────────────────────────────────────────────
-# 使用者: astrobase._logging / gui/main_window.py / browser/browser_pool.py (MAX_ERROR_MESSAGE_LENGTH)
+# 使用者: astrobasis._logging / gui/main_window.py / browser/browser_pool.py (MAX_ERROR_MESSAGE_LENGTH)
 FILE_LOG_MAX_BYTES = 10 * 1024 * 1024  # RotatingFileHandler 单文件最大字节数
 FILE_LOG_BACKUP_COUNT = 3  # RotatingFileHandler 历史备份文件数
 MAX_LOG_ITEMS = 500  # GUI 日志列表最大条目数 (超出时清理)

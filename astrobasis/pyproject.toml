@@ -3,7 +3,7 @@ requires = ["setuptools>=68.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "astrobase"
+name = "astrobasis"
 dynamic = ["version"]
 description = "Pure mechanism layer for the Astro ecosystem — zero hard dependencies"
 readme = "README.md"
@@ -47,10 +47,10 @@ Documentation = "https://github.com/Etoileint/AstroProject#readme"
 fast = ["orjson>=3.8"]
 
 [tool.setuptools.packages.find]
-include = ["astrobase*"]
+include = ["astrobasis*"]
 
 [tool.setuptools.dynamic]
-version = {attr = "astrobase._version.__version__"}
+version = {attr = "astrobasis._version.__version__"}
 
 [tool.pytest.ini_options]
 minversion = "7.0"

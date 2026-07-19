@@ -25,7 +25,7 @@ def _has_logfmtlogger_import(tree: ast.AST) -> bool:
     """检查文件是否导入了 LogfmtLogger（用于判断是否需要追踪 LogfmtLogger 实例）。"""
     for node in ast.walk(tree):
         if isinstance(node, ast.ImportFrom):
-            if node.module == "astrobase":
+            if node.module == "astrobasis":
                 for alias in node.names:
                     if alias.name == "LogfmtLogger":
                         return True
@@ -230,7 +230,7 @@ def main() -> int:
         Path(f)
         for f in sys.argv[1:]
         if f.endswith(".py")
-        and ("/astrocrawl/" in f or "/astrobase/" in f or "/astroframe/" in f or "/astroflow/" in f)
+        and ("/astrocrawl/" in f or "/astrobasis/" in f or "/astroframe/" in f or "/astroflow/" in f)
     ]
 
     # 跳过测试文件

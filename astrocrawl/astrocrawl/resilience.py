@@ -13,7 +13,7 @@ from __future__ import annotations
 import time
 from typing import Awaitable, Callable, Optional
 
-from astrobase import LogfmtLogger
+from astrobasis import LogfmtLogger
 from astrocrawl.health import Health
 
 _log = LogfmtLogger("astrocrawl.resilience")

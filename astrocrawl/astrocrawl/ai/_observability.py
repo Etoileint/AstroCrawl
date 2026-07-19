@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
-from astrobase import LogfmtLogger
+from astrobasis import LogfmtLogger
 
 if TYPE_CHECKING:
     from astrocrawl.ai._types import CallContext, ChatResponse

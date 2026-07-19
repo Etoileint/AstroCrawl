@@ -6,7 +6,7 @@ import io
 import os
 from typing import IO, TYPE_CHECKING, Optional
 
-from astrobase import LogfmtLogger, json_dumps
+from astrobasis import LogfmtLogger, json_dumps
 
 if TYPE_CHECKING:
     from pathlib import Path

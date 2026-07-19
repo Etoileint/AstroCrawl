@@ -18,7 +18,7 @@ I will respond as soon as possible. Once confirmed and fixed, I will publish a s
 
 | Package | Version | Supported |
 |---------|---------|-----------|
-| astrobase | 0.1.x | :white_check_mark: |
+| astrobasis | 0.1.x | :white_check_mark: |
 | astroframe | 0.1.x | :white_check_mark: |
 | astrocrawl | 0.1.x | :white_check_mark: |
 | astroflow | — | Planning |
@@ -27,7 +27,7 @@ I will respond as soon as possible. Once confirmed and fixed, I will publish a s
 
 Security concerns relevant to each package:
 
-### astrobase (天枢 — Pure Mechanism)
+### astrobasis (天枢 — Pure Mechanism)
 
 - **Log integrity**: logfmt output must not leak sensitive data
 - **Atomic I/O correctness**: crash-safe file writes, TOCTOU hardening
@@ -59,7 +59,7 @@ Security concerns relevant to each package:
 
 Each package maintains its own `SECURITY.md` with detailed design principles, known limitations, and secure development guidelines specific to its domain.
 
-- [astrobase/SECURITY.md](astrobase/SECURITY.md)
+- [astrobasis/SECURITY.md](astrobasis/SECURITY.md)
 - [astroframe/SECURITY.md](astroframe/SECURITY.md)
 - [astrocrawl/SECURITY.md](astrocrawl/SECURITY.md)
 - [astroflow/SECURITY.md](astroflow/SECURITY.md)

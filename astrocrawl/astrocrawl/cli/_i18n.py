@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from astrobase import LogfmtLogger
+from astrobasis import LogfmtLogger
 
 _LOG = LogfmtLogger("astrocrawl.cli.i18n")
 

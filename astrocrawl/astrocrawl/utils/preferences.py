@@ -9,7 +9,7 @@ import json
 from pathlib import Path
 from typing import Any, Dict, Optional, cast
 
-from astrobase import LogfmtLogger, atomic_write_json
+from astrobasis import LogfmtLogger, atomic_write_json
 from astrocrawl.ai._profile import AIProfile
 from astrocrawl.proxy._config import ParsedProxy, ProxyAuth, ProxyProfile, ProxyType, endpoint_key
 

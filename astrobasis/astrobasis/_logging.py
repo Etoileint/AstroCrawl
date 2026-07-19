@@ -13,7 +13,7 @@ _FILE_LOG_BACKUP_COUNT = 3
 
 _LOG_FORMAT = "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
 _LOG_DATE_FORMAT = "%H:%M:%S"
-_ASTROBASE_HANDLER = True  # handler marker tag — used for setup_root_logger dedup
+_ASTROBASIS_HANDLER = True  # handler marker tag — used for setup_root_logger dedup
 
 _LOGFRMT_NEEDS_QUOTE = re.compile(r'[\s"]')
 
@@ -137,7 +137,7 @@ class LogfmtLogger:
     """logfmt structured logging wrapper. event is a mandatory positional argument.
 
     Usage:
-        log = LogfmtLogger("astrobase.mymodule")
+        log = LogfmtLogger("astrobasis.mymodule")
         log.info("crawl_start", depth=3, concurrency=4)
         log.warning("slot_exhausted", idx=5, attempts=3, exc_info=True)
         log.exception("crawl_error", url=url)  # auto-attach traceback
@@ -229,12 +229,12 @@ def setup_root_logger(
     root = logging.getLogger()
     root.setLevel(level)
     for h in root.handlers[:]:
-        if getattr(h, "_astrobase_handler", False):
+        if getattr(h, "_astrobasis_handler", False):
             root.removeHandler(h)
 
     # Console handler
     ch = logging.StreamHandler(sys.stdout)
-    ch._astrobase_handler = _ASTROBASE_HANDLER  # type: ignore[attr-defined]
+    ch._astrobasis_handler = _ASTROBASIS_HANDLER  # type: ignore[attr-defined]
     if format_style == "classic":
         ch.setFormatter(logging.Formatter(_LOG_FORMAT, datefmt=_LOG_DATE_FORMAT))
     else:
@@ -249,7 +249,7 @@ def setup_root_logger(
             fh = RotatingFileHandler(
                 log_file, maxBytes=_FILE_LOG_MAX_BYTES, backupCount=_FILE_LOG_BACKUP_COUNT, encoding="utf-8"
             )
-            fh._astrobase_handler = _ASTROBASE_HANDLER  # type: ignore[attr-defined]
+            fh._astrobasis_handler = _ASTROBASIS_HANDLER  # type: ignore[attr-defined]
             if json_file:
                 fh.setFormatter(JsonLogFormatter(datefmt=_LOG_DATE_FORMAT))
             elif format_style == "classic":

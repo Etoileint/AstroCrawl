@@ -18,7 +18,7 @@ if sys.platform != "win32":
 else:
     fcntl = None  # type: ignore[assignment]
 
-from astrobase import LogfmtLogger, atomic_write_json
+from astrobasis import LogfmtLogger, atomic_write_json
 from astrocrawl._types import DEFAULT_EXTRACTION_TYPE
 
 logger = LogfmtLogger("astrocrawl.rules.state")

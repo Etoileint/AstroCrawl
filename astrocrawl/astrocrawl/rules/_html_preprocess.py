@@ -10,7 +10,7 @@ from __future__ import annotations
 from enum import IntEnum
 from typing import cast
 
-from astrobase import LogfmtLogger
+from astrobasis import LogfmtLogger
 
 logger = LogfmtLogger("astrocrawl.rules.html_preprocess")
 

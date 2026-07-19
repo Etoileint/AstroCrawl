@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 import sys
 
-from astrobase import setup_root_logger
+from astrobasis import setup_root_logger
 
 
 class TestSetupRootLogger:
@@ -16,7 +16,7 @@ class TestSetupRootLogger:
         try:
             setup_root_logger()
             assert root.level == logging.INFO
-            marked = [h for h in root.handlers if getattr(h, "_astrobase_handler", False)]
+            marked = [h for h in root.handlers if getattr(h, "_astrobasis_handler", False)]
             assert len(marked) == 1
         finally:
             root.setLevel(prev_level)
@@ -29,7 +29,7 @@ class TestSetupRootLogger:
         try:
             setup_root_logger(level=logging.DEBUG)
             assert root.level == logging.DEBUG
-            marked = [h for h in root.handlers if getattr(h, "_astrobase_handler", False)]
+            marked = [h for h in root.handlers if getattr(h, "_astrobasis_handler", False)]
             assert len(marked) == 1
         finally:
             root.setLevel(prev_level)
@@ -41,16 +41,16 @@ class TestSetupRootLogger:
         prev_handlers = list(root.handlers)
         try:
             setup_root_logger()
-            count1 = sum(1 for h in root.handlers if getattr(h, "_astrobase_handler", False))
+            count1 = sum(1 for h in root.handlers if getattr(h, "_astrobasis_handler", False))
             setup_root_logger()
-            count2 = sum(1 for h in root.handlers if getattr(h, "_astrobase_handler", False))
+            count2 = sum(1 for h in root.handlers if getattr(h, "_astrobasis_handler", False))
             assert count1 == 1
             assert count2 == 1
         finally:
             root.setLevel(prev_level)
             root.handlers[:] = prev_handlers
 
-    def test_preserves_non_astrobase_handlers(self):
+    def test_preserves_non_astrobasis_handlers(self):
         root = logging.getLogger()
         prev_level = root.level
         prev_handlers = list(root.handlers)
@@ -58,7 +58,7 @@ class TestSetupRootLogger:
             external = logging.StreamHandler(sys.stderr)
             root.addHandler(external)
             setup_root_logger()
-            non_base = [h for h in root.handlers if not getattr(h, "_astrobase_handler", False)]
+            non_base = [h for h in root.handlers if not getattr(h, "_astrobasis_handler", False)]
             assert external in non_base
         finally:
             root.setLevel(prev_level)
@@ -71,7 +71,7 @@ class TestSetupRootLogger:
         prev_handlers = list(root.handlers)
         try:
             setup_root_logger(log_file=str(log_path))
-            marked = [h for h in root.handlers if getattr(h, "_astrobase_handler", False)]
+            marked = [h for h in root.handlers if getattr(h, "_astrobasis_handler", False)]
             assert len(marked) == 2
             from logging.handlers import RotatingFileHandler
 
@@ -80,7 +80,7 @@ class TestSetupRootLogger:
             assert RotatingFileHandler in types or any(issubclass(t, RotatingFileHandler) for t in types)
         finally:
             for h in root.handlers:
-                if getattr(h, "_astrobase_handler", False):
+                if getattr(h, "_astrobasis_handler", False):
                     h.close()
             root.setLevel(prev_level)
             root.handlers[:] = prev_handlers
@@ -92,7 +92,7 @@ class TestSetupRootLogger:
         prev_handlers = list(root.handlers)
         try:
             setup_root_logger(log_file=str(log_path))
-            test_logger = logging.getLogger("astrobase.test_file")
+            test_logger = logging.getLogger("astrobasis.test_file")
             test_logger.info("test message")
             for h in root.handlers:
                 h.flush()
@@ -101,7 +101,7 @@ class TestSetupRootLogger:
             assert "test message" in content
         finally:
             for h in root.handlers:
-                if getattr(h, "_astrobase_handler", False):
+                if getattr(h, "_astrobasis_handler", False):
                     h.close()
             root.setLevel(prev_level)
             root.handlers[:] = prev_handlers
@@ -120,7 +120,7 @@ class TestSetupRootLoggerFileHandlerFailure:
         prev_handlers = list(root.handlers)
         try:
             setup_root_logger(log_file="/fake/path/test.log")
-            marked = [h for h in root.handlers if getattr(h, "_astrobase_handler", False)]
+            marked = [h for h in root.handlers if getattr(h, "_astrobasis_handler", False)]
             assert len(marked) == 1
         finally:
             root.setLevel(prev_level)

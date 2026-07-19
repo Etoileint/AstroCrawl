@@ -12,7 +12,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from astrobase import LogfmtLogger
+from astrobasis import LogfmtLogger
 from astrocrawl.network.sitemap import SitemapDiscovery
 
 # ═══════════════════════════════════════════════════════════════════════

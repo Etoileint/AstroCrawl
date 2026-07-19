@@ -10,7 +10,7 @@ import time
 from dataclasses import replace
 from typing import Any, AsyncIterator, Iterator, List, Optional
 
-from astrobase import LogfmtLogger
+from astrobasis import LogfmtLogger
 from astrocrawl.ai._config import AIConfig, GenerationParams, _resolve_params, _ResolvedOutput, _ResolvedParams
 from astrocrawl.ai._errors import (
     AIConnectionError,

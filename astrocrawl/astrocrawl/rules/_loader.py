@@ -10,7 +10,7 @@ import os
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Dict, List, Sequence, Tuple
 
-from astrobase import LogfmtLogger
+from astrobasis import LogfmtLogger
 from astrocrawl._constants import MAX_JSON_DEPTH, MAX_RULE_FILE_SIZE, MAX_RULES_TOTAL, SOURCE_PRIORITY
 from astrocrawl._types import DEFAULT_EXTRACTION_TYPE, RuleSnapshot
 from astrocrawl.config import ConfigValidationError, CrawlerConfig

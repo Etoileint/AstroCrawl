@@ -10,7 +10,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import TYPE_CHECKING, Any, Protocol, runtime_checkable
 
-from astrobase._types import AsyncCloseable
+from astrobasis._types import AsyncCloseable
 
 if TYPE_CHECKING:
     from pathlib import Path

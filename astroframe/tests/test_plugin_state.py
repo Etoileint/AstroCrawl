@@ -13,7 +13,7 @@ from pathlib import Path
 
 import pytest
 
-from astrobase import atomic_write_json
+from astrobasis import atomic_write_json
 from astroframe._state import _DEFAULT_STATE, PluginState, _mask_configs, _read_state_file, _secret_mask
 
 # ── fixture ───────────────────────────────────────────────────────────────────
