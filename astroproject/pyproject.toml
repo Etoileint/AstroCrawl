@@ -19,12 +19,6 @@ dependencies = [
     "astrocrawl[full,gui,fast]>=0.1.5",
     "astroflow>=0.0.1",
 ]
-
-[project.optional-dependencies]
-sigstore = ["astroframe[sigstore]>=0.1.0a1"]
-dev = [
-    "astrocrawl[dev]>=0.1.5",
-]
 keywords = [
     "web-crawler",
     "web-scraping",
@@ -44,6 +38,10 @@ classifiers = [
     "Topic :: Internet :: WWW/HTTP",
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
+
+[project.optional-dependencies]
+sigstore = ["astroframe[sigstore]>=0.1.0a1"]
+dev = ["astrocrawl[dev]>=0.1.5"]
 
 [project.urls]
 Homepage = "https://github.com/Etoileint/AstroProject"
