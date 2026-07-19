@@ -1,117 +1,18 @@
-[build-system]
-requires = ["setuptools>=68.0", "wheel"]
-build-backend = "setuptools.build_meta"
+[[tool.astroproject.members]]
+name = "astrobase"
+description = "Pure mechanism layer — zero hard dependencies"
 
-[project]
+[[tool.astroproject.members]]
 name = "astrocrawl"
-dynamic = ["version"]
-description = "Async web crawler powered by Playwright headless Chromium — JavaScript rendering, AI-powered extraction (OpenAI / Anthropic / Google), CSS rule engine with visual preview, and a full PySide6 desktop GUI. SQLite WAL crash recovery, proxy circuit breaker, RFC 9309 robots.txt, ReDoS-immune regex, 3,822 tests. pip install astrocrawl[full,gui,fast]."
-readme = "README.md"
-license = "Apache-2.0"
-authors = [
-    {name = "Etoileint", email = "etoileint@163.com"},
-    {name = "Etoileint", email = "littlestar@buaa.edu.cn"},
-]
-keywords = [
-    "web-crawler",
-    "web-scraping",
-    "python",
-    "playwright",
-    "async",
-    "chromium",
-    "headless",
-    "ai",
-    "openai",
-    "anthropic",
-    "scraping",
-    "extraction",
-    "css-selectors",
-    "pyside6",
-    "gui",
-    "proxy",
-    "structured-data",
-    "robots-txt",
-    "sitemap",
-    "crawler",
-]
-classifiers = [
-    "Development Status :: 4 - Beta",
-    "Framework :: AsyncIO",
-    "Intended Audience :: Developers",
-    "Intended Audience :: Information Technology",
-    "Natural Language :: Chinese (Simplified)",
-    "Natural Language :: English",
-    "Operating System :: OS Independent",
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: 3.13",
-    "Topic :: Internet :: WWW/HTTP",
-    "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
-    "Topic :: Internet :: WWW/HTTP :: Indexing/Search",
-]
-requires-python = ">=3.12"
+description = "Async web crawler powered by Playwright + AI"
 
-dependencies = [
-    "aiohttp>=3.9",
-    "aiosqlite>=0.19",
-    "beautifulsoup4>=4.12",
-    "cssselect>=1.2",
-    "google-re2>=0.1",
-    "lxml>=4.9",
-    "playwright>=1.40",
-    "publicsuffixlist",
-    "pydantic>=2.0",
-    "tiktoken>=0.7",
-]
+[[tool.astroproject.members]]
+name = "astroframe"
+description = "Universal plugin platform runtime — Protocol + registry + sandbox"
 
-[project.optional-dependencies]
-openai = ["openai>=1.0"]
-anthropic = ["anthropic>=0.39"]
-google = ["google-genai>=1.0"]
-full = ["openai>=1.0", "anthropic>=0.39", "google-genai>=1.0"]
-gui = ["PySide6>=6.5"]
-fast = [
-    "orjson>=3.8",
-]
-dev = [
-    "pytest>=7.0",
-    "pytest-asyncio>=0.21",
-    "pytest-cov>=4.0",
-    "mypy>=1.20,<2.0",
-    "ruff>=0.15,<1.0",
-]
-yaml = ["pyyaml>=6.0"]
-monitor = ["psutil>=5.9"]
-
-[project.scripts]
-astrocrawl = "astrocrawl.main:main"
-
-[project.urls]
-Homepage = "https://github.com/Etoileint/AstroCrawl"
-Repository = "https://github.com/Etoileint/AstroCrawl"
-Issues = "https://github.com/Etoileint/AstroCrawl/issues"
-Documentation = "https://github.com/Etoileint/AstroCrawl#readme"
-
-[project.entry-points."astrocrawl.ai.providers"]
-openai = "astrocrawl.ai.providers.openai:create_provider"
-anthropic = "astrocrawl.ai.providers.anthropic:create_provider"
-google = "astrocrawl.ai.providers.google:create_provider"
-
-[tool.setuptools.packages.find]
-include = ["astrocrawl*"]
-
-[tool.setuptools.package-data]
-astrocrawl = [
-    "rules/*.json",
-    "rules/*.txt",
-    "browser/*.js",
-    "gui/translations/*.qm",
-    "gui/translations/*.ts",
-    "_assets/*",
-]
-
-[tool.setuptools.dynamic]
-version = {attr = "astrocrawl._version.__version__"}
+[[tool.astroproject.members]]
+name = "astroflow"
+description = "Workflow engine — orchestrate crawl, AI, and rules pipelines as composable DAGs"
 
 [tool.mypy]
 python_version = "3.12"
@@ -119,15 +20,15 @@ warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = false
 ignore_missing_imports = true
-exclude = ["__pycache__/", ".pytest_cache/", ".mypy_cache/"]
+exclude = ["__pycache__/", ".pytest_cache/", ".mypy_cache/", "build/"]
 
 [tool.pytest.ini_options]
 minversion = "7.0"
-testpaths = ["tests"]
 asyncio_mode = "auto"
 addopts = ["-v", "--tb=short", "--strict-markers"]
 markers = [
     "gui: GUI tests requiring QApplication (offscreen QPA)",
+    "plugin_migration: Plugin system migration tests — requires ASTROCRAWL_PLUGINS=1",
 ]
 
 [tool.ruff]
@@ -149,27 +50,32 @@ extend-select = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"astrocrawl/main.py" = ["T201"]
-"astrocrawl/config.py" = ["T201"]
-"astrocrawl/crawler/progress.py" = ["T201"]
-"astrocrawl/utils/logging.py" = ["T201"]
-"astrocrawl/cli/**/*.py" = ["T201"]
-"astrocrawl/**/*.py" = ["ERA", "PT", "B008"]
-"tests/**/*.py" = ["ERA", "PT", "B017"]
+"astrocrawl/astrocrawl/main.py" = ["T201"]
+"astrocrawl/astrocrawl/config.py" = ["T201"]
+"astrocrawl/astrocrawl/crawler/progress.py" = ["T201"]
+"astrocrawl/astrocrawl/cli/**/*.py" = ["T201"]
+"astrocrawl/astrocrawl/**/*.py" = ["ERA", "PT", "B008"]
+"astrocrawl/tests/**/*.py" = ["ERA", "PT", "B017"]
+"astrobase/astrobase/_logging.py" = ["T201"]
+"astrobase/tests/**/*.py" = ["ERA", "PT"]
+"astroframe/astroframe/**/*.py" = ["ERA", "PT", "B008"]
+"astroframe/tests/**/*.py" = ["ERA", "PT", "B017"]
+"astroflow/astroflow/**/*.py" = ["ERA", "PT", "B008"]
+"astroflow/tests/**/*.py" = ["ERA", "PT", "B017"]
 "scripts/**/*.py" = ["ERA", "T201", "B007"]
 "docs/**/*.py" = ["T201", "B007"]
-"tests/manual/**/*.py" = ["T201"]
-"astrocrawl/crawler/outcomes.py" = ["TC001"]
-"tests/test_gui_mainwindow_behavior.py" = ["B015"]
+"astrocrawl/tests/manual/**/*.py" = ["T201"]
+"astrocrawl/astrocrawl/crawler/outcomes.py" = ["TC001"]
+"astrocrawl/tests/test_gui_mainwindow_behavior.py" = ["B015"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["astrocrawl"]
+known-first-party = ["astroproject", "astrocrawl", "astrobase", "astroframe", "astroflow"]
 required-imports = ["from __future__ import annotations"]
 split-on-trailing-comma = false
 
 [tool.coverage.run]
-source = ["astrocrawl"]
-omit = ["tests/*", "*/__pycache__/*"]
+source = ["astrobase", "astrocrawl", "astroframe", "astroflow"]
+omit = ["*/tests/*", "*/__pycache__/*"]
 
 [tool.coverage.report]
 exclude_lines = [

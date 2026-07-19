@@ -3,7 +3,7 @@ name: CI
 on:
   push:
     branches: [main]
-    tags: ["v*"]
+    tags: ["*/*"]
   pull_request:
     branches: [main]
 
@@ -38,11 +38,31 @@ jobs:
           pip install codespell && codespell --ignore-words-list=finshed
 
       - name: mypy
-        run: mypy astrocrawl/
+        run: mypy astrocrawl/astrocrawl/ astrobase/astrobase/ astroframe/astroframe/ astroflow/astroflow/
 
-      - name: Build check
+      - name: Build check (astroproject)
         run: |
-          python -m build
+          cd astroproject && python -m build
+          twine check dist/*
+
+      - name: Build check (astrobase)
+        run: |
+          cd astrobase && python -m build
+          twine check dist/*
+
+      - name: Build check (astroflow)
+        run: |
+          cd astroflow && python -m build
+          twine check dist/*
+
+      - name: Build check (astroframe)
+        run: |
+          cd astroframe && python -m build
+          twine check dist/*
+
+      - name: Build check (astrocrawl)
+        run: |
+          cd astrocrawl && python -m build
           twine check dist/*
 
       - name: Commit message check
@@ -66,7 +86,7 @@ jobs:
           fi
 
       - name: i18n hardcoded string check (中英文双层)
-        run: find astrocrawl/gui astrocrawl/cli -name '*.py' | xargs python scripts/check_i18n.py
+        run: find astrocrawl/astrocrawl/gui astrocrawl/astrocrawl/cli -name '*.py' | xargs python scripts/check_i18n.py
 
       - name: Install Qt tools (lupdate6)
         if: always()
@@ -104,11 +124,11 @@ jobs:
       - name: i18n TS sanity — no vanished/unfinished in committed file
         if: always()
         run: |
-          TS_FILE=astrocrawl/gui/translations/astrocrawl_gui_zh_CN.ts
+          TS_FILE=astrocrawl/astrocrawl/gui/translations/astrocrawl_gui_zh_CN.ts
           VANISHED=$(grep -c 'type="vanished"' "$TS_FILE" || true)
           UNFINISHED=$(grep -c 'type="unfinished"' "$TS_FILE" || true)
           if [ "$VANISHED" -gt 0 ]; then
-            echo "::error::TS file has $VANISHED vanished translations. Run: lupdate6 -extensions py astrocrawl/gui/ astrocrawl/cli/ -ts astrocrawl/gui/translations/astrocrawl_gui_zh_CN.ts"
+            echo "::error::TS file has $VANISHED vanished translations. Run: lupdate6 -extensions py astrocrawl/astrocrawl/gui/ astrocrawl/astrocrawl/cli/ -ts astrocrawl/astrocrawl/gui/translations/astrocrawl_gui_zh_CN.ts"
             grep -B1 'type="vanished"' "$TS_FILE" | head -20
             exit 1
           fi
@@ -122,10 +142,10 @@ jobs:
       - name: i18n lupdate coverage — new source strings need translations
         if: always()
         run: |
-          TS_FILE=astrocrawl/gui/translations/astrocrawl_gui_zh_CN.ts
+          TS_FILE=astrocrawl/astrocrawl/gui/translations/astrocrawl_gui_zh_CN.ts
           TS_TMP=$(mktemp --suffix=.ts)
           cp "$TS_FILE" "$TS_TMP"
-          TR_FILES=$(grep -rl '\.tr(\|tr("' astrocrawl/gui/ astrocrawl/cli/ --include='*.py' | grep -v test_ | grep -v __init__ | tr '\n' ' ')
+          TR_FILES=$(grep -rl '\.tr(\|tr("' astrocrawl/astrocrawl/gui/ astrocrawl/astrocrawl/cli/ --include='*.py' | grep -v test_ | grep -v __init__ | tr '\n' ' ')
           $LUPD_BIN $TR_FILES -ts "$TS_TMP" 2>&1
           python3 -c "
           import xml.etree.ElementTree as ET
@@ -143,7 +163,7 @@ jobs:
           python3 scripts/check_ts_dicts.py --fix-vanished "$TS_TMP"
           UNFINISHED=$(grep -c 'type="unfinished"' "$TS_TMP" || true)
           if [ "$UNFINISHED" -gt 0 ]; then
-            echo "::error::$UNFINISHED new source string(s) need translation. Run lupdate6 -extensions py astrocrawl/gui/ astrocrawl/cli/ -ts $TS_FILE, then fill translations."
+            echo "::error::$UNFINISHED new source string(s) need translation. Run lupdate6 -extensions py astrocrawl/astrocrawl/gui/ astrocrawl/astrocrawl/cli/ -ts $TS_FILE, then fill translations."
             grep -B2 'type="unfinished"' "$TS_TMP" | head -30
             rm "$TS_TMP"
             exit 1
@@ -162,9 +182,9 @@ jobs:
         if: always()
         run: |
           QM_TMP=$(mktemp)
-          $LREL_BIN astrocrawl/gui/translations/astrocrawl_gui_zh_CN.ts -qm "$QM_TMP" 2>&1
-          if ! cmp -s "$QM_TMP" astrocrawl/gui/translations/astrocrawl_gui_zh_CN.qm; then
-            echo "::error::.qm is out of sync with .ts. Run: lrelease6 astrocrawl/gui/translations/astrocrawl_gui_zh_CN.ts -qm astrocrawl/gui/translations/astrocrawl_gui_zh_CN.qm"
+          $LREL_BIN astrocrawl/astrocrawl/gui/translations/astrocrawl_gui_zh_CN.ts -qm "$QM_TMP" 2>&1
+          if ! cmp -s "$QM_TMP" astrocrawl/astrocrawl/gui/translations/astrocrawl_gui_zh_CN.qm; then
+            echo "::error::.qm is out of sync with .ts. Run: lrelease6 astrocrawl/astrocrawl/gui/translations/astrocrawl_gui_zh_CN.ts -qm astrocrawl/astrocrawl/gui/translations/astrocrawl_gui_zh_CN.qm"
             rm "$QM_TMP"
             exit 1
           fi
@@ -192,7 +212,12 @@ jobs:
 
       - run: sudo apt-get install -y libxcb-cursor0 libegl1
 
-      - run: pip install ".[dev,gui,full,yaml,fast,monitor]" pip-audit
+      - run: |
+          pip install --config-settings editable_mode=compat -e astrobase/
+          pip install --config-settings editable_mode=compat -e astroflow/
+          pip install --config-settings editable_mode=compat -e astroframe/
+          pip install --config-settings editable_mode=compat -e "astrocrawl/[dev,gui,full,yaml,fast,monitor]"
+          pip install pip-audit
 
       - name: Cache Playwright browsers
         uses: actions/cache@v4
@@ -203,8 +228,21 @@ jobs:
 
       - run: playwright install --with-deps chromium
 
-      - name: Non-GUI tests
-        run: pytest -m "not gui" --cov -q
+      - name: Non-GUI tests (astroproject)
+        run: pytest astroproject/tests/ --cov -q || [ $? -eq 5 ]
+
+      - name: Non-GUI tests (astrobase)
+        run: pytest astrobase/tests/ --cov -q
+
+      - name: Non-GUI tests (astroframe)
+        run: pytest astroframe/tests/ --cov-append -q
+
+      - name: Non-GUI tests (astrocrawl)
+        run: cd astrocrawl && pytest -m "not gui" --cov-append -q
+
+      - name: Non-GUI tests (astroflow)
+        # exit 5 = no tests collected (acceptable for skeleton package)
+        run: pytest astroflow/tests/ --cov-append -q || [ $? -eq 5 ]
 
       - name: GUI tests
         run: |
@@ -212,7 +250,7 @@ jobs:
           # 非项目 bug，测试数据在其前已完成落盘。容忍 139，其他非零正常报错。
           # TODO: PySide6 上游修复此 bug 后移除此例外。
           set +e
-          QT_QPA_PLATFORM=offscreen pytest -m "gui" --cov-append -q
+          cd astrocrawl && QT_QPA_PLATFORM=offscreen pytest -m "gui" --cov-append -q
           EXIT=$?
           if [ $EXIT -ne 0 ] && [ $EXIT -ne 139 ]; then exit $EXIT; fi
 
@@ -226,7 +264,7 @@ jobs:
 
   publish:
     needs: [lint, test]
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -241,8 +279,35 @@ jobs:
 
       - run: pip install build
 
-      - run: python -m build
+      - name: Extract package and version from tag
+        run: |
+          TAG="${{ github.ref_name }}"
+          PKG="${TAG%%/*}"
+          VERSION="${TAG#*/}"
+          VERSION="${VERSION#v}"
+          KNOWN="astroproject astrobase astroframe astrocrawl astroflow"
+          if ! echo "$KNOWN" | grep -qw "$PKG"; then
+            echo "::error::Unknown package in tag: $TAG (expected one of: $KNOWN)"
+            exit 1
+          fi
+          echo "PKG=$PKG" >> $GITHUB_ENV
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
 
-      - run: pip install twine && twine check dist/*
+      - name: Build
+        run: |
+          cd "$PKG"
+          python -m build
 
-      - uses: pypa/gh-action-pypi-publish@release/v1
+      - name: Verify version matches tag
+        run: |
+          pip install --config-settings editable_mode=compat -e "$PKG/"
+          ACTUAL=$(python -c "import ${PKG}._version; print(${PKG}._version.__version__)")
+          if [ "$ACTUAL" != "$VERSION" ]; then
+            echo "::error::Version mismatch: tag says v$VERSION but ${PKG}/_version.py says $ACTUAL"
+            exit 1
+          fi
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: ${{ env.PKG }}/dist/

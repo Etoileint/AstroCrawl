@@ -30,7 +30,7 @@ CHINESE = re.compile(r"[一-鿿㐀-䶿豈-﫿]")
 ENGLISH_LETTERS = re.compile(r"[a-zA-Z].*[a-zA-Z]")  # at least 2 ASCII letters
 
 # ── 豁免规则 ─────────────────────────────────────────────────────────────
-_CHECK_DIRS = ("astrocrawl/gui", "astrocrawl/cli")
+_CHECK_DIRS = ("astrocrawl/astrocrawl/gui", "astrocrawl/astrocrawl/cli")
 _EXEMPT_FILES = {"_i18n.py", "__init__.py"}
 
 # 行级豁免 patterns
@@ -208,7 +208,7 @@ def _collect_english_ui_strings(tree: ast.AST) -> list[ast.Constant]:
 def _exemption_pattern(filepath: Path) -> re.Pattern[str] | None:
     path_str = str(filepath)
     if any(d in path_str for d in _CHECK_DIRS):
-        if "astrocrawl/cli" in path_str:
+        if "astrocrawl/astrocrawl/cli" in path_str:
             return _EXEMPT_COMMON
         return re.compile(_EXEMPT_COMMON.pattern + r"|" + _EXEMPT_GUI_ONLY.pattern)
     return None

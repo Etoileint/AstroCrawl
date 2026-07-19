@@ -1,0 +1,54 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "astroproject"
+dynamic = ["version"]
+description = "AstroProject 晚星计划 — 四包 monorepo 元包（一键安装全家桶）"
+readme = {file = "README.md", content-type = "text/markdown"}
+license = "Apache-2.0"
+authors = [
+    {name = "Etoileint", email = "etoileint@163.com"},
+    {name = "Etoileint", email = "littlestar@buaa.edu.cn"},
+]
+requires-python = ">=3.12"
+dependencies = [
+    "astrobase[fast]>=0.1",
+    "astroframe>=0.1.0a1",
+    "astrocrawl[full,gui,fast]>=0.1.5",
+    "astroflow>=0.0.1",
+]
+
+[project.optional-dependencies]
+sigstore = ["astroframe[sigstore]>=0.1.0a1"]
+dev = [
+    "astrocrawl[dev]>=0.1.5",
+]
+keywords = [
+    "web-crawler",
+    "web-scraping",
+    "playwright",
+    "async",
+    "ai-extraction",
+    "plugin-system",
+    "monorepo",
+    "workflow-engine",
+    "pyside6",
+    "cli",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
+[project.urls]
+Homepage = "https://github.com/Etoileint/AstroProject"
+Repository = "https://github.com/Etoileint/AstroProject"
+Issues = "https://github.com/Etoileint/AstroProject/issues"
+
+[tool.setuptools.dynamic]
+version = {attr = "astroproject._version.__version__"}

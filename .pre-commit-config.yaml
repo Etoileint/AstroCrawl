@@ -38,22 +38,22 @@ repos:
         entry: python scripts/check_i18n.py
         language: system
         types: [python]
-        files: ^astrocrawl/
-      - id: i18n-ts-dicts
-        name: i18n-ts-dicts
-        entry: python scripts/check_ts_dicts.py astrocrawl/gui/translations/astrocrawl_gui_zh_CN.ts
-        language: system
-        files: ^astrocrawl/gui/translations/.*\.ts$
-        pass_filenames: false
-      - id: i18n-qm-fresh
-        name: i18n-qm-fresh
-        entry: python scripts/check_qm_fresh.py
-        language: system
-        files: ^astrocrawl/gui/translations/
-        pass_filenames: false
+        files: ^astrocrawl/astrocrawl/
       - id: logfmt-check
         name: logfmt-check
         entry: python scripts/check_logfmt.py
         language: system
         types: [python]
-        files: ^astrocrawl/
+        files: ^(astrocrawl/astrocrawl/|astrobase/astrobase/|astroframe/astroframe/|astroflow/astroflow/)
+      - id: i18n-ts-dicts
+        name: i18n-ts-dicts
+        entry: python scripts/check_ts_dicts.py astrocrawl/astrocrawl/gui/translations/astrocrawl_gui_zh_CN.ts
+        language: system
+        files: ^astrocrawl/astrocrawl/gui/translations/.*\.ts$
+        pass_filenames: false
+      - id: i18n-qm-fresh
+        name: i18n-qm-fresh
+        entry: python scripts/check_qm_fresh.py
+        language: system
+        files: ^astrocrawl/astrocrawl/gui/translations/
+        pass_filenames: false

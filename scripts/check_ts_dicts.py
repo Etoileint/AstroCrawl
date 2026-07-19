@@ -16,9 +16,9 @@ from xml.etree import ElementTree as ET
 # ── 注册字典: (Python 文件, 变量名, TS context 列表) ────────────────────────
 
 REGISTRY = [
-    ("astrocrawl/proxy/_consumers.py", "PROXY_CONSUMERS", ["ProxyProfileListModel", "ProxyRouteModel"]),
-    ("astrocrawl/gui/rules_dialog.py", "_TIER_LABELS", ["_CustomPage"]),
-    ("astrocrawl/gui/theme_dialog.py", "_TOKEN_LABELS", ["ThemeDialog"]),
+    ("astrocrawl/astrocrawl/proxy/_consumers.py", "PROXY_CONSUMERS", ["ProxyProfileListModel", "ProxyRouteModel"]),
+    ("astrocrawl/astrocrawl/gui/rules_dialog.py", "_TIER_LABELS", ["_CustomPage"]),
+    ("astrocrawl/astrocrawl/gui/theme_dialog.py", "_TOKEN_LABELS", ["ThemeDialog"]),
 ]
 
 _STATEMENT_BOUNDARIES = (
@@ -166,7 +166,7 @@ def _resolve_iter_source(iter_node: ast.expr, target: ast.expr, var_name: str) -
 def _find_unregistered_tr_vars(repo_root: Path) -> list[str]:
     """扫描所有 GUI 文件中的 self.tr(variable) 调用，检查是否已被 REGISTRY 覆盖。"""
     warnings: list[str] = []
-    gui_dir = repo_root / "astrocrawl/gui"
+    gui_dir = repo_root / "astrocrawl/astrocrawl/gui"
     if not gui_dir.is_dir():
         return warnings
 
@@ -233,7 +233,7 @@ def _find_unregistered_tr_vars(repo_root: Path) -> list[str]:
 
 def main() -> int:
     repo_root = Path(__file__).resolve().parent.parent
-    ts_path = repo_root / "astrocrawl/gui/translations/astrocrawl_gui_zh_CN.ts"
+    ts_path = repo_root / "astrocrawl/astrocrawl/gui/translations/astrocrawl_gui_zh_CN.ts"
 
     # --fix-vanished mode
     if len(sys.argv) == 3 and sys.argv[1] == "--fix-vanished":

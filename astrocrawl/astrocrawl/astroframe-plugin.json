@@ -1,0 +1,454 @@
+{
+    "manifest_version": 1,
+    "name": "astrocrawl",
+    "requires_engine": ">=0.1",
+    "processor_chain_default_order": [
+        "domain-concurrency",
+        "robots",
+        "rate-limit",
+        "fetch",
+        "parse",
+        "content-dedup",
+        "finalize",
+        "enqueue-links"
+    ],
+    "capabilities": [
+        {
+            "group": "processor.chain",
+            "name": "domain-concurrency",
+            "display_name": "Domain Concurrency",
+            "description": "Enforce per-domain concurrency limits before processing",
+            "factory": "astrocrawl.crawler.engine:DomainConcurrencyProcessor",
+            "implements": "Processor",
+            "permissions": [
+                "crawl.ctx.read",
+                "crawl.deps.read",
+                "network.outbound",
+                "network.domains",
+                "filesystem.read",
+                "filesystem.write",
+                "code.ffi",
+                "code.unpickle",
+                "process.spawn"
+            ],
+            "constraints": {
+                "before": "robots"
+            }
+        },
+        {
+            "group": "processor.chain",
+            "name": "robots",
+            "display_name": "Robots.txt Check",
+            "description": "Check robots.txt rules and apply crawl delay",
+            "factory": "astrocrawl.crawler.engine:RobotsProcessor",
+            "implements": "Processor",
+            "permissions": [
+                "crawl.ctx.read",
+                "crawl.ctx.write",
+                "crawl.deps.read",
+                "network.outbound",
+                "network.domains",
+                "filesystem.read",
+                "filesystem.write",
+                "code.ffi",
+                "code.unpickle",
+                "process.spawn"
+            ],
+            "constraints": {
+                "after": "domain-concurrency",
+                "before": "rate-limit"
+            }
+        },
+        {
+            "group": "processor.chain",
+            "name": "rate-limit",
+            "display_name": "Rate Limiting",
+            "description": "Apply per-domain rate limiting before fetch",
+            "factory": "astrocrawl.crawler.engine:RateLimitProcessor",
+            "implements": "Processor",
+            "permissions": [
+                "crawl.ctx.read",
+                "crawl.deps.read",
+                "network.outbound",
+                "filesystem.read",
+                "filesystem.write",
+                "code.ffi",
+                "code.unpickle",
+                "process.spawn",
+                "network.domains"
+            ],
+            "constraints": {
+                "after": "robots",
+                "before": "fetch"
+            }
+        },
+        {
+            "group": "processor.chain",
+            "name": "fetch",
+            "display_name": "URL Fetch",
+            "description": "Fetch URL content via browser or HTTP",
+            "factory": "astrocrawl.crawler.engine:FetchProcessor",
+            "implements": "Processor",
+            "permissions": [
+                "crawl.ctx.read",
+                "crawl.ctx.write",
+                "crawl.deps.read",
+                "network.outbound",
+                "network.domains",
+                "filesystem.read",
+                "filesystem.write",
+                "code.ffi",
+                "code.unpickle",
+                "process.spawn"
+            ],
+            "constraints": {
+                "after": "rate-limit",
+                "before": "parse"
+            }
+        },
+        {
+            "group": "processor.chain",
+            "name": "parse",
+            "display_name": "HTML Parse & Extract",
+            "description": "Parse HTML and extract structured data via rules engine",
+            "factory": "astrocrawl.crawler.engine:ParseProcessor",
+            "implements": "Processor",
+            "permissions": [
+                "crawl.ctx.read",
+                "crawl.ctx.write",
+                "crawl.deps.read",
+                "network.outbound",
+                "filesystem.read",
+                "filesystem.write",
+                "code.ffi",
+                "code.unpickle",
+                "process.spawn",
+                "network.domains"
+            ],
+            "constraints": {
+                "after": "fetch",
+                "before": "content-dedup"
+            }
+        },
+        {
+            "group": "processor.chain",
+            "name": "content-dedup",
+            "display_name": "Content Deduplication",
+            "description": "Skip duplicate content via MD5 head-middle-tail sampling",
+            "factory": "astrocrawl.crawler.engine:ContentDedupProcessor",
+            "implements": "Processor",
+            "permissions": [
+                "crawl.ctx.read",
+                "crawl.ctx.write",
+                "crawl.deps.read",
+                "network.outbound",
+                "filesystem.read",
+                "filesystem.write",
+                "code.ffi",
+                "code.unpickle",
+                "process.spawn",
+                "network.domains"
+            ],
+            "constraints": {
+                "after": "parse",
+                "before": "finalize"
+            }
+        },
+        {
+            "group": "processor.chain",
+            "name": "finalize",
+            "display_name": "Finalize & Output",
+            "description": "Write extracted data to output and update crawl state",
+            "factory": "astrocrawl.crawler.engine:FinalizeProcessor",
+            "implements": "Processor",
+            "permissions": [
+                "crawl.ctx.read",
+                "crawl.ctx.write",
+                "crawl.deps.read",
+                "filesystem.output",
+                "network.outbound",
+                "filesystem.read",
+                "filesystem.write",
+                "code.ffi",
+                "code.unpickle",
+                "process.spawn",
+                "network.domains"
+            ],
+            "constraints": {
+                "after": "content-dedup",
+                "before": "enqueue-links"
+            }
+        },
+        {
+            "group": "processor.chain",
+            "name": "enqueue-links",
+            "display_name": "Enqueue Links",
+            "description": "Extract and enqueue discovered links for further crawling",
+            "factory": "astrocrawl.crawler.engine:EnqueueLinksProcessor",
+            "implements": "Processor",
+            "permissions": [
+                "crawl.ctx.read",
+                "crawl.ctx.write",
+                "crawl.deps.read",
+                "crawl.deps.queue",
+                "network.outbound",
+                "filesystem.read",
+                "filesystem.write",
+                "code.ffi",
+                "code.unpickle",
+                "process.spawn",
+                "network.domains"
+            ],
+            "constraints": {
+                "after": "finalize"
+            }
+        },
+        {
+            "group": "rules.transform",
+            "name": "strip",
+            "display_name": "Strip",
+            "description": "Strip whitespace from extracted values",
+            "factory": "astrocrawl.rules._transform:StripTransform",
+            "implements": "Transform",
+            "permissions": [
+                "network.outbound",
+                "filesystem.read",
+                "filesystem.write",
+                "code.ffi",
+                "code.unpickle",
+                "process.spawn"
+            ]
+        },
+        {
+            "group": "rules.transform",
+            "name": "strip_currency",
+            "display_name": "Strip Currency",
+            "description": "Remove currency symbols from extracted values",
+            "factory": "astrocrawl.rules._transform:StripCurrencyTransform",
+            "implements": "Transform",
+            "permissions": [
+                "network.outbound",
+                "filesystem.read",
+                "filesystem.write",
+                "code.ffi",
+                "code.unpickle",
+                "process.spawn"
+            ]
+        },
+        {
+            "group": "rules.transform",
+            "name": "regex",
+            "display_name": "Regex Transform",
+            "description": "Apply regex pattern transformation to values",
+            "factory": "astrocrawl.rules._transform:RegexTransform",
+            "implements": "Transform",
+            "permissions": [
+                "network.outbound",
+                "filesystem.read",
+                "filesystem.write",
+                "code.ffi",
+                "code.unpickle",
+                "process.spawn"
+            ]
+        },
+        {
+            "group": "rules.transform",
+            "name": "replace",
+            "display_name": "Replace",
+            "description": "String replace transformation",
+            "factory": "astrocrawl.rules._transform:ReplaceTransform",
+            "implements": "Transform",
+            "permissions": [
+                "network.outbound",
+                "filesystem.read",
+                "filesystem.write",
+                "code.ffi",
+                "code.unpickle",
+                "process.spawn"
+            ]
+        },
+        {
+            "group": "rules.transform",
+            "name": "join",
+            "display_name": "Join",
+            "description": "Join array values with separator",
+            "factory": "astrocrawl.rules._transform:JoinTransform",
+            "implements": "Transform",
+            "permissions": [
+                "network.outbound",
+                "filesystem.read",
+                "filesystem.write",
+                "code.ffi",
+                "code.unpickle",
+                "process.spawn"
+            ]
+        },
+        {
+            "group": "health.check",
+            "name": "retry_monitor",
+            "display_name": "Retry Monitor",
+            "description": "Periodically recover retryable failed URLs from the database",
+            "factory": "astrocrawl.crawler.engine:_RetryMonitorCheck",
+            "implements": "HealthCheck",
+            "permissions": [
+                "crawl.deps.db",
+                "network.outbound",
+                "filesystem.read",
+                "filesystem.write",
+                "code.ffi",
+                "code.unpickle",
+                "process.spawn"
+            ]
+        },
+        {
+            "group": "health.check",
+            "name": "rate_limiter_cleanup",
+            "display_name": "Rate Limiter Cleanup",
+            "description": "Purge expired domain rate limiter entries",
+            "factory": "astrocrawl.crawler.engine:_RateLimiterCleanupCheck",
+            "implements": "HealthCheck",
+            "permissions": [
+                "network.outbound",
+                "filesystem.read",
+                "filesystem.write",
+                "code.ffi",
+                "code.unpickle",
+                "process.spawn"
+            ]
+        },
+        {
+            "group": "health.check",
+            "name": "concurrency_limiter_cleanup",
+            "display_name": "Concurrency Limiter Cleanup",
+            "description": "Purge stale domain concurrency limiter entries",
+            "factory": "astrocrawl.crawler.engine:_ConcurrencyLimiterCleanupCheck",
+            "implements": "HealthCheck",
+            "permissions": [
+                "network.outbound",
+                "filesystem.read",
+                "filesystem.write",
+                "code.ffi",
+                "code.unpickle",
+                "process.spawn"
+            ]
+        },
+        {
+            "group": "health.check",
+            "name": "content_hash_cleanup",
+            "display_name": "Content Hash Cleanup",
+            "description": "Purge expired content hash entries from the database",
+            "factory": "astrocrawl.crawler.engine:_ContentHashCleanupCheck",
+            "implements": "HealthCheck",
+            "permissions": [
+                "crawl.deps.db",
+                "network.outbound",
+                "filesystem.read",
+                "filesystem.write",
+                "code.ffi",
+                "code.unpickle",
+                "process.spawn"
+            ]
+        },
+        {
+            "group": "health.check",
+            "name": "resource_monitor",
+            "display_name": "Resource Monitor",
+            "description": "Snapshot memory, database size, and queue depth",
+            "factory": "astrocrawl.crawler.engine:_ResourceMonitorCheck",
+            "implements": "HealthCheck",
+            "permissions": [
+                "crawl.deps.db",
+                "network.outbound",
+                "filesystem.read",
+                "filesystem.write",
+                "code.ffi",
+                "code.unpickle",
+                "process.spawn"
+            ]
+        },
+        {
+            "group": "health.check",
+            "name": "rules_engine",
+            "display_name": "Rules Engine Health",
+            "description": "Check rule lifecycle load status and rule count",
+            "factory": "astrocrawl.crawler.engine:_RulesEngineCheck",
+            "implements": "HealthCheck",
+            "permissions": [
+                "network.outbound",
+                "filesystem.read",
+                "filesystem.write",
+                "code.ffi",
+                "code.unpickle",
+                "process.spawn"
+            ]
+        },
+        {
+            "group": "cli.subcommand",
+            "name": "rules",
+            "display_name": "Rule Management",
+            "description": "Manage extraction rules: list, show, validate, enable/disable, import/export, generate, preview",
+            "factory": "astrocrawl.cli.main:_CliRulesAdapter",
+            "implements": "CLISubcommand",
+            "permissions": [
+                "filesystem.state",
+                "network.outbound",
+                "filesystem.read",
+                "filesystem.write",
+                "code.ffi",
+                "code.unpickle",
+                "process.spawn"
+            ]
+        },
+        {
+            "group": "cli.subcommand",
+            "name": "source",
+            "display_name": "Rule Source Management",
+            "description": "Manage remote rule sources: add, remove, list, update, validate, edit, info",
+            "factory": "astrocrawl.cli.main:_CliSourceAdapter",
+            "implements": "CLISubcommand",
+            "permissions": [
+                "filesystem.state",
+                "network.outbound",
+                "filesystem.read",
+                "filesystem.write",
+                "code.ffi",
+                "code.unpickle",
+                "process.spawn"
+            ]
+        },
+        {
+            "group": "cli.subcommand",
+            "name": "proxy",
+            "display_name": "Proxy Configuration",
+            "description": "Manage proxy profiles: add, list, remove, set, show, test",
+            "factory": "astrocrawl.cli.main:_CliProxyAdapter",
+            "implements": "CLISubcommand",
+            "permissions": [
+                "filesystem.state",
+                "network.outbound",
+                "filesystem.read",
+                "filesystem.write",
+                "code.ffi",
+                "code.unpickle",
+                "process.spawn"
+            ]
+        },
+        {
+            "group": "cli.subcommand",
+            "name": "ai",
+            "display_name": "AI Configuration",
+            "description": "Manage AI profiles: add, list, remove, set-default, show, test",
+            "factory": "astrocrawl.cli.main:_CliAiAdapter",
+            "implements": "CLISubcommand",
+            "permissions": [
+                "filesystem.state",
+                "network.outbound",
+                "filesystem.read",
+                "filesystem.write",
+                "code.ffi",
+                "code.unpickle",
+                "process.spawn"
+            ]
+        }
+    ]
+}

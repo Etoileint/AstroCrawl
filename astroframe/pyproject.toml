@@ -1,0 +1,82 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "astroframe"
+dynamic = ["version"]
+description = "Universal plugin platform runtime — Protocol + registry + sandbox + signature verification"
+readme = "README.md"
+license = "Apache-2.0"
+authors = [
+    {name = "Etoileint", email = "etoileint@163.com"},
+    {name = "Etoileint", email = "littlestar@buaa.edu.cn"},
+]
+keywords = [
+    "plugin-system",
+    "plugin-platform",
+    "plugin-manager",
+    "sandbox",
+    "seccomp",
+    "landlock",
+    "subprocess",
+    "ast-scanner",
+    "code-signing",
+    "sigstore",
+    "protocol",
+    "lifecycle",
+    "registry",
+    "discovery",
+    "python",
+    "async",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Framework :: AsyncIO",
+    "Intended Audience :: Developers",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
+    "Topic :: System :: Systems Administration",
+    "Topic :: Security",
+]
+requires-python = ">=3.12"
+dependencies = [
+    "astrobase>=0.1",
+]
+
+[project.optional-dependencies]
+sigstore = ["sigstore>=2.0"]
+dev = [
+    "pytest>=7.0",
+    "pytest-asyncio>=0.21",
+    "pytest-cov>=4.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/Etoileint/AstroProject"
+Repository = "https://github.com/Etoileint/AstroProject"
+Issues = "https://github.com/Etoileint/AstroProject/issues"
+Documentation = "https://github.com/Etoileint/AstroProject#readme"
+
+[tool.setuptools.packages.find]
+include = ["astroframe*"]
+
+[tool.setuptools.package-data]
+astroframe = [
+    "entitlements/*",
+]
+
+[tool.setuptools.dynamic]
+version = {attr = "astroframe._version.__version__"}
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+testpaths = ["tests"]
+asyncio_mode = "auto"
+markers = [
+    "plugin_migration: Plugin system migration tests — requires ASTROCRAWL_PLUGINS=1",
+]

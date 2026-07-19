@@ -1,0 +1,58 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "astrobase"
+dynamic = ["version"]
+description = "Pure mechanism layer for the Astro ecosystem — zero hard dependencies"
+readme = "README.md"
+license = "Apache-2.0"
+authors = [
+    {name = "Etoileint", email = "etoileint@163.com"},
+    {name = "Etoileint", email = "littlestar@buaa.edu.cn"},
+]
+keywords = [
+    "logging",
+    "logfmt",
+    "structured-logging",
+    "atomic-write",
+    "json",
+    "orjson",
+    "protocol",
+    "async",
+    "mechanism",
+    "python",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: System :: Logging",
+]
+requires-python = ">=3.12"
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/Etoileint/AstroProject"
+Repository = "https://github.com/Etoileint/AstroProject"
+Issues = "https://github.com/Etoileint/AstroProject/issues"
+Documentation = "https://github.com/Etoileint/AstroProject#readme"
+
+[project.optional-dependencies]
+fast = ["orjson>=3.8"]
+
+[tool.setuptools.packages.find]
+include = ["astrobase*"]
+
+[tool.setuptools.dynamic]
+version = {attr = "astrobase._version.__version__"}
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+testpaths = ["tests"]
+asyncio_mode = "auto"

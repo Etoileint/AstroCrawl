@@ -25,4 +25,4 @@ Steps:
 
 - OS:
 - Python version:
-- AstroCrawl version:
+- AstroProject version / package:
