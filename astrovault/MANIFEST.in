@@ -1,0 +1,8 @@
+include pyproject.toml
+include README.md
+include LICENSE
+
+prune tests
+global-exclude *.pyc
+global-exclude __pycache__
+global-exclude *.egg-info

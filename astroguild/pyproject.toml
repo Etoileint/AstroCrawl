@@ -1,0 +1,60 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "astroguild"
+dynamic = ["version"]
+description = "Federation protocol for the Astro ecosystem — cross-instance discovery, trust establishment, joint task execution"
+readme = "README.md"
+license = "Apache-2.0"
+authors = [
+    {name = "Etoileint", email = "etoileint@163.com"},
+    {name = "Etoileint", email = "littlestar@buaa.edu.cn"},
+]
+keywords = [
+    "federation",
+    "protocol",
+    "discovery",
+    "trust",
+    "distributed",
+    "collaboration",
+    "python",
+]
+classifiers = [
+    "Development Status :: 1 - Planning",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+requires-python = ">=3.12"
+dependencies = [
+    "astrobasis>=0.1",
+]
+
+[project.urls]
+Homepage = "https://github.com/Etoileint/AstroProject"
+Repository = "https://github.com/Etoileint/AstroProject"
+Issues = "https://github.com/Etoileint/AstroProject/issues"
+Documentation = "https://github.com/Etoileint/AstroProject#readme"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-asyncio>=0.21",
+    "pytest-cov>=4.0",
+]
+
+[tool.setuptools.packages.find]
+include = ["astroguild*"]
+
+[tool.setuptools.dynamic]
+version = {attr = "astroguild._version.__version__"}
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+testpaths = ["tests"]
+asyncio_mode = "auto"
