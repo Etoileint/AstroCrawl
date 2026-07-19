@@ -1,4 +1,4 @@
-# astroflow <em>织霞</em>
+# astroweave <em>织霞</em>
 
 > 织其华者，舞万丈霞
 
@@ -11,7 +11,7 @@ Planning phase (ADR-0014). Placeholder package.
 ## Install
 
 ```bash
-pip install astroflow
+pip install astroweave
 ```
 
 ## License

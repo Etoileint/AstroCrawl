@@ -1,4 +1,4 @@
-"""AstroFlow 版本号 SSOT。"""
+"""AstroWeave 版本号 SSOT。"""
 
 from __future__ import annotations
 

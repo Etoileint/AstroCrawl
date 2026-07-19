@@ -9,7 +9,7 @@ AstroProject meta-package. This package contains no runtime code. Security issue
 | astrocrawl | Active |
 | astroframe | Alpha |
 | astrobasis | Active |
-| astroflow | Pre-release |
+| astroweave | Pre-release |
 
 ## Reporting
 

@@ -11,7 +11,7 @@ name = "astroframe"
 description = "Universal plugin platform runtime — Protocol + registry + sandbox"
 
 [[tool.astroproject.members]]
-name = "astroflow"
+name = "astroweave"
 description = "Workflow engine — orchestrate crawl, AI, and rules pipelines as composable DAGs"
 
 [tool.mypy]
@@ -60,8 +60,8 @@ extend-select = [
 "astrobasis/tests/**/*.py" = ["ERA", "PT"]
 "astroframe/astroframe/**/*.py" = ["ERA", "PT", "B008"]
 "astroframe/tests/**/*.py" = ["ERA", "PT", "B017"]
-"astroflow/astroflow/**/*.py" = ["ERA", "PT", "B008"]
-"astroflow/tests/**/*.py" = ["ERA", "PT", "B017"]
+"astroweave/astroweave/**/*.py" = ["ERA", "PT", "B008"]
+"astroweave/tests/**/*.py" = ["ERA", "PT", "B017"]
 "scripts/**/*.py" = ["ERA", "T201", "B007"]
 "docs/**/*.py" = ["T201", "B007"]
 "astrocrawl/tests/manual/**/*.py" = ["T201"]
@@ -69,12 +69,12 @@ extend-select = [
 "astrocrawl/tests/test_gui_mainwindow_behavior.py" = ["B015"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["astroproject", "astrocrawl", "astrobasis", "astroframe", "astroflow"]
+known-first-party = ["astroproject", "astrocrawl", "astrobasis", "astroframe", "astroweave"]
 required-imports = ["from __future__ import annotations"]
 split-on-trailing-comma = false
 
 [tool.coverage.run]
-source = ["astrobasis", "astrocrawl", "astroframe", "astroflow"]
+source = ["astrobasis", "astrocrawl", "astroframe", "astroweave"]
 omit = ["*/tests/*", "*/__pycache__/*"]
 
 [tool.coverage.report]

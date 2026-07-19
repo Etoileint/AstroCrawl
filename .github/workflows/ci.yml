@@ -38,7 +38,7 @@ jobs:
           pip install codespell && codespell --ignore-words-list=finshed
 
       - name: mypy
-        run: mypy astrocrawl/astrocrawl/ astrobasis/astrobasis/ astroframe/astroframe/ astroflow/astroflow/
+        run: mypy astrocrawl/astrocrawl/ astrobasis/astrobasis/ astroframe/astroframe/ astroweave/astroweave/
 
       - name: Build check (astroproject)
         run: |
@@ -50,9 +50,9 @@ jobs:
           cd astrobasis && python -m build
           twine check dist/*
 
-      - name: Build check (astroflow)
+      - name: Build check (astroweave)
         run: |
-          cd astroflow && python -m build
+          cd astroweave && python -m build
           twine check dist/*
 
       - name: Build check (astroframe)
@@ -214,7 +214,7 @@ jobs:
 
       - run: |
           pip install --config-settings editable_mode=compat -e astrobasis/
-          pip install --config-settings editable_mode=compat -e astroflow/
+          pip install --config-settings editable_mode=compat -e astroweave/
           pip install --config-settings editable_mode=compat -e astroframe/
           pip install --config-settings editable_mode=compat -e "astrocrawl/[dev,gui,full,yaml,fast,monitor]"
           pip install pip-audit
@@ -240,9 +240,9 @@ jobs:
       - name: Non-GUI tests (astrocrawl)
         run: cd astrocrawl && pytest -m "not gui" --cov-append -q
 
-      - name: Non-GUI tests (astroflow)
+      - name: Non-GUI tests (astroweave)
         # exit 5 = no tests collected (acceptable for skeleton package)
-        run: pytest astroflow/tests/ --cov-append -q || [ $? -eq 5 ]
+        run: pytest astroweave/tests/ --cov-append -q || [ $? -eq 5 ]
 
       - name: GUI tests
         run: |
@@ -285,7 +285,7 @@ jobs:
           PKG="${TAG%%/*}"
           VERSION="${TAG#*/}"
           VERSION="${VERSION#v}"
-          KNOWN="astroproject astrobasis astroframe astrocrawl astroflow"
+          KNOWN="astroproject astrobasis astroframe astrocrawl astroweave"
           if ! echo "$KNOWN" | grep -qw "$PKG"; then
             echo "::error::Unknown package in tag: $TAG (expected one of: $KNOWN)"
             exit 1

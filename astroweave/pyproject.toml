@@ -3,7 +3,7 @@ requires = ["setuptools>=68.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "astroflow"
+name = "astroweave"
 dynamic = ["version"]
 description = "Workflow engine for the Astro ecosystem — orchestrate crawl, AI, and rules pipelines"
 readme = "README.md"
@@ -49,10 +49,10 @@ dev = [
 ]
 
 [tool.setuptools.packages.find]
-include = ["astroflow*"]
+include = ["astroweave*"]
 
 [tool.setuptools.dynamic]
-version = {attr = "astroflow._version.__version__"}
+version = {attr = "astroweave._version.__version__"}
 
 [tool.pytest.ini_options]
 minversion = "7.0"

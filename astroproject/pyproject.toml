@@ -17,7 +17,7 @@ dependencies = [
     "astrobasis[fast]>=0.1",
     "astroframe>=0.1.0a1",
     "astrocrawl[full,gui,fast]>=0.1.5",
-    "astroflow>=0.0.1",
+    "astroweave>=0.0.1",
 ]
 keywords = [
     "web-crawler",

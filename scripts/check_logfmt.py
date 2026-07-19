@@ -230,7 +230,7 @@ def main() -> int:
         Path(f)
         for f in sys.argv[1:]
         if f.endswith(".py")
-        and ("/astrocrawl/" in f or "/astrobasis/" in f or "/astroframe/" in f or "/astroflow/" in f)
+        and ("/astrocrawl/" in f or "/astrobasis/" in f or "/astroframe/" in f or "/astroweave/" in f)
     ]
 
     # 跳过测试文件

@@ -21,7 +21,7 @@ I will respond as soon as possible. Once confirmed and fixed, I will publish a s
 | astrobasis | 0.1.x | :white_check_mark: |
 | astroframe | 0.1.x | :white_check_mark: |
 | astrocrawl | 0.1.x | :white_check_mark: |
-| astroflow | — | Planning |
+| astroweave | — | Planning |
 
 ## Scope
 
@@ -51,7 +51,7 @@ Security concerns relevant to each package:
 - **Information disclosure**: sensitive data in error messages, health endpoints, or exported reports
 - **Denial of service**: ReDoS, unbounded caching, memory amplification in transforms
 
-### astroflow (织霞 — Workflow Engine)
+### astroweave (织霞 — Workflow Engine)
 
 - Planning phase — security model TBD.
 
@@ -62,4 +62,4 @@ Each package maintains its own `SECURITY.md` with detailed design principles, kn
 - [astrobasis/SECURITY.md](astrobasis/SECURITY.md)
 - [astroframe/SECURITY.md](astroframe/SECURITY.md)
 - [astrocrawl/SECURITY.md](astrocrawl/SECURITY.md)
-- [astroflow/SECURITY.md](astroflow/SECURITY.md)
+- [astroweave/SECURITY.md](astroweave/SECURITY.md)
