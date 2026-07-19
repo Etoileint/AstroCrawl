@@ -285,7 +285,7 @@ jobs:
           PKG="${TAG%%/*}"
           VERSION="${TAG#*/}"
           VERSION="${VERSION#v}"
-          KNOWN="astroproject astrobasis astroframe astrocrawl astroweave"
+          KNOWN="astroproject astrobasis astroframe astrocrawl astroweave astroguard astrostaff astroforum astrocraft astrovault astroguild"
           if ! echo "$KNOWN" | grep -qw "$PKG"; then
             echo "::error::Unknown package in tag: $TAG (expected one of: $KNOWN)"
             exit 1
