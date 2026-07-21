@@ -8,13 +8,12 @@ RuleSnapshot.default_only() 体内的延迟导入用于打破与 rules._schema �
 
 from __future__ import annotations
 
-import re
 import time
 from collections import OrderedDict
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
-from typing import TYPE_CHECKING, Dict, Optional, Tuple
+from typing import TYPE_CHECKING, Dict, List, Optional, Tuple
 
 from astrobasis._types import AsyncCloseable  # noqa: F401 — re-export for backward compat
 
@@ -43,117 +42,85 @@ class FetchErrorCategory(Enum):
     GENERIC = "generic"
 
 
-# ── Chromium 错误码分类表 ──────────────────────────────────────
-# Chromium net_error_list.h 定义了稳定的错误码命名约定。
-# 错误码前缀是 Chromium 的公开 API——新增错误码遵循同一命名规范，
-# 前缀匹配即可自动覆盖。无需遇到一个加一个。
-#
-# 规则：列表按特异性降序排列。
-#  - 精确码 (如 net::ERR_TIMED_OUT) 优先于前缀 (如 net::ERR_SSL_) 优先于通配 (net::ERR_)
-#  - 长前缀 (如 net::ERR_CONNECTION_TIMED_OUT) 优先于短前缀 (如 net::ERR_CONNECTION_)
-#
-# Tier 1: 提取 "net::ERR_XXX" / "net::HTTP_XXX" 前缀 → 按此表分类
-# Tier 2: 非 Chromium 错误回退到 _FALLBACK_PATTERNS
-# Tier 3: 默认 GENERIC
-# ─────────────────────────────────────────────────────────────────
-
-_CHROMIUM_ERROR_RE = re.compile(r"net::(?:ERR_|HTTP_)\w+")
-
-# 精确匹配 + 前缀族。每项: (pattern, category)。
-# pattern 以 "_" 结尾为前缀匹配，否则为精确匹配。
-_CHROMIUM_ERROR_TABLE: list[tuple[str, FetchErrorCategory]] = [
-    # -- DNS / 地址解析 --
-    ("net::ERR_NAME_NOT_RESOLVED", FetchErrorCategory.DNS),
-    ("net::ERR_ADDRESS_UNREACHABLE", FetchErrorCategory.DNS),
-    ("net::ERR_ADDRESS_INVALID", FetchErrorCategory.DNS),
-    ("net::ERR_INTERNET_DISCONNECTED", FetchErrorCategory.DNS),
-    ("net::ERR_HOST_RESOLVER_QUEUE_TOO_LARGE", FetchErrorCategory.DNS),
-    # -- SSL / 证书（族） --
-    ("net::ERR_SSL_", FetchErrorCategory.SSL),
-    ("net::ERR_CERT_", FetchErrorCategory.SSL),
-    # -- 超时 --
-    ("net::ERR_CONNECTION_TIMED_OUT", FetchErrorCategory.TIMEOUT),
-    ("net::ERR_TIMED_OUT", FetchErrorCategory.TIMEOUT),
-    # -- 连接拒绝 --
-    ("net::ERR_CONNECTION_REFUSED", FetchErrorCategory.CONNECTION_REFUSED),
-    ("net::ERR_NETWORK_ACCESS_DENIED", FetchErrorCategory.CONNECTION_REFUSED),
-    # -- 连接重置 / 中断 --
-    ("net::ERR_CONNECTION_RESET", FetchErrorCategory.CONNECTION_RESET),
-    ("net::ERR_CONNECTION_CLOSED", FetchErrorCategory.CONNECTION_RESET),
-    ("net::ERR_CONNECTION_ABORTED", FetchErrorCategory.CONNECTION_RESET),
-    ("net::ERR_CONNECTION_FAILED", FetchErrorCategory.CONNECTION_RESET),
-    ("net::ERR_NETWORK_IO_SUSPENDED", FetchErrorCategory.CONNECTION_RESET),
-    ("net::ERR_NETWORK_CHANGED", FetchErrorCategory.CONNECTION_RESET),
-    # -- 代理（族） --
-    ("net::ERR_PROXY_", FetchErrorCategory.PROXY),
-    ("net::ERR_TUNNEL_", FetchErrorCategory.PROXY),
-    ("net::ERR_SOCKS_", FetchErrorCategory.PROXY),
-    # -- 中止 / 被拦截（族） --
-    ("net::ERR_ABORTED", FetchErrorCategory.ABORTED),
-    ("net::ERR_BLOCKED_BY_", FetchErrorCategory.ABORTED),
-    # -- 重定向 --
-    ("net::ERR_TOO_MANY_REDIRECTS", FetchErrorCategory.TOO_MANY_REDIRECTS),
-    # -- HTTP 状态码（按具体码分类） --
-    ("net::HTTP_403", FetchErrorCategory.HTTP_4XX),
-    ("net::HTTP_404", FetchErrorCategory.HTTP_4XX),
-    ("net::HTTP_410", FetchErrorCategory.HTTP_4XX),
-    ("net::HTTP_429", FetchErrorCategory.HTTP_4XX),
-    ("net::HTTP_451", FetchErrorCategory.HTTP_4XX),
-    ("net::HTTP_502", FetchErrorCategory.HTTP_5XX),
-    ("net::HTTP_503", FetchErrorCategory.HTTP_5XX),
-    ("net::HTTP_500", FetchErrorCategory.HTTP_5XX),
-    ("net::HTTP_", FetchErrorCategory.GENERIC),
-    # -- 未识别的 Chromium 错误 → GENERIC --
-    ("net::ERR_", FetchErrorCategory.GENERIC),
-]
-
-# 非 Chromium 错误回退模式——错误字符串中不包含 net::ERR_ / net::HTTP_ 前缀时使用。
-# Playwright 特有错误消息格式（不含 Chromium 错误码，但属于 Playwright 公开 API 约定）。
-# 这些模式由 Playwright 源码固定，不会随浏览器版本变动。
-_FALLBACK_PATTERNS: list[tuple[str, FetchErrorCategory]] = [
-    ("Download is starting", FetchErrorCategory.DOWNLOAD),
-    ("Timeout exceeded (asyncio safety net)", FetchErrorCategory.TIMEOUT),
-    ("Page.goto: Timeout", FetchErrorCategory.TIMEOUT),
-    ("Navigation timeout", FetchErrorCategory.TIMEOUT),
-    ("Target page, context or browser has been closed", FetchErrorCategory.TARGET_CLOSED),
-    ("Target closed", FetchErrorCategory.TARGET_CLOSED),
-    ("Session closed", FetchErrorCategory.TARGET_CLOSED),
-    ("Browser closed", FetchErrorCategory.TARGET_CLOSED),
-    ("Page crashed", FetchErrorCategory.TARGET_CLOSED),
-    ("Execution context was destroyed", FetchErrorCategory.TARGET_CLOSED),
-    ("上下文恢复失败", FetchErrorCategory.CONTEXT_FAILURE),
-    ("上下文槽位修复失败", FetchErrorCategory.CONTEXT_FAILURE),
-    ("代理轮换失败", FetchErrorCategory.PROXY_EXHAUSTED),
-]
-
-
-def _extract_chromium_error(error_str: str) -> str | None:
-    """从错误字符串中提取 Chromium 错误码（net::ERR_XXX 或 net::HTTP_XXX）。"""
-    m = _CHROMIUM_ERROR_RE.search(error_str)
-    return m.group(0) if m else None
+ERROR_PATTERNS: Dict[FetchErrorCategory, List[str]] = {
+    # 此映射是错误分类的唯一真源（SSOT）。
+    # classify_fetch_error() 服务于统计报告，_retry.py
+    # 通过 classify_fetch_error() 获取类别后映射到 RetryStrategy。
+    # 新增错误模式只需在此处添加。
+    FetchErrorCategory.DNS: [
+        "net::ERR_NAME_NOT_RESOLVED",
+    ],
+    FetchErrorCategory.SSL: [
+        "net::ERR_SSL_PROTOCOL_ERROR",
+        "net::ERR_CERT_AUTHORITY_INVALID",
+    ],
+    FetchErrorCategory.TIMEOUT: [
+        "net::ERR_TIMED_OUT",
+        "Timeout ",  # Playwright: "Timeout 20000ms exceeded."
+        "Navigation timeout",  # Playwright: "Navigation timeout of 30000 ms exceeded"
+    ],
+    FetchErrorCategory.CONNECTION_REFUSED: [
+        "net::ERR_CONNECTION_REFUSED",
+    ],
+    FetchErrorCategory.CONNECTION_RESET: [
+        "net::ERR_CONNECTION_RESET",
+        "net::ERR_CONNECTION_CLOSED",
+    ],
+    FetchErrorCategory.TARGET_CLOSED: [
+        "Target closed",
+        "Session closed",
+        "Page crashed",
+        "Browser closed",
+        "has been closed",  # 覆盖 "Target has been closed" 等变体
+        "Execution context was destroyed",
+        "Protocol error",  # 宽泛——可能匹配非 TARGET_CLOSED 的 CDP 错误
+        "Unable to find",  # 宽泛——可能匹配元素选择器错误
+    ],
+    FetchErrorCategory.CONTEXT_FAILURE: [
+        "上下文恢复失败",
+        "上下文槽位修复失败",
+    ],
+    FetchErrorCategory.ABORTED: [
+        "net::ERR_ABORTED",
+    ],
+    FetchErrorCategory.PROXY: [
+        "net::ERR_TUNNEL_CONNECTION_FAILED",
+        "net::ERR_PROXY_CONNECTION_FAILED",
+        "net::ERR_PROXY_CERTIFICATE_INVALID",
+    ],
+    FetchErrorCategory.PROXY_EXHAUSTED: [
+        "代理轮换失败",
+    ],
+    FetchErrorCategory.HTTP_4XX: [
+        "net::HTTP_403",
+        "net::HTTP_404",
+        "net::HTTP_410",
+        "net::HTTP_451",
+        "net::HTTP_429",  # 限流——策略层按 TRANSIENT 处理
+    ],
+    FetchErrorCategory.HTTP_5XX: [
+        "net::HTTP_502",
+        "net::HTTP_503",
+        "net::HTTP_500",
+    ],
+    FetchErrorCategory.DOWNLOAD: [
+        "Download is starting",
+    ],
+    FetchErrorCategory.TOO_MANY_REDIRECTS: [
+        "net::ERR_TOO_MANY_REDIRECTS",
+    ],
+    FetchErrorCategory.GENERIC: [],
+}
 
 
 def classify_fetch_error(error_str: str) -> FetchErrorCategory:
-    """根据错误字符串将其分类到 FetchErrorCategory。
-
-    Tier 1: 提取 Chromium 错误码（稳定命名约定），查 _CHROMIUM_ERROR_TABLE。
-    Tier 2: 回退到 _FALLBACK_PATTERNS 处理非 Chromium 错误。
-    Tier 3: 默认 GENERIC。
-    """
+    """根据错误字符串将其分类到 FetchErrorCategory (纯函数, SSOT)。"""
     if not error_str:
         return FetchErrorCategory.GENERIC
-
-    code = _extract_chromium_error(error_str)
-    if code is not None:
-        for pattern, category in _CHROMIUM_ERROR_TABLE:
-            if code == pattern or (pattern.endswith("_") and code.startswith(pattern)):
-                return category
-        return FetchErrorCategory.GENERIC
-
-    for pattern, category in _FALLBACK_PATTERNS:
-        if pattern in error_str:
-            return category
-
+    for cat, patterns in ERROR_PATTERNS.items():
+        for pat in patterns:
+            if pat in error_str:
+                return cat
     return FetchErrorCategory.GENERIC
 
 

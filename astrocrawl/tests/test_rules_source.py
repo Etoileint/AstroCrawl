@@ -657,28 +657,6 @@ class TestManifestDownloadErrors:
             await mgr.fetch_manifest("bad_ct")
 
     @pytest.mark.asyncio
-    async def test_content_type_case_insensitive(self, tmp_path, monkeypatch):
-        """Content-Type 大小写不敏感 (RFC 7230)。"""
-        import aiohttp
-
-        monkeypatch.setattr("astrocrawl.rules._source.SOURCES_FILE", tmp_path / "sources.json")
-        monkeypatch.setattr("astrocrawl.rules._source.check_dns_rebinding", AsyncMock())
-
-        mock_resp = AsyncMock()
-        mock_resp.status = 200
-        mock_resp.headers = {"Content-Type": "Application/JSON; Charset=UTF-8"}
-        mock_resp.url = "https://example.com/rules.json"
-        mock_resp.read = AsyncMock(return_value=b'{"schema_version":1,"rules":[]}')
-
-        session = AsyncMock(spec=aiohttp.ClientSession)
-        session.get.return_value.__aenter__.return_value = mock_resp
-
-        mgr = SourceManager(session, tmp_path / "cache")
-        mgr.add_source("mixed_case", "https://example.com/rules.json")
-        # 不应抛出 ValueError——Application/JSON 是合法的 JSON Content-Type
-        await mgr.fetch_manifest("mixed_case")
-
-    @pytest.mark.asyncio
     async def test_size_limit_exceeded(self, tmp_path, monkeypatch):
         import aiohttp
 
@@ -1481,32 +1459,6 @@ class TestFinalGaps:
                 "src",
                 {"download_url": "https://example.com/r/test_rule.json", "name": "test_rule"},
             )
-
-    @pytest.mark.asyncio
-    async def test_download_rule_content_type_case_insensitive(self, tmp_path, monkeypatch):
-        """_do_download_rule — Content-Type 大小写不敏感。"""
-        import aiohttp
-
-        monkeypatch.setattr("astrocrawl.rules._source.SOURCES_FILE", tmp_path / "sources.json")
-        monkeypatch.setattr("astrocrawl.rules._source.check_dns_rebinding", AsyncMock())
-
-        rule_bytes = json.dumps({"name": "test_rule", "fields": {}}).encode("utf-8")
-        mock_resp = AsyncMock()
-        mock_resp.status = 200
-        mock_resp.headers = {"Content-Type": "Application/JSON"}
-        mock_resp.url = "https://example.com/r/test_rule.json"
-        mock_resp.read = AsyncMock(return_value=rule_bytes)
-
-        session = AsyncMock(spec=aiohttp.ClientSession)
-        session.get.return_value.__aenter__.return_value = mock_resp
-
-        mgr = SourceManager(session, tmp_path / "cache")
-        mgr.add_source("src", "https://example.com/manifest.json")
-        # 不应抛出 ValueError
-        await mgr.download_rule(
-            "src",
-            {"download_url": "https://example.com/r/test_rule.json", "name": "test_rule"},
-        )
 
     @pytest.mark.asyncio
     async def test_download_rule_size_limit(self, tmp_path, monkeypatch):

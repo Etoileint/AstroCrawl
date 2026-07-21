@@ -310,7 +310,8 @@ class SourceManager:
 
                 # S09: Content-Type
                 ct = resp.headers.get("Content-Type", "")
-                _check_json_content_type(ct)
+                if "application/json" not in ct and "text/json" not in ct:
+                    raise ValueError(f"非 JSON Content-Type: {ct}")
 
                 # S10: 大小限制
                 raw_bytes = await resp.read()
@@ -418,7 +419,8 @@ class SourceManager:
 
                 # H2/M3: Content-Type 检查
                 ct = resp.headers.get("Content-Type", "")
-                _check_json_content_type(ct)
+                if "application/json" not in ct and "text/json" not in ct:
+                    raise ValueError(f"非 JSON Content-Type: {ct}")
 
                 raw = await resp.read()
                 if len(raw) > MAX_RULE_FILE_SIZE:
@@ -583,16 +585,6 @@ class SourceManager:
 # ═══════════════════════════════════════════════════════════════════
 # URL 安全校验
 # ═══════════════════════════════════════════════════════════════════
-
-
-_VALID_JSON_CONTENT_TYPES = frozenset({"application/json", "text/json"})
-
-
-def _check_json_content_type(ct: str) -> None:
-    """校验 Content-Type 为 JSON 媒体类型（RFC 9110：类型/子类型大小写不敏感）。"""
-    media_type = ct.split(";")[0].strip().lower()
-    if media_type not in _VALID_JSON_CONTENT_TYPES:
-        raise ValueError(f"非 JSON Content-Type: {ct}")
 
 
 def _validate_source_url(url: str) -> str:

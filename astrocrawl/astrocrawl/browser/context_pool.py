@@ -49,8 +49,7 @@ class ContextPool:
         )
         self._closed = False
 
-        needs_proxy = self._path_switch.main_is_proxy or self._path_switch.fallback_is_proxy
-        if needs_proxy and not proxy_session:
+        if cfg.proxy_mode in ("proxy_only", "prefer_proxy", "prefer_direct") and not proxy_session:
             raise ConfigError(
                 f"proxy_mode='{cfg.proxy_mode}' requires at least one proxy. "
                 f"Provide proxies or set proxy_mode to 'direct_only'."
