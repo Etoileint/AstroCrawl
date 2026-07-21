@@ -54,4 +54,4 @@ class TestVersion:
             timeout=10,
         )
         assert result.returncode == 0, f"独立导入失败: {result.stderr}"
-        assert "0.1.6" in result.stdout
+        assert "0.1.7" in result.stdout

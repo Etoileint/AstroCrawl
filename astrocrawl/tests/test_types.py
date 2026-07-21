@@ -1,14 +1,13 @@
 """_types.py 共享内核类型完整测试套件。
 
-覆盖 9 个实体：FetchErrorCategory, ERROR_PATTERNS, classify_fetch_error,
+覆盖 9 个实体：FetchErrorCategory, _CHROMIUM_ERROR_TABLE, classify_fetch_error,
 DropReason, EnqueueResult, RuleMatchCache, RuleSnapshot, AsyncCloseable,
 DEFAULT_EXTRACTION_TYPE, DOWNLOAD_EXTRACTION_TYPE。
 （PathSwitch / _CONNECTIVITY_ERRORS / _NON_PROXY_ERRORS 已搬迁至 test_path_strategy.py）
 
 设计原则：
 - 每个断言验证一个不变式或行为
-- 首次匹配语义回归：具体模式在 dict 中的位置必须先于宽泛模式 (如 "Protocol error")，
-  合成测试字符串防范未来重排导致降级分类
+- Chromium 错误码前缀匹配语义：精确码优先于前缀族，族前缀优先于通配
 - TTL 测试使用 3× 安全裕度避免调度抖动
 - 结构完整性测试覆盖所有枚举成员数/值唯一性/格式约定
 """
@@ -24,9 +23,10 @@ import pytest
 
 from astrocrawl._path_strategy import _CONNECTIVITY_ERRORS, _NON_PROXY_ERRORS
 from astrocrawl._types import (
+    _CHROMIUM_ERROR_TABLE,
+    _FALLBACK_PATTERNS,
     DEFAULT_EXTRACTION_TYPE,
     DOWNLOAD_EXTRACTION_TYPE,
-    ERROR_PATTERNS,
     DropReason,
     EnqueueResult,
     FetchErrorCategory,
@@ -96,62 +96,84 @@ class TestFetchErrorCategory:
 
 
 # ═══════════════════════════════════════════════════════════════════════
-# ERROR_PATTERNS — SSOT 结构完整性
+# _CHROMIUM_ERROR_TABLE — 结构完整性
 # ═══════════════════════════════════════════════════════════════════════
 
 
-class TestErrorPatternsSSOT:
-    def test_every_category_has_entry(self):
+class TestChromiumErrorTable:
+    def test_all_categories_covered(self):
+        """每个 FetchErrorCategory 至少被一个表项或回退模式覆盖（GENERIC 是默认兜底）。"""
+        covered: set[FetchErrorCategory] = {c for _, c in _CHROMIUM_ERROR_TABLE}
+        for _, c in _FALLBACK_PATTERNS:
+            covered.add(c)
+        covered.add(FetchErrorCategory.GENERIC)  # 隐式默认
         for cat in FetchErrorCategory:
-            assert cat in ERROR_PATTERNS, f"{cat} missing from ERROR_PATTERNS"
+            assert cat in covered, f"{cat} not covered by error table or fallbacks"
 
-    def test_no_duplicate_patterns_across_categories(self):
-        seen: dict[str, FetchErrorCategory] = {}
-        for cat, patterns in ERROR_PATTERNS.items():
-            for pat in patterns:
-                if pat in seen:
-                    pytest.fail(f"Pattern {pat!r} appears in both {seen[pat].value} and {cat.value}")
-                seen[pat] = cat
+    def test_no_prefix_ambiguity(self):
+        """更精确的条目必须排在更宽泛的条目之前。"""
+        for i, (pat_i, _cat_i) in enumerate(_CHROMIUM_ERROR_TABLE):
+            if not pat_i.endswith("_"):
+                continue
+            for j, (pat_j, _cat_j) in enumerate(_CHROMIUM_ERROR_TABLE):
+                if j <= i or not pat_j.endswith("_"):
+                    continue
+                if pat_j.startswith(pat_i) and len(pat_j) > len(pat_i):
+                    pytest.fail(f"Prefix {pat_i!r} (pos {i}) shadows narrower {pat_j!r} (pos {j})")
 
-    def test_generic_has_empty_pattern_list(self):
-        assert ERROR_PATTERNS[FetchErrorCategory.GENERIC] == []
+    def test_exact_entries_before_family_prefixes(self):
+        """精确匹配码 (如 net::ERR_TIMED_OUT) 必须排在族前缀 (如 net::ERR_SSL_) 之前。"""
+        exact_positions: dict[str, int] = {}
+        family_positions: dict[str, int] = {}
+        for i, (pat, _) in enumerate(_CHROMIUM_ERROR_TABLE):
+            if pat.endswith("_"):
+                family_positions[pat] = i
+            else:
+                exact_positions[pat] = i
+        for exact, exact_pos in exact_positions.items():
+            for family, family_pos in family_positions.items():
+                if exact.startswith(family):
+                    if exact_pos > family_pos:
+                        pytest.fail(f"Exact {exact!r} (pos {exact_pos}) after family {family!r} (pos {family_pos})")
 
-    def test_no_pattern_is_empty_string(self):
-        for cat, patterns in ERROR_PATTERNS.items():
-            for pat in patterns:
-                assert pat != "", f"{cat.value} has empty string pattern"
+    def test_net_err_wildcard_is_last(self):
+        """通配 net::ERR_ 必须是最后一项。"""
+        last_pat, last_cat = _CHROMIUM_ERROR_TABLE[-1]
+        assert last_pat == "net::ERR_", f"Last entry should be catch-all, got {last_pat!r}"
+        assert last_cat == FetchErrorCategory.GENERIC
 
-    def test_total_pattern_count(self):
-        total = sum(len(v) for v in ERROR_PATTERNS.values())
-        assert total == 34  # 回归锚点
-
-    def test_pattern_order_is_deterministic(self):
-        keys = list(ERROR_PATTERNS.keys())
-        assert keys == [
-            FetchErrorCategory.DNS,
-            FetchErrorCategory.SSL,
-            FetchErrorCategory.TIMEOUT,
-            FetchErrorCategory.CONNECTION_REFUSED,
-            FetchErrorCategory.CONNECTION_RESET,
-            FetchErrorCategory.TARGET_CLOSED,
-            FetchErrorCategory.CONTEXT_FAILURE,
-            FetchErrorCategory.ABORTED,
-            FetchErrorCategory.PROXY,
-            FetchErrorCategory.PROXY_EXHAUSTED,
-            FetchErrorCategory.HTTP_4XX,
-            FetchErrorCategory.HTTP_5XX,
-            FetchErrorCategory.DOWNLOAD,
-            FetchErrorCategory.TOO_MANY_REDIRECTS,
-            FetchErrorCategory.GENERIC,
-        ]
-
-    def test_every_pattern_classifies_to_its_category(self):
-        """每个模式独立测试：确认模式字符串正确映射到所属类别。"""
-        for cat, patterns in ERROR_PATTERNS.items():
-            for pat in patterns:
-                assert classify_fetch_error(f"prefix {pat} suffix") == cat, (
-                    f"Pattern {pat!r} should classify as {cat.value}"
+    def test_every_entry_classifies_to_its_category(self):
+        """每个精确匹配项应正确分类该 Chromium 错误码。"""
+        for pattern, category in _CHROMIUM_ERROR_TABLE:
+            if pattern.endswith("_"):
+                # 前缀族：构造一个合成错误码验证
+                synthetic_code = pattern + "SYNTHETIC_TEST"
+                assert classify_fetch_error(synthetic_code) == category, (
+                    f"Prefix {pattern!r} should classify {synthetic_code!r} as {category.value}"
                 )
+            else:
+                assert classify_fetch_error(pattern) == category, (
+                    f"Exact {pattern!r} should classify as {category.value}"
+                )
+
+    def test_socks_errors_classify_as_proxy(self):
+        """SOCKS5 代理错误应归入 PROXY 分类——回归审计发现 #1。"""
+        assert classify_fetch_error("net::ERR_SOCKS_CONNECTION_FAILED") == FetchErrorCategory.PROXY
+        assert classify_fetch_error("net::ERR_SOCKS_CONNECTION_HOST_UNREACHABLE") == FetchErrorCategory.PROXY
+
+    def test_cert_errors_classify_as_ssl(self):
+        """证书错误族应归入 SSL。"""
+        assert classify_fetch_error("net::ERR_CERT_COMMON_NAME_INVALID") == FetchErrorCategory.SSL
+        assert classify_fetch_error("net::ERR_CERT_DATE_INVALID") == FetchErrorCategory.SSL
+        assert classify_fetch_error("net::ERR_SSL_PROTOCOL_ERROR") == FetchErrorCategory.SSL
+
+    def test_unknown_chromium_error_is_generic(self):
+        """无法识别的 net::ERR_ 错码 → GENERIC。"""
+        assert classify_fetch_error("net::ERR_WHATEVER_UNKNOWN_ERROR") == FetchErrorCategory.GENERIC
+
+    def test_no_chromium_code_falls_back_to_generic(self):
+        """不包含 Chromium 错误码且不匹配任何回退模式 → GENERIC。"""
+        assert classify_fetch_error("Something went wrong") == FetchErrorCategory.GENERIC
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -160,43 +182,39 @@ class TestErrorPatternsSSOT:
 
 
 class TestClassifyFetchErrorFirstMatch:
-    """首次匹配语义回归——dict 插入顺序即匹配优先级。
+    """Chromium 错误码提取优先于任何文本匹配——不再依赖 ERROR_PATTERNS 的 dict 顺序。
 
-    以下 "before_protocol_error" 测试使用合成字符串验证：具体网络错误码
-    在 ERROR_PATTERNS 中的位置必须先于 TARGET_CLOSED 的宽泛 "Protocol error"，
-    否则具体错误会被宽泛模式拦截。Playwright 真实错误中 CDP Protocol error
-    与 Chrome net error 不会同时出现，但此测试防止未来有人重排 ERROR_PATTERNS
-    时将具体错误类别移到 TARGET_CLOSED 之后。"""
+    classify_fetch_error 内部先提取 net::ERR_XXX 前缀，再按表匹配。
+    文本层面的歧义（如 "Protocol error"）不会干扰已提取的 Chromium 错误码。"""
 
-    def test_connection_refused_before_protocol_error(self):
+    def test_chromium_code_always_wins_over_text(self):
+        """Chromium 错误码提取优先——即使字符串中包含宽泛文本模式。"""
         err = "Protocol error (Page.navigate): net::ERR_CONNECTION_REFUSED"
         assert classify_fetch_error(err) == FetchErrorCategory.CONNECTION_REFUSED
 
-    def test_connection_reset_before_protocol_error(self):
+    def test_chromium_code_reset_wins_over_protocol_error(self):
         err = "Protocol error (Page.navigate): net::ERR_CONNECTION_RESET"
         assert classify_fetch_error(err) == FetchErrorCategory.CONNECTION_RESET
 
-    def test_timeout_before_protocol_error(self):
-        err = "Protocol error (Page.navigate): Timeout 30000ms exceeded."
+    def test_fallback_timeout_without_chromium_code(self):
+        """不包含 Chromium 错误码的 asyncio 超时 → 回退模式匹配。"""
+        err = "Timeout exceeded (asyncio safety net)"
         assert classify_fetch_error(err) == FetchErrorCategory.TIMEOUT
 
-    def test_protocol_error_catch_all(self):
+    def test_no_chromium_code_no_fallback_is_generic(self):
+        """既无 Chromium 错误码也无回退匹配 → GENERIC。旧系统中 "Protocol error" 被过宽匹配为 TARGET_CLOSED。"""
         assert (
-            classify_fetch_error("Protocol error (Page.navigate): Unknown internal error")
-            == FetchErrorCategory.TARGET_CLOSED
+            classify_fetch_error("Protocol error (Page.navigate): Unknown internal error") == FetchErrorCategory.GENERIC
         )
 
-    def test_unable_to_find_catch_all(self):
-        assert classify_fetch_error("Unable to find target with given id") == FetchErrorCategory.TARGET_CLOSED
+    def test_unrecognized_text_is_generic(self):
+        """不以任何已知模式开头的错误 → GENERIC。"""
+        assert classify_fetch_error("Unable to find target with given id") == FetchErrorCategory.GENERIC
 
-    def test_case_sensitive_match(self):
-        assert classify_fetch_error("timeout ") == FetchErrorCategory.GENERIC
-        assert classify_fetch_error("Timeout ") == FetchErrorCategory.TIMEOUT
-
-    def test_multiple_patterns_first_wins(self):
-        """错误同时包含 DNS(pos 0) 和 TIMEOUT(pos 2) 模式 → DNS 先匹配胜出。"""
+    def test_first_chromium_code_wins_with_multiple_codes(self):
+        """多个 Chromium 错误码同时出现 → 取第一个（regex search 自然行为）。"""
         err = "net::ERR_TIMED_OUT during net::ERR_NAME_NOT_RESOLVED lookup"
-        assert classify_fetch_error(err) == FetchErrorCategory.DNS
+        assert classify_fetch_error(err) == FetchErrorCategory.TIMEOUT
 
 
 class TestClassifyFetchErrorEdgeCases:
@@ -225,20 +243,30 @@ class TestClassifyFetchErrorEdgeCases:
     def test_http_500_is_5xx(self):
         assert classify_fetch_error("net::HTTP_500: Internal error") == FetchErrorCategory.HTTP_5XX
 
-    def test_target_closed_page_crashed(self):
-        assert classify_fetch_error("Page crashed unexpectedly") == FetchErrorCategory.TARGET_CLOSED
-
-    def test_target_closed_browser_closed(self):
-        assert classify_fetch_error("Browser closed during navigation") == FetchErrorCategory.TARGET_CLOSED
-
     def test_connection_closed_is_reset(self):
         assert classify_fetch_error("net::ERR_CONNECTION_CLOSED") == FetchErrorCategory.CONNECTION_RESET
 
     def test_context_failure_chinese(self):
         assert classify_fetch_error("上下文恢复失败，槽位已失效") == FetchErrorCategory.CONTEXT_FAILURE
 
+    def test_target_closed_page_crashed(self):
+        assert classify_fetch_error("Page crashed unexpectedly") == FetchErrorCategory.TARGET_CLOSED
+
+    def test_target_closed_browser_closed(self):
+        assert classify_fetch_error("Browser closed during navigation") == FetchErrorCategory.TARGET_CLOSED
+
+    def test_target_closed_execution_context(self):
+        assert classify_fetch_error("Execution context was destroyed in navigation") == FetchErrorCategory.TARGET_CLOSED
+
     def test_proxy_exhausted_chinese(self):
         assert classify_fetch_error("代理轮换失败——无可用替代代理") == FetchErrorCategory.PROXY_EXHAUSTED
+
+    def test_playwright_timeout_message_has_chromium_code(self):
+        """Playwright 超时消息中包含 Chromium 错误码时应按错误码分类。"""
+        assert classify_fetch_error("Page.goto: Timeout 30000ms exceeded.") == FetchErrorCategory.TIMEOUT
+
+    def test_async_timeout_safety_net(self):
+        assert classify_fetch_error("Timeout exceeded (asyncio safety net)") == FetchErrorCategory.TIMEOUT
 
 
 # ═══════════════════════════════════════════════════════════════════════

@@ -22,6 +22,14 @@ from playwright.async_api import Error as PlaywrightError
 from playwright.async_api import Page
 from playwright.async_api import TimeoutError as PlaywrightTimeoutError
 
+try:
+    from playwright._impl._browser import is_target_closed_error as _is_target_closed_error
+except ImportError:  # pragma: no cover — Playwright 内部 API 变更回退
+
+    def _is_target_closed_error(exc: Exception) -> bool:  # type: ignore[no-redef]
+        return type(exc).__name__ == "TargetClosedError"
+
+
 from astrobasis import LogfmtLogger
 from astrocrawl._constants import (
     BLOCKED_RESOURCE_TYPES,
@@ -553,7 +561,15 @@ class BrowserPool:
             err_str = "Timeout exceeded (asyncio safety net)"
             strategy = ProxyFailureClassifier.classify(err_str, has_proxy=slot_has_proxy)
             return None, err_str, strategy
+        except PlaywrightTimeoutError as exc:
+            err_str = str(exc)
+            strategy = RetryStrategy.ROTATE_PROXY if slot_has_proxy else RetryStrategy.REPLACE_CONTEXT
+            return None, err_str, strategy
         except PlaywrightError as exc:
+            if _is_target_closed_error(exc):
+                err_str = str(exc)
+                strategy = RetryStrategy.REPLACE_CONTEXT
+                return None, err_str, strategy
             err_str = str(exc)
             strategy = ProxyFailureClassifier.classify(err_str, has_proxy=slot_has_proxy)
             return None, err_str, strategy

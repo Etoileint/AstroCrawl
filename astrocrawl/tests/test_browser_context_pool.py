@@ -28,12 +28,9 @@ class _TestContextPoolConfig:
     proxy_mode = "direct_only"
 
     def get_path_switch(self):
-        class _PS:
-            main_is_proxy = False
-            fallback_is_proxy = False
-            on_exhausted = "fail"
+        from astrocrawl._path_strategy import PathSwitch
 
-        return _PS()
+        return PathSwitch.for_mode(self.proxy_mode)
 
 
 _log = LogfmtLogger("astrocrawl.test.contextpool")
