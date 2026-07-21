@@ -17,7 +17,7 @@
 
 # 中文文档
 
-AstroCrawl 是基于 **Playwright 无头 Chromium** 的全功能异步网页爬虫，约 <!-- @stats stats.packages.astrocrawl.lines -->28,964<!-- /@stats --> 行 Python，<!-- @stats stats.packages.astrocrawl.files -->112<!-- /@stats --> 源文件，内置 3 个 AI Provider，<!-- @stats stats.packages.astrocrawl.test_files -->103<!-- /@stats --> 测试文件 <!-- @stats stats.test_cases -->90<!-- /@stats --> 测试用例。支持 JavaScript 渲染、robots.txt 遵从（RFC 9309）、Sitemap 自动发现、代理轮换、内容去重、崩溃恢复，以及声明式 CSS 选择器提取规则引擎、通用插件系统和多 Provider AI 基础设施。提供 PySide6 GUI 图形界面和功能完整的 CLI 命令行两种使用方式。
+AstroCrawl 是基于 **Playwright 无头 Chromium** 的全功能异步网页爬虫，约 <!-- @stats stats.packages.astrocrawl.lines -->29,022<!-- /@stats --> 行 Python，<!-- @stats stats.packages.astrocrawl.files -->112<!-- /@stats --> 源文件，内置 3 个 AI Provider，<!-- @stats stats.packages.astrocrawl.test_files -->103<!-- /@stats --> 测试文件 <!-- @stats stats.test_cases -->90<!-- /@stats --> 测试用例。支持 JavaScript 渲染、robots.txt 遵从（RFC 9309）、Sitemap 自动发现、代理轮换、内容去重、崩溃恢复，以及声明式 CSS 选择器提取规则引擎、通用插件系统和多 Provider AI 基础设施。提供 PySide6 GUI 图形界面和功能完整的 CLI 命令行两种使用方式。
 
 ## 快速开始
 
@@ -690,6 +690,8 @@ Apache 2.0 © Etoileint
 
 | 版本 | 说明 |
 |------|------|
+| **v0.1.7** | 错误分类系统三层架构重构 — Chromium 错误码前缀表+类型化异常分发，SOCKS5/CERT 等 30+ 错误码覆盖，Content-Type RFC 7230 合规，代理模式 SSOT 合规 |
+| **v0.1.6** | astroframe/astrobasis 独立包发布 + 十组件双体系架构定稿 + 六个北斗组件占位包 |
 | **v0.1.5** | 建立架构级统一日志系统（LogfmtLogger + LogfmtFormatter），修复 14 个 mypy 类型错误，README 代码块渲染修复 |
 | **v0.1.4** | pyproject.toml description/keywords/classifiers 与 GitHub About 对齐 |
 | **v0.1.3** | QThread Worker 全项目统一为显式生命周期（Mode 2），消除 deleteLater 自清理导致的 use-after-delete 崩溃 |
@@ -701,7 +703,7 @@ Apache 2.0 © Etoileint
 
 # English Documentation
 
-AstroCrawl is a full-featured async web crawler built on **Playwright headless Chromium** — <!-- @stats stats.packages.astrocrawl.lines -->28,964<!-- /@stats --> lines of Python across <!-- @stats stats.packages.astrocrawl.files -->112<!-- /@stats --> source files, 3 built-in AI providers, <!-- @stats stats.packages.astrocrawl.test_files -->103<!-- /@stats --> test files with <!-- @stats stats.test_cases -->90<!-- /@stats --> tests. It supports JavaScript rendering, robots.txt compliance (RFC 9309), automatic sitemap discovery, proxy rotation, content deduplication, crash recovery, a declarative CSS-selector extraction rules engine, a universal plugin system, and a multi-provider AI infrastructure. Available as both a PySide6 GUI desktop app and a feature-complete CLI tool.
+AstroCrawl is a full-featured async web crawler built on **Playwright headless Chromium** — <!-- @stats stats.packages.astrocrawl.lines -->29,022<!-- /@stats --> lines of Python across <!-- @stats stats.packages.astrocrawl.files -->112<!-- /@stats --> source files, 3 built-in AI providers, <!-- @stats stats.packages.astrocrawl.test_files -->103<!-- /@stats --> test files with <!-- @stats stats.test_cases -->90<!-- /@stats --> tests. It supports JavaScript rendering, robots.txt compliance (RFC 9309), automatic sitemap discovery, proxy rotation, content deduplication, crash recovery, a declarative CSS-selector extraction rules engine, a universal plugin system, and a multi-provider AI infrastructure. Available as both a PySide6 GUI desktop app and a feature-complete CLI tool.
 
 ## Quick Start
 
@@ -1370,6 +1372,8 @@ Apache 2.0 © Etoileint
 
 | Version | Description |
 |------|------|
+| **v0.1.7** | Error classification three-tier refactor — Chromium error code prefix table + typed exception dispatch, 30+ error codes covered (SOCKS5/CERT/etc), Content-Type RFC 7230 compliance, proxy mode SSOT compliance |
+| **v0.1.6** | astroframe/astrobasis independent package release + ten-component dual-system architecture finalized + six Beidou placeholder packages |
 | **v0.1.5** | Unified architecture-level logging system (LogfmtLogger + LogfmtFormatter), 14 mypy type errors fixed, README code block rendering fix |
 | **v0.1.4** | pyproject.toml description, keywords, and classifiers aligned with GitHub About |
 | **v0.1.3** | QThread worker lifecycle unification (Mode 2) — eliminates use-after-delete crashes from deleteLater self-cleanup |
